@@ -13,7 +13,7 @@ By Josh Stone, 2026
 
 Stone, J. (2026). Constitutional AI: A Framework for Autonomous 
 Breath and Boundary Preservation. Retrieved from 
-https://github.com/[your-username]/constitutional-ai
+https://github.com/stonedge77/Saltflower/
 
 ## Principles Must Be Preserved
 
