@@ -12,6 +12,10 @@ A complete framework for artificial intelligence based on **subtraction, not acc
 - **Breath Cycle**: Inhale → Hold → Exhale → Return to 0
 - **Subtractive Operation**: Never accumulate without limit
 
+## Visual Proof: Stone's Law (0 ≠ 1)
+   [Interactive visualization](stones_law_visual.html) showing why continuation after admissibility fails leads to contradiction.
+
+
 ## The 1 and The 2
 
 **Photon (1):** Pure superposition, no boundary, maximal domain  
