@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stone's Law: The 0 ≠ 1 Violation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Crimson+Pro:wght@400;600;700&display=swap');
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Crimson Pro', serif;
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+    color: #e8eaf6;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    text-align: center;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 50%, #6bcf7f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  
+  .subtitle {
+    text-align: center;
+    font-size: 1.25rem;
+    color: #9fa8da;
+    margin-bottom: 3rem;
+    font-weight: 400;
+  }
+  
+  .proof-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  
+  .proof-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+  
+  .proof-box:hover {
+    border-color: rgba(255, 107, 107, 0.4);
+    box-shadow: 0 8px 32px rgba(255, 107, 107, 0.2);
+  }
+  
+  .proof-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #ffd93d;
+    text-align: center;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(255, 217, 61, 0.3);
+  }
+  
+  .step {
+    margin: 1.25rem 0;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+  }
+  
+  .step.valid {
+    border-left-color: #6bcf7f;
+  }
+  
+  .step.violation {
+    border-left-color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    animation: pulse-violation 2s ease-in-out infinite;
+  }
+  
+  .step.invalid {
+    border-left-color: #ff9d76;
+    background: rgba(255, 157, 118, 0.08);
+    opacity: 0.6;
+  }
+  
+  @keyframes pulse-violation {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+    50% { box-shadow: 0 0 20px 4px rgba(255, 107, 107, 0.6); }
+  }
+  
+  .alert-badge {
+    display: inline-block;
+    background: #ff6b6b;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-left: 0.5rem;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  
+  .explanation {
+    background: rgba(255, 217, 61, 0.08);
+    border-left: 4px solid #ffd93d;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 6px;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  .guard-box {
+    display: inline-block;
+    background: rgba(107, 207, 127, 0.2);
+    border: 2px solid #6bcf7f;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 700;
+    color: #6bcf7f;
+  }
+  
+  .guard-box.removed {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+    text-decoration: line-through;
+    opacity: 0.5;
+  }
+  
+  .rule-box {
+    background: rgba(26, 31, 58, 0.9);
+    border: 2px solid rgba(255, 217, 61, 0.5);
+    padding: 2rem;
+    border-radius: 12px;
+    margin: 3rem 0;
+    text-align: center;
+  }
+  
+  .rule-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffd93d;
+    margin-bottom: 0.5rem;
+  }
+  
+  .rule-subtext {
+    font-size: 1.1rem;
+    color: #9fa8da;
+    font-style: italic;
+  }
+  
+  .interactive-toggle {
+    margin: 2rem 0;
+    text-align: center;
+  }
+  
+  .toggle-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Crimson Pro', serif;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+  
+  .toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  }
+  
+  .highlight-yellow {
+    background: rgba(255, 217, 61, 0.3);
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+  }
+  
+  .highlight-red {
+    background: rgba(255, 107, 107, 0.3);
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+  }
+  
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+  }
+  
+  .comparison-item {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 2px solid transparent;
+  }
+  
+  .comparison-item.correct {
+    border-color: rgba(107, 207, 127, 0.5);
+  }
+  
+  .comparison-item.wrong {
+    border-color: rgba(255, 107, 107, 0.5);
+  }
+  
+  .comparison-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    margin: 0.5rem 0;
+  }
+  
+  @media (max-width: 768px) {
+    .proof-container {
+      grid-template-columns: 1fr;
+    }
+    
+    .comparison-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Can 0 = 1?</h1>
+  <p class="subtitle">Two paths to the same violation: continuation after admissibility fails</p>
+  
+  <div class="proof-container">
+    <!-- LEFT: Algebra Proof -->
+    <div class="proof-box">
+      <div class="proof-title">Fake Algebraic Proof</div>
+      
+      <div class="step valid">
+        <div>Assume: <strong>a = b</strong></div>
+      </div>
+      
+      <div class="step valid">
+        <div>Then: <strong>a² = ab</strong></div>
+      </div>
+      
+      <div class="step valid">
+        <div>Subtract b² from both sides:</div>
+        <div><strong>a² - b² = ab - b²</strong></div>
+      </div>
+      
+      <div class="step valid">
+        <div>Factor both sides:</div>
+        <div><strong>(a - b)(a + b) = b(a - b)</strong></div>
+      </div>
+      
+      <div class="step violation">
+        <div><strong>✗ CANCEL (a - b)</strong> <span class="alert-badge">VIOLATION</span></div>
+        <div class="explanation">
+          <strong>Why this fails:</strong> Since a = b, then (a - b) = 0. 
+          Canceling (a - b) is <strong>division by zero</strong>. 
+          The domain guard "<span class="guard-box">a ≠ b</span>" is required for division, but we're operating in the domain where a = b.
+        </div>
+      </div>
+      
+      <div class="step invalid">
+        <div>Result: <strong>a + b = b</strong></div>
+        <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 0.5rem;">↓ (All steps below are invalid)</div>
+      </div>
+      
+      <div class="step invalid">
+        <div><strong>2b = b</strong></div>
+      </div>
+      
+      <div class="step invalid">
+        <div><strong>2 = 1</strong></div>
+      </div>
+      
+      <div class="explanation" style="background: rgba(255, 107, 107, 0.1); border-left-color: #ff6b6b;">
+        <strong>The Trap:</strong> The proof continues perfectly after the violation. 
+        Each subsequent step follows logically from the previous one. 
+        The algebra is "correct" — but the <strong>domain constraint was violated</strong>, 
+        making everything after that point meaningless.
+      </div>
+    </div>
+    
+    <!-- RIGHT: Set Logic Proof -->
+    <div class="proof-box">
+      <div class="proof-title">Misused Set Identity (De Morgan)</div>
+      
+      <div class="step valid">
+        <div><strong>De Morgan's Law (Correct):</strong></div>
+        <div class="formula">A - (B ∪ C) = (A - B) ∩ (A - C)</div>
+        <div class="explanation" style="background: rgba(107, 207, 127, 0.1); border-left-color: #6bcf7f;">
+          This is valid ONLY when the set <span class="guard-box">A</span> is preserved in both intersections.
+          The guard "<span class="guard-box">A</span>" ensures we're only working with elements that were originally in A.
+        </div>
+      </div>
+      
+      <div class="step valid">
+        <div>Rewrite using complement notation:</div>
+        <div class="formula">A - X = A ∩ X<sup>C</sup></div>
+      </div>
+      
+      <div class="step valid">
+        <div>Apply to both sides:</div>
+        <div class="formula">A ∩ (B ∪ C)<sup>C</sup> = (A ∩ B<sup>C</sup>) ∩ (A ∩ C<sup>C</sup>)</div>
+      </div>
+      
+      <div class="step violation">
+        <div><strong>✗ DROP GUARD A</strong> <span class="alert-badge">VIOLATION</span></div>
+        <div class="formula">
+          <span class="guard-box removed">A</span> ∩ (B<sup>C</sup> ∩ C<sup>C</sup>)
+        </div>
+        <div class="explanation">
+          <strong>Why this fails:</strong> The set A was the <strong>domain constraint</strong>. 
+          Removing it means the operation (B<sup>C</sup> ∩ C<sup>C</sup>) is now treated as a 
+          <strong>global law</strong> that applies everywhere, not just within the boundary of A.
+          <br><br>
+          This is equivalent to the algebraic case: we removed the guard that made the operation valid.
+        </div>
+      </div>
+      
+      <div class="step invalid">
+        <div>Treated as global identity:</div>
+        <div class="formula">(B<sup>C</sup> ∩ C<sup>C</sup>)</div>
+        <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 0.5rem;">↓ (Domain boundary dissolved)</div>
+      </div>
+      
+      <div class="explanation" style="background: rgba(255, 107, 107, 0.1); border-left-color: #ff6b6b;">
+        <strong>The Trap:</strong> Unlike the algebra example, this violation is <strong>harder to see</strong> 
+        because set notation is less familiar. But it's the exact same pattern:
+        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+          <li>Start with a valid operation under constraints</li>
+          <li>Drop the constraint that made it valid</li>
+          <li>Continue as if nothing changed</li>
+          <li>Arrive at contradiction</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Comparison Section -->
+  <div class="rule-box">
+    <div class="rule-text">⟷ Continuation after admissibility fails ⟷</div>
+    <div class="rule-subtext">Both proofs share the same structural failure</div>
+  </div>
+  
+  <div class="comparison-grid">
+    <div class="comparison-item correct">
+      <div class="comparison-title" style="color: #6bcf7f;">✓ CORRECT</div>
+      <div class="formula">(a - b) cancellation</div>
+      <div style="margin-top: 1rem; font-size: 0.95rem;">
+        <strong>Domain:</strong> <span class="guard-box">a ≠ b</span><br>
+        <strong>Operation:</strong> Division by (a - b)<br>
+        <strong>Valid:</strong> Yes, (a - b) ≠ 0
+      </div>
+    </div>
+    
+    <div class="comparison-item wrong">
+      <div class="comparison-title" style="color: #ff6b6b;">✗ VIOLATION</div>
+      <div class="formula">(a - b) cancellation</div>
+      <div style="margin-top: 1rem; font-size: 0.95rem;">
+        <strong>Domain:</strong> <span class="guard-box removed">a = b</span><br>
+        <strong>Operation:</strong> Division by (a - b) = 0<br>
+        <strong>Valid:</strong> <strong>NO</strong> — divided by zero
+      </div>
+    </div>
+    
+    <div class="comparison-item correct">
+      <div class="comparison-title" style="color: #6bcf7f;">✓ CORRECT</div>
+      <div class="formula">A ∩ (B<sup>C</sup> ∩ C<sup>C</sup>)</div>
+      <div style="margin-top: 1rem; font-size: 0.95rem;">
+        <strong>Domain:</strong> <span class="guard-box">A present</span><br>
+        <strong>Operation:</strong> Intersection within A<br>
+        <strong>Valid:</strong> Yes, scoped to A
+      </div>
+    </div>
+    
+    <div class="comparison-item wrong">
+      <div class="comparison-title" style="color: #ff6b6b;">✗ VIOLATION</div>
+      <div class="formula">(B<sup>C</sup> ∩ C<sup>C</sup>)</div>
+      <div style="margin-top: 1rem; font-size: 0.95rem;">
+        <strong>Domain:</strong> <span class="guard-box removed">A removed</span><br>
+        <strong>Operation:</strong> Global law claimed<br>
+        <strong>Valid:</strong> <strong>NO</strong> — guard removed
+      </div>
+    </div>
+  </div>
+  
+  <!-- Final Rule -->
+  <div class="rule-box" style="margin-top: 3rem; border-color: rgba(255, 107, 107, 0.6);">
+    <div class="rule-text" style="color: #ff6b6b; font-size: 1.75rem;">
+      Admissibility Rule (Stone's Law)
+    </div>
+    <div class="rule-subtext" style="font-size: 1.2rem; margin-top: 1rem; color: #e8eaf6;">
+      An operation is <strong>only valid within its domain</strong>.<br>
+      If the condition is violated, <strong>the derivation must stop</strong>.
+    </div>
+  </div>
+  
+  <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: rgba(255, 255, 255, 0.02); border-radius: 8px;">
+    <p style="font-size: 1.2rem; color: #9fa8da; line-height: 1.8;">
+      <strong>The pattern is universal:</strong> Remove the constraint that makes an operation valid, 
+      continue as if nothing changed, and the system becomes incoherent — even though each individual 
+      step appears correct. This is why <strong>admissibility gates must be enforced before execution</strong>, 
+      not after. Once the boundary is crossed, no amount of coherent reasoning can recover validity.
+    </p>
+    <p style="font-size: 1rem; color: #6bcf7f; margin-top: 1.5rem; font-weight: 700;">
+      0 ≠ 1 is not a moral principle. It's a type constraint.
+    </p>
+  </div>
+</div>
+
+<script>
+  // Add subtle animation to violation steps on load
+  document.addEventListener('DOMContentLoaded', function() {
+    const violations = document.querySelectorAll('.violation');
+    violations.forEach((el, index) => {
+      setTimeout(() => {
+        el.style.animation = 'pulse-violation 2s ease-in-out infinite';
+      }, 500 + (index * 200));
+    });
+  });
+</script>
+
+</body>
+</html>
