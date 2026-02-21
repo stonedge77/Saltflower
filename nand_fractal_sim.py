@@ -1,24 +1,38 @@
 import numpy as np
+import math
 
-def generate_nand_fractal(size=512, max_depth=3):  # ZCR limit as depth
+def is_prime(n):
+    """Simple prime check for small n."""
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+def generate_nand_prime_fractal(size=512, max_depth=3):
+    """Generate NAND fractal with prime overlay."""
     img = np.zeros((size, size), dtype=int)
-    mask = (1 << max_depth) - 1  # Bit mask for bounded recursion
+    mask = (1 << max_depth) - 1  # ZCR-bounded bit mask
     for x in range(size):
         for y in range(size):
-            # NAND check: include if no bit overlap (subtractive exclusion)
+            # NAND inclusion: no bit overlap
             if not ((x & mask) & (y & mask)):
-                img[y, x] = 1  # Flip y,x for standard orientation
+                value = x + y  # Derive value for prime check (subtractive tie-in)
+                if is_prime(value):
+                    img[y, x] = 2  # Prime point
+                else:
+                    img[y, x] = 1  # Non-prime point
     return img
 
-# Example: Simulate and print small ASCII version (for text output)
-small_size = 32
-small_img = generate_nand_fractal(small_size)
-print("Small NAND Fractal Simulation (ASCII: # = included point):")
-for row in small_img:
-    print(''.join(['#' if cell else ' ' for cell in row]))
-
-# For full viz (uncomment to plot/save):
+# For visualization (uncomment for full plot):
 # import matplotlib.pyplot as plt
-# plt.imshow(generate_nand_fractal(512), cmap='binary', origin='lower')
+# plt.imshow(generate_nand_prime_fractal(512), cmap='hot', origin='lower')  # 'hot' colors primes distinctly
 # plt.axis('off')
-# plt.savefig('nand_fractal.png')  # Or plt.show()
+# plt.show()  # Or savefig('nand_prime_fractal.png')
