@@ -1,15 +1,10 @@
 import numpy as np
 import torch
-import torch.nn as nn
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
-from transformers import pipeline as hf_pipeline
-import soundfile as sf  # For WAV I/O
+import soundfile as sf
 from scipy.signal import resample
-import jiwer  # For WER metric (pip install jiwer)
 
-# Higuchi FD extractor (3D spatial: roughness scalar)
-def higuchi_fd(signal, k_max=10, fs=16000):
-    """Higuchi fractal dimension: low ~1.2 (glide), high ~1.8 (ripple)."""
+def higuchi_fd(signal, k_max=10):
     N = len(signal)
     L = []
     for k in range(1, k_max + 1):
@@ -27,73 +22,59 @@ def higuchi_fd(signal, k_max=10, fs=16000):
     p = np.polyfit(x, L, 1)
     return -p[0]
 
-# FD Adapter (4D toroidal: bias low-FD paths for (C)V purity)
-class FDAdapter(nn.Module):
+class FDAdapter(torch.nn.Module):
     def __init__(self, input_dim=80, fd_dim=1):
         super().__init__()
-        self.linear = nn.Linear(input_dim + fd_dim, input_dim)  # Concat FD, map back
+        self.linear = torch.nn.Linear(input_dim + fd_dim, input_dim)
 
     def forward(self, features, fd):
-        fd_t = torch.tensor([[fd]], dtype=features.dtype, device=features.device)
-        concat = torch.cat([features, fd_t], dim=1)
+        B, T, D = features.shape
+        fd_t = torch.full((B, T, 1), fd, dtype=features.dtype, device=features.device)
+        concat = torch.cat([features, fd_t], dim=-1)  # [B, T, 81]
         return self.linear(concat)
 
-# 5D Collapse: Entropy selection for coherent transcript (mock OR reduction)
-def entropy_collapse(logits, threshold=-0.5):
-    """Mock gravitational OR: low entropy selects coherent path."""
-    entropy = -torch.sum(torch.softmax(logits, dim=-1) * torch.log_softmax(logits, dim=-1) + 1e-10, dim=-1).mean()
-    if entropy.item() < threshold:
-        return "Coherent glide selected"  # Bias toward smooth
-    return "Ripple void detected"
-
-# Main Prototype: Load audio → FD extract → Whisper + adapter → collapse → transcript
-def fractal_stt_pipeline(audio_path, ground_truth=None, device='cpu'):
-    # Load & resample audio to 16kHz (Whisper standard)
+def fractal_stt_pipeline(audio_path, device='cpu'):
+    # Load & resample to 16kHz
     audio, sr = sf.read(audio_path)
+    if len(audio.shape) > 1: audio = audio.mean(axis=1)  # mono
     if sr != 16000:
         audio = resample(audio, int(len(audio) * 16000 / sr))
-    
-    # 3D: Extract FD on raw waveform
-    fd = higuchi_fd(audio, fs=16000)
-    print(f"Extracted FD: {fd:.3f} (low = glide, high = ripple)")
-    
-    # Load Whisper-tiny (pretrained, no fine-tune needed)
+
+    # Higuchi FD on waveform
+    fd = higuchi_fd(audio)
+    print(f"Extracted FD: {fd:.3f} (low=glide/smooth, high=ripple/turbulent)")
+
+    # Whisper tiny multilingual
     processor = WhisperProcessor.from_pretrained("openai/whisper-tiny")
     model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-tiny").to(device)
-    
-    # Process audio to mel (input features)
-    inputs = processor(audio, sampling_rate=16000, return_tensors="pt").to(device)
-    
-    # 4D: Adapter inject FD bias (mock: concat to first layer; in full, hook to encoder)
-    adapter = FDAdapter().to(device)
-    # Mock concat to inputs['input_features'] (80 dims)
-    with torch.no_grad():
-        adapted_features = adapter(inputs['input_features'], fd)
-        inputs['input_features'] = adapted_features  # Replace for inference
-    
-    # Generate transcript
-    generated_ids = model.generate(inputs.input_features, language="mi")  # 'mi' for Māori/te reo
-    transcript = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-    print(f"Raw Transcript: {transcript}")
-    
-    # 5D: Entropy collapse on logits (mock from last hidden)
-    logits = model(inputs.input_features).logits  # Last layer
-    collapse_hint = entropy_collapse(logits[0, -1])  # Final token entropy
-    print(f"Collapse Hint: {collapse_hint}")
-    
-    # Metrics (if ground truth provided)
-    if ground_truth:
-        wer = jiwer.wer(ground_truth.lower(), transcript.lower())
-        print(f"WER: {wer:.3f}")
-    
-    return transcript, fd, collapse_hint
 
-# Usage: Run with your WAV
+    inputs = processor(audio, sampling_rate=16000, return_tensors="pt").to(device)
+
+    # Optional FD adapter (random → skip for clean baseline; train later)
+    # adapter = FDAdapter().to(device)
+    # with torch.no_grad():
+    #     inputs['input_features'] = adapter(inputs['input_features'], fd)
+
+    # Generate (auto language detect; force 'mi' if needed)
+    generated_ids = model.generate(inputs.input_features, language="mi")  # or None for auto
+    transcript = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
+    print(f"Transcript: {transcript}")
+
+    # Mock collapse on last logits
+    with torch.no_grad():
+        outputs = model(inputs.input_features, output_scores=True, return_dict_in_generate=True)
+        last_scores = outputs.scores[-1]  # last token scores [batch, vocab]
+        probs = torch.softmax(last_scores, dim=-1)
+        entropy = -torch.sum(probs * torch.log(probs + 1e-10), dim=-1).mean().item()
+    hint = "Coherent glide selected" if entropy < -0.5 else "Ripple void detected"
+    print(f"Collapse Hint (entropy {entropy:.3f}): {hint}")
+
+    return transcript, fd, hint
+
+# Run example
 if __name__ == "__main__":
-    audio_file = "input.wav"  # Your "kia ora" chant WAV
-    ground_truth = "kia ora"  # Optional for WER
+    audio_file = "input.wav"  # your "kia ora" file
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Running on {device}")
-    
-    transcript, fd, hint = fractal_stt_pipeline(audio_file, ground_truth, device)
-    print(f"\nFinal Output: {transcript} | FD: {fd:.3f} | Hint: {hint}")
+    print(f"Device: {device}")
+    transcript, fd, hint = fractal_stt_pipeline(audio_file, device)
+    print(f"\nFinal: '{transcript}' | FD: {fd:.3f} | {hint}")
