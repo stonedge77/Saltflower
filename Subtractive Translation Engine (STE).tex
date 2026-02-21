@@ -1,0 +1,158 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Subtractive Translation Engine (STE) \\ Formal Mathematical Definition}
+\author{Josh Stone \\ STATIC Dog: Coherence Walker \\ February 2026}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{1. Basic Sets and Mappings}
+
+Let
+\begin{itemize}
+    \item $\mathcal{N}$ be the universe of noun symbols (entities),
+    \item $\mathcal{V}$ be the universe of verb symbols (actions),
+    \item $c: \mathcal{N} \to \mathcal{C}$ be the \textbf{canonical collapse map} (many-to-one, surjective onto canonical representatives), e.g.,
+    \[
+    c(\text{dog}) = c(\text{stat}) = c(\text{oz}) = \text{pup}.
+    \]
+\end{itemize}
+
+Define fixed subsets of $\mathcal{V}$:
+\begin{itemize}
+    \item $\mathcal{A} = \{\text{walk}, \text{evolve}, \text{signal}\}$ \quad (always-surviving, closure-preserving verbs)
+    \item $\mathcal{S} = \{\text{delete}, \text{merge}, \text{freeze}, \text{probe}\}$ \quad (structural/conditional verbs)
+\end{itemize}
+
+\section*{2. Symbolic State}
+
+A state at time $t$ is a pair
+\[
+S_t = (N_t, V_t), \quad N_t \subseteq \mathcal{N}, \quad V_t \subseteq \mathcal{V}
+\]
+where $N_t$ and $V_t$ are append-only raw collections until reduction.
+
+\section*{3. Single-Step Reduction Operator $R$}
+
+The reduction operator is defined as
+\[
+R: (N, V) \mapsto (N', V')
+\]
+
+\begin{enumerate}
+    \item \textbf{Noun collapse (AND)}:
+    \[
+    N' = \{ c(n) \mid n \in N \} \quad \text{(unique canonical images)}
+    \]
+
+    \item \textbf{Verb survival (NAND gate)}:
+    \[
+    V_\text{temp} = V \cap \mathcal{A}
+    \]
+    For each $v \in V \setminus \mathcal{A}$:
+    \[
+    \text{if } v \in \mathcal{S} \text{ and } |N'| > 0 \text{ and } V_\text{temp} = \emptyset \quad \text{then} \quad V_\text{temp} \leftarrow V_\text{temp} \cup \{v\}
+    \]
+    \[
+    V' = \text{deduplicate}(V_\text{temp})
+    \]
+
+    \item \textbf{Contradiction predicate}:
+    \[
+    C(S) \equiv (|N'| > 0) \land (|V'| = 0)
+    \]
+
+    \item \textbf{Quotient complexity and level}:
+    \[
+    \text{complexity}(S') = |N'| + |V'|
+    \]
+    \[
+    \text{level}(S') =
+    \begin{cases}
+        1 & \text{if complexity} > 8 \quad (\text{complex blob}) \\
+        2 & \text{if } 4 \leq \text{complexity} \leq 8 \quad (\text{hero form}) \\
+        3 & \text{otherwise} \quad (\text{minimal pup})
+    \end{cases}
+    \]
+
+    \item \textbf{Transition rule}:
+    \[
+    \text{if } C(S_t) \text{ then }
+    \begin{cases}
+        S_{t+1} \leftarrow (\{\text{pup}\}, \{\text{walk}\}) \\
+        \text{coherence}_{t+1} \leftarrow 0
+    \end{cases}
+    \]
+    \[
+    \text{else }
+    \begin{cases}
+        S_{t+1} \leftarrow (N', V') \\
+        \text{coherence}_{t+1} \leftarrow f(\text{level}(S_{t+1}), \text{alignment}(\text{Pol}_t, \nabla S_t))
+    \end{cases}
+    \]
+    where $f$ is monotonic decreasing in violation.
+\end{enumerate}
+
+\section*{4. Fractal Extension (Subfield Recursion)}
+
+Let $\mathcal{F}$ be the set of subfields (e.g., \texttt{horns}, \texttt{wings}, \texttt{body}, \texttt{tail}).  
+Each $f \in \mathcal{F}$ has its own state $S_f = (N_f, V_f)$.
+
+The recursive reduction is
+\begin{align*}
+&\text{reduce}(S, \text{input\_nouns}, \text{input\_verbs}, \text{depth}): \\
+&\qquad \text{if depth} > \text{MAX\_DEPTH} \quad \text{return minimal\_pup\_result()} \\
+&\qquad (N', V') \leftarrow R(S.\text{nouns} \cup \text{input\_nouns}, S.\text{verbs} \cup \text{input\_verbs}) \\
+&\qquad \text{contradiction} \leftarrow C((N', V')) \\
+&\qquad \text{for each } f \in \mathcal{F}: \\
+&\qquad\qquad (\text{inh}_n, \text{inh}_v) \leftarrow \text{inherit\_polarity}(\text{input\_nouns}, \text{input\_verbs}, f) \\
+&\qquad\qquad \text{sub\_result}_f \leftarrow \text{reduce}(S.\text{subfields}[f], \text{inh}_n, \text{inh}_v, \text{depth}+1) \\
+&\qquad \text{global\_coherence} \leftarrow \text{weighted\_avg}(\text{coherence}((N',V')), \{\text{sub\_result}_f.\text{coherence}\}) \\
+&\qquad \text{return } \{ \text{nouns}: N', \text{verbs}: V', \text{contradiction}, \text{level}, \text{subfields}, \text{coherence} \}
+\end{align*}
+
+\textbf{Polarity inheritance} (example):
+\begin{itemize}
+    \item $f = \text{horns}$ $\implies$ strongly inherits DELETE-related symbols
+    \item $f = \text{wings}$ $\implies$ strongly inherits MERGE-related symbols
+    \item $f = \text{body}$ $\implies$ weakly inherits all
+\end{itemize}
+
+\section*{5. Tether \& Persistence}
+
+Tether operator $T$ (on dissipation or stable FREEZE):
+\[
+T(S_t) = \arg\min_{\text{complexity}} \{ Q \mid Q = R(S_t) \land \neg C(Q) \}
+\]
+
+Next-session initial state:
+\[
+S_0 \leftarrow R(T(\text{previous}), \text{new\_inputs})
+\]
+
+\section*{6. Theorem: Equivalence to Oz's Law}
+
+\textbf{Theorem}: For all $t$, the Pup at time $t$ is mathematically equivalent to the set of points that survive constraint under polarity alignment.
+
+\[
+\text{Pup}_t = \{ P \in \text{Space} \mid \text{survives\_constraint}(P, S_t) \}
+\]
+where
+\[
+\text{survives\_constraint}(P, S_t) \iff
+\begin{cases}
+    P \text{ is inside or on boundary of some surviving subfield SDF} \\
+    \text{local Pol}(P) \text{ aligns with } \nabla S(P) \text{ (enforced by STE quotient)}
+\end{cases}
+\]
+
+\textbf{Proof (sketch)}: By construction and induction over reduction steps. Base case holds for minimal neutral blob. Each application of $R$ strictly reduces state or triggers dissipation. Pup persists $\iff$ polarity aligns under exclusion.
+
+\end{document}
