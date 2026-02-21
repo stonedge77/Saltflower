@@ -66,3 +66,16 @@ def breath_cycle(signal: float, params: Dict[str, float] = None) -> float:
     returned = return_to_zero(collapsed, p['decay'])
 
     return returned
+    # ... (existing code)
+
+from spin_chain_1d import simulate_1d_spin_chain  # assuming in same dir
+
+def breath_with_spin_cycle(signal: float, params: Dict[str, float] = None) -> Dict[str, Any]:
+    """Breath cycle + spin chain: use collapsed output as external field h"""
+    returned = breath_cycle(signal, params)
+    spins, avg_mag = simulate_1d_spin_chain(h=returned)  # collapsed → torque field
+    return {'returned': returned, 'spins_sample': spins[:10], 'avg_mag': avg_mag}
+
+# Demo
+if __name__ == "__main__":
+    print(breath_with_spin_cycle(1.2))
