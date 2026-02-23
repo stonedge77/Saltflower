@@ -1,0 +1,66 @@
+use spacetimedb::{table, reducer, ReducerContext, Identity, Timestamp, u64 as DbU64, String as DbString, f32 as DbF32};
+use spacetimedb::log;
+
+// === Tables ===
+
+// 1. LatticeNode - the "universe" grid points (NAND bit-disjoint allowed sites)
+#[table(name = lattice_node, public)]
+pub struct LatticeNode {
+    #[primary_key]
+    id: DbU64,                  // auto-increment or hashed coord
+
+    x: u32,
+    y: u32,
+    z: u32,
+
+    sum_value: u32,             // x + y + z
+    is_prime: bool,             // true if sum is prime ("winning" / attractor node)
+
+    #[index(btree)]
+    bit_mask_hash: u32,         // hash of (x&mask, y&mask, z&mask) for fast disjoint queries
+}
+
+// 2. Player - the "ant" navigating the lattice
+#[table(name = player, public)]
+pub struct Player {
+    #[primary_key]
+    identity: Identity,         // client's unique identity
+
+    name: DbString,
+
+    current_node_id: DbU64,     // current LatticeNode.id
+
+    phase: DbF32,               // quantum-like phase (0..2π) for interference/friction
+
+    turn_count: u64,            // how many moves/slips performed
+
+    amplitude: DbF32,           // probability/amplitude weight (decreases on destructive friction)
+
+    last_action_time: Timestamp,
+}
+
+// 3. AdversaryEntity - opposing "friction" agents at certain nodes
+#[table(name = adversary, public)]
+pub struct Adversary {
+    #[primary_key]
+    id: DbU64,
+
+    node_id: DbU64,
+
+    phase_offset: DbF32,        // fixed phase mismatch causing friction
+
+    strength: DbF32,            // how much amplitude loss on collision
+
+    turn_trigger: u64,          // activates friction only after this global turn
+}
+
+// 4. GlobalState - shared world info (e.g. current global turn, lattice params)
+#[table(name = global_state, public, schedule = "tick")]
+pub struct GlobalState {
+    #[primary_key]
+    id: u8 = 0,                 // singleton
+
+    max_depth: u32,             // NAND mask depth (e.g. 5)
+    global_turn: u64,
+    last_tick: Timestamp,
+}
