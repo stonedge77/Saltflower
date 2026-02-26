@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAND CHESS — Diagonal Logic Engine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #080c0a;
+    --grid: #0d1a12;
+    --cell-dark: #0a1510;
+    --cell-light: #0f2018;
+    --accent: #00ff88;
+    --amber: #ffaa00;
+    --red: #ff3355;
+    --dim: #1a3326;
+    --text: #a0ffcc;
+    --player: #00ccff;
+    --ai: #ff6622;
+    --pressure: rgba(255,100,0,0.12);
+    --selected: rgba(0,255,136,0.25);
+    --valid: rgba(0,255,136,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  /* scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.07) 2px,
+      rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  header {
+    width: 100%;
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--dim);
+    background: rgba(0,0,0,0.4);
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 1.4rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-shadow: 0 0 20px var(--accent);
+  }
+
+  .logo span { color: var(--amber); }
+
+  .status-bar {
+    font-size: 0.75rem;
+    color: var(--amber);
+    letter-spacing: 0.1em;
+  }
+
+  .main {
+    display: flex;
+    gap: 32px;
+    padding: 32px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  /* BOARD */
+  .board-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, 72px);
+    grid-template-rows: repeat(8, 72px);
+    border: 1px solid var(--dim);
+    box-shadow: 0 0 60px rgba(0,255,136,0.08), 0 0 120px rgba(0,255,136,0.04);
+    position: relative;
+  }
+
+  .cell {
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s;
+    font-size: 2rem;
+    user-select: none;
+  }
+
+  .cell.dark { background: var(--cell-dark); }
+  .cell.light { background: var(--cell-light); }
+
+  .cell.selected { background: var(--selected) !important; box-shadow: inset 0 0 0 2px var(--accent); }
+  .cell.valid-move::after {
+    content: '';
+    position: absolute;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--valid);
+    border: 1px solid rgba(0,255,136,0.4);
+  }
+  .cell.valid-move.has-piece::after {
+    width: 100%; height: 100%;
+    border-radius: 0;
+    background: rgba(255,50,50,0.15);
+    border: 2px solid rgba(255,80,80,0.5);
+  }
+
+  .cell.pressure-1 { background: rgba(255,100,0,0.06) !important; }
+  .cell.pressure-2 { background: rgba(255,100,0,0.12) !important; }
+  .cell.pressure-3 { background: rgba(255,100,0,0.2) !important; }
+  .cell.pressure-4 { background: rgba(255,50,0,0.3) !important; }
+
+  .cell.last-move { box-shadow: inset 0 0 0 2px rgba(255,170,0,0.5); }
+
+  /* diagonal threat lines */
+  .cell.diagonal-threat::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,100,0,0.1) 50%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .piece {
+    width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.1s;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  }
+
+  .cell:hover .piece { transform: scale(1.08); }
+
+  /* rank/file labels */
+  .labels-left {
+    position: absolute;
+    left: -24px; top: 0;
+    height: 100%;
+    display: flex; flex-direction: column;
+  }
+  .labels-left span, .labels-bottom span {
+    font-size: 0.65rem;
+    color: #2a5040;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .labels-left span { height: 72px; }
+  .labels-bottom {
+    position: absolute;
+    bottom: -20px; left: 0;
+    width: 100%;
+    display: flex;
+  }
+  .labels-bottom span { width: 72px; }
+
+  /* PANEL */
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 280px;
+    min-height: 580px;
+  }
+
+  .panel-block {
+    background: rgba(0,20,12,0.8);
+    border: 1px solid var(--dim);
+    padding: 16px;
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--dim);
+  }
+
+  .turn-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+  }
+
+  .turn-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 1.5s infinite;
+  }
+  .turn-dot.ai { background: var(--ai); box-shadow: 0 0 8px var(--ai); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* NAND pressure meter */
+  .pressure-meter {
+    margin-top: 8px;
+  }
+  .meter-label {
+    font-size: 0.7rem;
+    color: #2a5040;
+    margin-bottom: 4px;
+    letter-spacing: 0.1em;
+  }
+  .meter-bar {
+    height: 6px;
+    background: var(--dim);
+    border-radius: 0;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber), var(--red));
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px rgba(255,100,0,0.5);
+  }
+
+  /* NAND log */
+  .nand-log {
+    font-size: 0.68rem;
+    color: #2a5040;
+    height: 160px;
+    overflow-y: auto;
+    line-height: 1.7;
+  }
+  .nand-log::-webkit-scrollbar { width: 3px; }
+  .nand-log::-webkit-scrollbar-thumb { background: var(--dim); }
+
+  .log-entry {
+    border-left: 2px solid transparent;
+    padding-left: 8px;
+    transition: color 0.2s;
+  }
+  .log-entry.ai { border-color: var(--ai); color: rgba(255,102,34,0.7); }
+  .log-entry.player { border-color: var(--player); color: rgba(0,204,255,0.7); }
+  .log-entry.system { border-color: var(--accent); color: rgba(0,255,136,0.5); }
+
+  /* move history */
+  .move-list {
+    font-size: 0.72rem;
+    color: var(--text);
+    opacity: 0.7;
+    height: 100px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 20px 1fr 1fr;
+    gap: 2px 8px;
+    align-content: start;
+  }
+  .move-list::-webkit-scrollbar { width: 3px; }
+  .move-list::-webkit-scrollbar-thumb { background: var(--dim); }
+  .move-num { color: var(--dim); }
+  .move-player { color: var(--player); }
+  .move-ai { color: var(--ai); }
+
+  .btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .btn:hover {
+    background: rgba(0,255,136,0.1);
+    box-shadow: 0 0 12px rgba(0,255,136,0.3);
+  }
+
+  .game-over-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .game-over-overlay.show { display: flex; }
+  .game-over-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: 0.3em;
+  }
+  .game-over-title.win { color: var(--accent); text-shadow: 0 0 40px var(--accent); }
+  .game-over-title.lose { color: var(--red); text-shadow: 0 0 40px var(--red); }
+  .game-over-sub {
+    font-size: 0.9rem;
+    color: var(--amber);
+    letter-spacing: 0.2em;
+  }
+
+  .nand-circuit {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .nand-cell {
+    width: 18px; height: 18px;
+    border: 1px solid var(--dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.5rem;
+    color: #1a3326;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .nand-cell.active {
+    border-color: var(--amber);
+    color: var(--amber);
+    box-shadow: 0 0 6px rgba(255,170,0,0.4);
+    background: rgba(255,170,0,0.05);
+  }
+  .nand-cell.fired {
+    border-color: var(--red);
+    color: var(--red);
+    box-shadow: 0 0 8px rgba(255,51,85,0.6);
+    background: rgba(255,51,85,0.1);
+    animation: nandfire 0.4s ease;
+  }
+  @keyframes nandfire {
+    0% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">NAND <span>CHESS</span></div>
+  <div class="status-bar" id="statusBar">SYSTEM READY — DIAGONAL LOGIC ENGINE v1.0</div>
+</header>
+
+<div class="main">
+  <div class="board-wrap">
+    <div class="labels-left" id="labelsLeft"></div>
+    <div class="board" id="board"></div>
+    <div class="labels-bottom" id="labelsBottom"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-block">
+      <div class="panel-title">TURN STATE</div>
+      <div class="turn-indicator">
+        <div class="turn-dot" id="turnDot"></div>
+        <span id="turnText">YOUR MOVE</span>
+      </div>
+      <div class="pressure-meter" style="margin-top:16px">
+        <div class="meter-label">AI DIAGONAL PRESSURE</div>
+        <div class="meter-bar"><div class="meter-fill" id="pressureFill" style="width:0%"></div></div>
+        <div class="meter-label">NAND CONSTRAINT INDEX</div>
+        <div class="meter-bar"><div class="meter-fill" id="nandFill" style="width:0%; background: linear-gradient(90deg, #00cc88, #00ffaa);"></div></div>
+      </div>
+    </div>
+
+    <div class="panel-block">
+      <div class="panel-title">CYCLIC NAND RING — 8-CELL</div>
+      <div class="nand-circuit" id="nandCircuit"></div>
+      <div style="font-size:0.62rem; color:#1a3326; margin-top:8px; line-height:1.6;">
+        T = A ⊕ B ⊕ NAND(A,B)<br>
+        Phase: <span id="phaseDisplay" style="color:var(--amber)">0π/4</span> | Remainder: <span id="remainderDisplay" style="color:var(--accent)">0x00</span>
+      </div>
+    </div>
+
+    <div class="panel-block">
+      <div class="panel-title">NAND DECISION LOG</div>
+      <div class="nand-log" id="nandLog"></div>
+    </div>
+
+    <div class="panel-block">
+      <div class="panel-title">MOVE HISTORY</div>
+      <div class="move-list" id="moveList"></div>
+    </div>
+
+    <button class="btn" onclick="resetGame()">[ NEW GAME ]</button>
+  </div>
+</div>
+
+<div class="game-over-overlay" id="gameOverlay">
+  <div class="game-over-title" id="gameOverTitle">CHECKMATE</div>
+  <div class="game-over-sub" id="gameOverSub">NAND ENGINE PREVAILS</div>
+  <button class="btn" style="width:200px" onclick="resetGame()">[ RESET ]</button>
+</div>
+
+<script>
+// ============================================================
+// CHESS ENGINE CORE
+// ============================================================
+
+const PIECES = {
+  wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
+  bK:'♚', bQ:'♛', bR:'♜', bB:'♝', bN:'♞', bP:'♟'
+};
+
+const FILES = ['a','b','c','d','e','f','g','h'];
+const RANKS = ['8','7','6','5','4','3','2','1'];
+
+let board = [];
+let selected = null;
+let validMoves = [];
+let currentTurn = 'w';
+let gameActive = true;
+let moveHistory = [];
+let nandRing = new Array(8).fill(0);
+let nandPhase = 0;
+let nandRemainder = 0;
+let pressureMap = new Array(64).fill(0);
+let lastMoveSquares = [];
+let moveCount = 0;
+
+// NAND cyclic ring computation
+function nandGate(a, b) { return !(a && b) ? 1 : 0; }
+
+function cycleNANDRing(inputs) {
+  // Feed 8 inputs through the cyclic ring
+  // T = A XOR B XOR NAND(A,B) recirculated
+  let remainder = 0;
+  const fired = [];
+  for (let i = 0; i < 8; i++) {
+    const a = inputs[i] & 1;
+    const b = (nandRing[i] ^ (i > 0 ? nandRing[i-1] : nandRemainder)) & 1;
+    const nandOut = nandGate(a, b);
+    const T = a ^ b ^ nandOut;
+    remainder = (remainder ^ T) & 1;
+    nandRing[i] = nandOut;
+    if (T) fired.push(i);
+  }
+  nandRemainder = (nandRemainder ^ remainder) & 0xFF;
+  nandPhase = (nandPhase + 1) % 8;
+  return { remainder, fired };
+}
+
+// ============================================================
+// BOARD SETUP
+// ============================================================
+
+function initBoard() {
+  board = new Array(64).fill(null);
+  // Black pieces (AI) - top
+  const backRow = ['R','N','B','Q','K','B','N','R'];
+  for (let f = 0; f < 8; f++) {
+    board[f] = 'b' + backRow[f];
+    board[8 + f] = 'bP';
+  }
+  // White pieces (Player) - bottom
+  for (let f = 0; f < 8; f++) {
+    board[48 + f] = 'wP';
+    board[56 + f] = 'w' + backRow[f];
+  }
+}
+
+function idx(r, f) { return r * 8 + f; }
+function rankOf(i) { return Math.floor(i / 8); }
+function fileOf(i) { return i % 8; }
+function inBounds(r, f) { return r >= 0 && r < 8 && f >= 0 && f < 8; }
+function colorOf(piece) { return piece ? piece[0] : null; }
+function typeOf(piece) { return piece ? piece.slice(1) : null; }
+
+// ============================================================
+// MOVE GENERATION
+// ============================================================
+
+function getLegalMoves(square, brd = board, turn = currentTurn) {
+  const piece = brd[square];
+  if (!piece || colorOf(piece) !== turn) return [];
+  const moves = getPseudoMoves(square, brd, turn);
+  return moves.filter(to => {
+    const nb = brd.slice();
+    nb[to] = nb[square];
+    nb[square] = null;
+    return !isInCheck(turn, nb);
+  });
+}
+
+function getPseudoMoves(square, brd, color) {
+  const piece = brd[square];
+  const t = typeOf(piece);
+  const r = rankOf(square), f = fileOf(square);
+  const enemy = color === 'w' ? 'b' : 'w';
+  const moves = [];
+
+  function slide(dr, df) {
+    let nr = r + dr, nf = f + df;
+    while (inBounds(nr, nf)) {
+      const s = idx(nr, nf);
+      if (brd[s]) {
+        if (colorOf(brd[s]) === enemy) moves.push(s);
+        break;
+      }
+      moves.push(s);
+      nr += dr; nf += df;
+    }
+  }
+
+  function jump(dr, df) {
+    const nr = r + dr, nf = f + df;
+    if (inBounds(nr, nf)) {
+      const s = idx(nr, nf);
+      if (!brd[s] || colorOf(brd[s]) === enemy) moves.push(s);
+    }
+  }
+
+  if (t === 'P') {
+    const dir = color === 'w' ? -1 : 1;
+    const startRank = color === 'w' ? 6 : 1;
+    const nr = r + dir;
+    if (inBounds(nr, f) && !brd[idx(nr, f)]) {
+      moves.push(idx(nr, f));
+      if (r === startRank && !brd[idx(r + 2*dir, f)]) moves.push(idx(r + 2*dir, f));
+    }
+    [-1, 1].forEach(df => {
+      if (inBounds(nr, f + df) && brd[idx(nr, f + df)] && colorOf(brd[idx(nr, f + df)]) === enemy)
+        moves.push(idx(nr, f + df));
+    });
+  }
+  if (t === 'R' || t === 'Q') { [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,df]) => slide(dr,df)); }
+  if (t === 'B' || t === 'Q') { [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,df]) => slide(dr,df)); }
+  if (t === 'N') { [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dr,df]) => jump(dr,df)); }
+  if (t === 'K') { [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,df]) => jump(dr,df)); }
+
+  return moves;
+}
+
+function isInCheck(color, brd) {
+  const kingSquare = brd.findIndex(p => p === color + 'K');
+  if (kingSquare < 0) return true;
+  const enemy = color === 'w' ? 'b' : 'w';
+  for (let s = 0; s < 64; s++) {
+    if (colorOf(brd[s]) === enemy) {
+      if (getPseudoMoves(s, brd, enemy).includes(kingSquare)) return true;
+    }
+  }
+  return false;
+}
+
+function hasAnyLegalMove(color, brd = board) {
+  for (let s = 0; s < 64; s++) {
+    if (colorOf(brd[s]) === color) {
+      if (getLegalMoves(s, brd, color).length > 0) return true;
+    }
+  }
+  return false;
+}
+
+// ============================================================
+// NAND AI ENGINE — DIAGONAL PRESSURE STRATEGY
+// ============================================================
+
+// The AI uses NAND logic to evaluate moves:
+// NAND(hasMyPieceOnDiag, hasEnemyPieceOnDiag) = 1 means the diagonal is OPEN
+// AI maximizes open diagonals for itself while using pressure to constrain player
+// It NEVER closes the center — only applies diagonal pressure from edges inward
+
+function computePressureMap() {
+  pressureMap = new Array(64).fill(0);
+  // For each AI piece, mark its diagonal reach as pressure
+  for (let s = 0; s < 64; s++) {
+    const p = board[s];
+    if (!p || colorOf(p) !== 'b') continue;
+    const t = typeOf(p);
+    // Diagonal threats
+    const diags = [[1,1],[1,-1],[-1,1],[-1,-1]];
+    if (t === 'B' || t === 'Q' || t === 'K') {
+      diags.forEach(([dr, df]) => {
+        let nr = rankOf(s) + dr, nf = fileOf(s) + df;
+        let dist = 1;
+        while (inBounds(nr, nf)) {
+          pressureMap[idx(nr, nf)] += Math.max(1, 4 - dist);
+          if (board[idx(nr, nf)]) break;
+          nr += dr; nf += df; dist++;
+        }
+      });
+    }
+    if (t === 'P') {
+      const nr = rankOf(s) + 1;
+      [-1, 1].forEach(df => {
+        const nf = fileOf(s) + df;
+        if (inBounds(nr, nf)) pressureMap[idx(nr, nf)] += 3;
+      });
+    }
+    // Rook/queen straight pressure — lighter
+    if (t === 'R' || t === 'Q') {
+      [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr,df]) => {
+        let nr = rankOf(s)+dr, nf = fileOf(s)+df, dist=1;
+        while (inBounds(nr,nf)) {
+          pressureMap[idx(nr,nf)] += Math.max(1, 2-dist);
+          if (board[idx(nr,nf)]) break;
+          nr+=dr; nf+=df; dist++;
+        }
+      });
+    }
+  }
+}
+
+// NAND evaluation of a move: higher = better for AI
+function nandEvaluateMove(from, to, brd) {
+  const nb = brd.slice();
+  nb[to] = nb[from];
+  nb[from] = null;
+
+  // Promote pawns
+  if (typeOf(nb[to]) === 'P' && rankOf(to) === 7) nb[to] = 'bQ';
+
+  let score = 0;
+
+  // Material values
+  const vals = { P:1, N:3, B:3.2, R:5, Q:9, K:100 };
+  const captured = brd[to];
+  if (captured) score += vals[typeOf(captured)] * 10;
+
+  // Diagonal pressure philosophy: maximize diagonals the AI controls
+  // Count open diagonals from new position
+  const diagDirs = [[1,1],[1,-1],[-1,1],[-1,-1]];
+  const t = typeOf(brd[from]);
+  if (t === 'B' || t === 'Q') {
+    diagDirs.forEach(([dr,df]) => {
+      let nr = rankOf(to)+dr, nf = fileOf(to)+df;
+      let open = 0;
+      while (inBounds(nr,nf)) {
+        if (nb[idx(nr,nf)] && colorOf(nb[idx(nr,nf)]) === 'b') break;
+        open++;
+        if (nb[idx(nr,nf)] && colorOf(nb[idx(nr,nf)]) === 'w') {
+          score += open * 2; // threatening player pieces via diagonal
+          break;
+        }
+        nr+=dr; nf+=df;
+      }
+      score += open * 0.5; // open diagonal space is good
+    });
+  }
+
+  // NAND CONSTRAINT: do NOT move to squares that close off the player
+  // Instead, prefer squares that create diagonal THREATS (indirect constraint)
+  // AI avoids blocking central squares directly
+  const toR = rankOf(to), toF = fileOf(to);
+  const isCentral = toR >= 2 && toR <= 5 && toF >= 2 && toF <= 5;
+  if (!isCentral) score += 1.5; // prefer edge/flanking positions
+
+  // Pressure on player king's diagonals
+  const wKing = nb.findIndex(p => p === 'wK');
+  if (wKing >= 0) {
+    const kdr = rankOf(wKing), kdf = fileOf(wKing);
+    const dist = Math.max(Math.abs(toR-kdr), Math.abs(toF-kdf));
+    if (dist <= 3) score += (4 - dist) * 2;
+    // Diagonal alignment with king = bonus
+    if (Math.abs(toR-kdr) === Math.abs(toF-kdf)) score += 6;
+  }
+
+  // Use NAND logic for move selection:
+  // A = AI has piece covering target diagonal
+  // B = Player has piece on that diagonal
+  // NAND(A,B) = 1 means we should act (not both true)
+  const nandInputs = [];
+  for (let i = 0; i < 8; i++) {
+    const dr = diagDirs[i % 4][0], df = diagDirs[i % 4][1];
+    let nr = toR + dr * (Math.floor(i/4)+1);
+    let nf = toF + df * (Math.floor(i/4)+1);
+    if (!inBounds(nr, nf)) { nandInputs.push(0); continue; }
+    const sq = idx(nr, nf);
+    const A = nb[sq] && colorOf(nb[sq]) === 'b' ? 1 : 0;
+    const B = nb[sq] && colorOf(nb[sq]) === 'w' ? 1 : 0;
+    nandInputs.push(nandGate(A, B));
+  }
+  const { remainder, fired } = cycleNANDRing(nandInputs);
+  score += fired.length * 1.5 + remainder * 2;
+
+  // Prefer moves that don't immediately expose AI king
+  if (isInCheck('b', nb)) score -= 50;
+
+  // Check/checkmate bonus
+  if (isInCheck('w', nb)) {
+    score += 20;
+    if (!hasAnyLegalMove('w', nb)) score += 10000;
+  }
+
+  return score;
+}
+
+function getAIMove() {
+  let bestScore = -Infinity, bestFrom = -1, bestTo = -1;
+  const candidates = [];
+
+  for (let s = 0; s < 64; s++) {
+    if (colorOf(board[s]) !== 'b') continue;
+    const moves = getLegalMoves(s, board, 'b');
+    moves.forEach(to => {
+      const score = nandEvaluateMove(s, to, board);
+      candidates.push({ from: s, to, score });
+    });
+  }
+
+  candidates.sort((a, b) => b.score - a.score);
+  if (candidates.length === 0) return null;
+
+  // Add slight randomness among top candidates to avoid determinism
+  const topK = candidates.slice(0, Math.min(3, candidates.length));
+  const pick = topK[Math.floor(Math.random() * topK.length)];
+  return pick;
+}
+
+// ============================================================
+// UI
+// ============================================================
+
+function squareName(sq) {
+  return FILES[fileOf(sq)] + RANKS[rankOf(sq)];
+}
+
+function toAlgebraic(from, to, promotion) {
+  const piece = board[from];
+  const t = typeOf(piece);
+  const capture = board[to] ? 'x' : '';
+  const prom = promotion ? '=' + promotion : '';
+  if (t === 'P') return FILES[fileOf(from)] + (capture ? 'x' : '') + squareName(to) + prom;
+  return t + capture + squareName(to);
+}
+
+function renderBoard() {
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+
+  computePressureMap();
+
+  for (let s = 0; s < 64; s++) {
+    const r = rankOf(s), f = fileOf(s);
+    const cell = document.createElement('div');
+    cell.className = 'cell ' + ((r + f) % 2 === 0 ? 'light' : 'dark');
+    cell.dataset.sq = s;
+
+    // Pressure
+    const p = pressureMap[s];
+    if (p >= 1) cell.classList.add('pressure-' + Math.min(4, p));
+    if (p >= 2) cell.classList.add('diagonal-threat');
+
+    // State
+    if (selected === s) cell.classList.add('selected');
+    if (validMoves.includes(s)) {
+      cell.classList.add('valid-move');
+      if (board[s]) cell.classList.add('has-piece');
+    }
+    if (lastMoveSquares.includes(s)) cell.classList.add('last-move');
+
+    if (board[s]) {
+      const pieceEl = document.createElement('div');
+      pieceEl.className = 'piece';
+      pieceEl.style.color = colorOf(board[s]) === 'w' ? '#d0f0ff' : '#ff8866';
+      pieceEl.textContent = PIECES[board[s]];
+      cell.appendChild(pieceEl);
+    }
+
+    cell.addEventListener('click', () => onCellClick(s));
+    boardEl.appendChild(cell);
+  }
+}
+
+function onCellClick(sq) {
+  if (!gameActive || currentTurn !== 'w') return;
+
+  if (selected !== null && validMoves.includes(sq)) {
+    // Make move
+    executeMove('w', selected, sq);
+    selected = null;
+    validMoves = [];
+    renderBoard();
+
+    setTimeout(() => {
+      if (gameActive) triggerAIMove();
+    }, 400);
+    return;
+  }
+
+  if (board[sq] && colorOf(board[sq]) === 'w') {
+    selected = sq;
+    validMoves = getLegalMoves(sq);
+  } else {
+    selected = null;
+    validMoves = [];
+  }
+  renderBoard();
+}
+
+function executeMove(color, from, to) {
+  const alg = toAlgebraic(from, to, null);
+  const captured = board[to];
+
+  lastMoveSquares = [from, to];
+  board[to] = board[from];
+  board[from] = null;
+
+  // Pawn promotion
+  if (typeOf(board[to]) === 'P') {
+    if (rankOf(to) === 0 && color === 'w') board[to] = 'wQ';
+    if (rankOf(to) === 7 && color === 'b') board[to] = 'bQ';
+  }
+
+  moveCount++;
+  moveHistory.push({ color, from, to, alg, captured });
+  updateMoveList();
+
+  // Update NAND ring with move data
+  const inputs = [];
+  for (let i = 0; i < 8; i++) {
+    inputs.push((from + to + i) % 2);
+  }
+  const { remainder, fired } = cycleNANDRing(inputs);
+  animateNANDRing(fired);
+  updateNANDDisplay(remainder, fired, color, alg);
+
+  // Check game state
+  const enemy = color === 'w' ? 'b' : 'w';
+  if (!hasAnyLegalMove(enemy)) {
+    if (isInCheck(enemy, board)) {
+      endGame(color === 'w' ? 'win' : 'lose');
+    } else {
+      endGame('draw');
+    }
+    return;
+  }
+
+  currentTurn = enemy;
+  updateTurnUI();
+}
+
+function triggerAIMove() {
+  const move = getAIMove();
+  if (!move) {
+    endGame(hasAnyLegalMove('b') ? 'draw' : 'win');
+    return;
+  }
+  executeMove('b', move.from, move.to);
+  renderBoard();
+  updateTurnUI();
+}
+
+function updateTurnUI() {
+  const dot = document.getElementById('turnDot');
+  const text = document.getElementById('turnText');
+  const bar = document.getElementById('statusBar');
+  if (currentTurn === 'w') {
+    dot.className = 'turn-dot';
+    text.textContent = 'YOUR MOVE';
+    bar.textContent = 'AWAITING PLAYER INPUT — DIAGONAL FIELD ACTIVE';
+  } else {
+    dot.className = 'turn-dot ai';
+    text.textContent = 'AI COMPUTING';
+    bar.textContent = 'NAND ENGINE EVALUATING — CYCLIC REMAINDER PROPAGATING...';
+  }
+
+  // Update pressure display
+  const totalPressure = pressureMap.reduce((a,b) => a+b, 0);
+  const maxP = 200;
+  document.getElementById('pressureFill').style.width = Math.min(100, totalPressure / maxP * 100) + '%';
+  document.getElementById('nandFill').style.width = (nandRemainder / 2.55) + '%';
+}
+
+function animateNANDRing(fired) {
+  document.querySelectorAll('.nand-cell').forEach((el, i) => {
+    el.className = 'nand-cell';
+    if (fired.includes(i)) {
+      el.classList.add('fired');
+      setTimeout(() => el.classList.add('active'), 300);
+    } else {
+      el.classList.add('active');
+    }
+  });
+}
+
+function updateNANDDisplay(remainder, fired, color, move) {
+  document.getElementById('phaseDisplay').textContent = nandPhase + 'π/4';
+  document.getElementById('remainderDisplay').textContent = '0x' + nandRemainder.toString(16).padStart(2,'0').toUpperCase();
+
+  const log = document.getElementById('nandLog');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry ' + (color === 'w' ? 'player' : 'ai');
+  const gateOps = fired.map(i => `G${i}:T=1`).join(' ');
+  entry.textContent = `[${color === 'w' ? 'PLY' : 'AI '}] ${move} | R=${remainder} | ${gateOps || 'stable'} | Σ=${nandRemainder}`;
+  log.insertBefore(entry, log.firstChild);
+  if (log.children.length > 30) log.removeChild(log.lastChild);
+}
+
+function updateMoveList() {
+  const ml = document.getElementById('moveList');
+  ml.innerHTML = '';
+  let wMoves = moveHistory.filter(m => m.color === 'w');
+  let bMoves = moveHistory.filter(m => m.color === 'b');
+  const maxNum = Math.max(wMoves.length, bMoves.length);
+  for (let i = 0; i < maxNum; i++) {
+    const numEl = document.createElement('div');
+    numEl.className = 'move-num';
+    numEl.textContent = (i+1) + '.';
+    const wEl = document.createElement('div');
+    wEl.className = 'move-player';
+    wEl.textContent = wMoves[i] ? wMoves[i].alg : '';
+    const bEl = document.createElement('div');
+    bEl.className = 'move-ai';
+    bEl.textContent = bMoves[i] ? bMoves[i].alg : '';
+    ml.appendChild(numEl);
+    ml.appendChild(wEl);
+    ml.appendChild(bEl);
+  }
+  ml.scrollTop = ml.scrollHeight;
+}
+
+function endGame(result) {
+  gameActive = false;
+  const overlay = document.getElementById('gameOverlay');
+  const title = document.getElementById('gameOverTitle');
+  const sub = document.getElementById('gameOverSub');
+  overlay.classList.add('show');
+  if (result === 'win') {
+    title.textContent = 'CHECKMATE'; title.className = 'game-over-title win';
+    sub.textContent = 'YOU ESCAPED THE NAND FIELD';
+  } else if (result === 'lose') {
+    title.textContent = 'CHECKMATE'; title.className = 'game-over-title lose';
+    sub.textContent = 'DIAGONAL CONSTRAINT ACHIEVED — NAND ENGINE PREVAILS';
+  } else {
+    title.textContent = 'STALEMATE'; title.className = 'game-over-title';
+    sub.textContent = 'REMAINDER = 0 — CYCLIC EQUILIBRIUM';
+  }
+}
+
+function buildNANDCircuit() {
+  const circuit = document.getElementById('nandCircuit');
+  circuit.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'nand-cell active';
+    cell.textContent = i;
+    cell.title = `Cell ${i} — Phase ${i}π/4`;
+    circuit.appendChild(cell);
+  }
+}
+
+function addSystemLog(msg) {
+  const log = document.getElementById('nandLog');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry system';
+  entry.textContent = msg;
+  log.insertBefore(entry, log.firstChild);
+}
+
+function buildLabels() {
+  const left = document.getElementById('labelsLeft');
+  const bottom = document.getElementById('labelsBottom');
+  RANKS.forEach(r => {
+    const s = document.createElement('span');
+    s.textContent = r;
+    left.appendChild(s);
+  });
+  FILES.forEach(f => {
+    const s = document.createElement('span');
+    s.textContent = f;
+    bottom.appendChild(s);
+  });
+}
+
+function resetGame() {
+  board = [];
+  selected = null;
+  validMoves = [];
+  currentTurn = 'w';
+  gameActive = true;
+  moveHistory = [];
+  nandRing = new Array(8).fill(0);
+  nandPhase = 0;
+  nandRemainder = 0;
+  pressureMap = new Array(64).fill(0);
+  lastMoveSquares = [];
+  moveCount = 0;
+
+  document.getElementById('gameOverlay').classList.remove('show');
+  initBoard();
+  buildNANDCircuit();
+  renderBoard();
+  updateTurnUI();
+  document.getElementById('nandLog').innerHTML = '';
+  document.getElementById('moveList').innerHTML = '';
+  addSystemLog('[SYS] NAND ring initialized — 8-cell cyclic array online');
+  addSystemLog('[SYS] Diagonal Logic Engine v1.0 ready');
+}
+
+// INIT
+buildLabels();
+resetGame();
+</script>
+</body>
+</html>
