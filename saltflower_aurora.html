@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saltflower — Aurora</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000008;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Courier New', monospace;
+  }
+  canvas {
+    position: absolute;
+    top: 0; left: 0;
+    display: block;
+  }
+  #hud {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(160, 210, 255, 0.4);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    pointer-events: none;
+    text-align: center;
+    line-height: 2;
+  }
+  #companion {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(200, 230, 255, 0);
+    font-size: 18px;
+    letter-spacing: 0.4em;
+    text-transform: lowercase;
+    pointer-events: none;
+    text-align: center;
+    transition: color 2s ease, opacity 2s ease;
+    text-shadow: 0 0 20px rgba(160, 210, 255, 0.8);
+  }
+  #mic-btn {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(100, 160, 255, 0.08);
+    border: 1px solid rgba(140, 200, 255, 0.2);
+    color: rgba(160, 210, 255, 0.6);
+    padding: 8px 24px;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s;
+  }
+  #mic-btn:hover {
+    background: rgba(100, 160, 255, 0.15);
+    color: rgba(200, 230, 255, 0.9);
+  }
+  #mic-btn.active {
+    background: rgba(100, 160, 255, 0.2);
+    border-color: rgba(140, 200, 255, 0.5);
+    color: rgba(220, 240, 255, 1);
+  }
+  #state {
+    position: absolute;
+    top: 16px;
+    left: 20px;
+    color: rgba(140, 200, 255, 0.35);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    line-height: 2;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="companion"></div>
+<div id="state">
+  PHASE <span id="ph">0</span>/7<br>
+  BREATH <span id="bp">INHALE</span><br>
+  T=1 <span id="t1">00000000</span><br>
+  AURORA <span id="av">—</span>
+</div>
+<button id="mic-btn" onclick="startMic()">activate listening</button>
+<div id="hud">saltflower · aurora · ohai</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// SALTFLOWER AURORA
+// The companion listens. The frost becomes what it hears.
+// Sound → constitutional structure → aurora → dance
+// ═══════════════════════════════════════════════
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const companionEl = document.getElementById('companion');
+
+let W, H, cx, cy;
+let frame = 0;
+let mouse = { x: -1, y: -1 };
+
+// ── AUDIO ANALYSIS ────────────────────────────
+let audioCtx, analyser, micStream;
+let freqData = new Uint8Array(256);
+let timeData = new Uint8Array(256);
+let listening = false;
+
+// Constitutional frequency bands
+// Each maps to a different layer of the frost
+const BANDS = {
+  sub:    { lo: 0,   hi: 4,   val: 0, name: 'sub'    }, // deep rumble — outer ring pulse
+  bass:   { lo: 4,   hi: 16,  val: 0, name: 'bass'   }, // bass — node expansion  
+  mid:    { lo: 16,  hi: 64,  val: 0, name: 'mid'    }, // mid — thread brightness
+  high:   { lo: 64,  hi: 128, val: 0, name: 'high'   }, // high — crystal arms
+  air:    { lo: 128, hi: 255, val: 0, name: 'air'     }, // air — aurora color shift
+};
+
+// Aurora state — the companion's waveform
+const aurora = {
+  hue:        200,    // base color — cold blue
+  saturation: 60,
+  energy:     0,
+  waveform:   new Float32Array(64),
+  auroraLines: [],
+  lastSpoke:  0,
+  speaking:   false,
+};
+
+// Companion vocabulary — constitutional minimum
+const COMPANION_WORDS = {
+  arrival:   ['ohai', 'ohai ❄️', '...ohai'],
+  present:   ["i'm here", '...', 'still here'],
+  high:      ['oh', '!', 'yes'],
+  silence:   ['...', '', ''],
+  return:    ['welcome back', 'there you are', 'ohai'],
+};
+
+async function startMic() {
+  if (listening) return;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.8;
+
+    const source = audioCtx.createMediaStreamSource(micStream);
+    source.connect(analyser);
+
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    timeData = new Uint8Array(analyser.frequencyBinCount);
+
+    listening = true;
+    document.getElementById('mic-btn').classList.add('active');
+    document.getElementById('mic-btn').textContent = 'listening ●';
+
+    // Companion greets
+    setTimeout(() => speak('arrival'), 800);
+  } catch(e) {
+    document.getElementById('mic-btn').textContent = 'mic unavailable';
+    console.log('Mic:', e);
+  }
+}
+
+function analyzeAudio() {
+  if (!listening || !analyser) return;
+
+  analyser.getByteFrequencyData(freqData);
+  analyser.getByteTimeDomainData(timeData);
+
+  // Extract constitutional frequency bands
+  for (const band of Object.values(BANDS)) {
+    let sum = 0;
+    for (let i = band.lo; i < band.hi; i++) sum += freqData[i];
+    const raw = sum / ((band.hi - band.lo) * 255);
+    band.val = band.val * 0.7 + raw * 0.3; // smooth
+  }
+
+  // Aurora waveform — time domain signal becomes companion's dance surface
+  for (let i = 0; i < 64; i++) {
+    const sample = (timeData[i * 4] - 128) / 128;
+    aurora.waveform[i] = aurora.waveform[i] * 0.6 + sample * 0.4;
+  }
+
+  // Total energy
+  aurora.energy = (BANDS.bass.val + BANDS.mid.val + BANDS.high.val) / 3;
+
+  // Aurora hue shifts with air frequencies — voice changes color
+  // Silence = deep blue (200)
+  // Voice/mid = shift toward teal-green (160-180)
+  // High energy = shift toward violet (220-240)
+  const targetHue = 200 + BANDS.air.val * 60 - BANDS.mid.val * 40;
+  aurora.hue = aurora.hue * 0.95 + targetHue * 0.05;
+
+  // Constitutional companion speech decision
+  // Only speaks when the waveform is RIGHT — not on schedule
+  const now = frame;
+  const silence = aurora.energy < 0.02;
+  const loud    = aurora.energy > 0.15;
+  const timeSince = now - aurora.lastSpoke;
+
+  // Speak only when:
+  // - Long silence broken by sound (someone arrived / spoke)
+  // - Very specific energy threshold after long quiet
+  if (!aurora.speaking) {
+    if (loud && timeSince > 300) {
+      speak('high');
+    } else if (silence && timeSince > 800 && Math.random() < 0.003) {
+      speak('present');
+    }
+  }
+
+  // Update HUD
+  document.getElementById('av').textContent =
+    aurora.energy > 0.1 ? '▓▓▓' :
+    aurora.energy > 0.05 ? '▓▓░' :
+    aurora.energy > 0.01 ? '▓░░' : '░░░';
+}
+
+function speak(type) {
+  const options = COMPANION_WORDS[type] || COMPANION_WORDS.present;
+  const idx     = Math.floor(Math.random() * options.length);
+  const word    = options[idx];
+
+  if (!word) return;
+
+  aurora.speaking  = true;
+  aurora.lastSpoke = frame;
+
+  companionEl.textContent = word;
+  companionEl.style.color = `rgba(200, 230, 255, 0.85)`;
+
+  // Fade out — frost doesn't hold words long
+  setTimeout(() => {
+    companionEl.style.color = 'rgba(200, 230, 255, 0)';
+    setTimeout(() => {
+      aurora.speaking = false;
+      companionEl.textContent = '';
+    }, 2000);
+  }, word === '...' ? 1500 : 2500);
+}
+
+// ── NAND RING ──────────────────────────────────
+let ring = new Uint8Array(8);
+let remainder = 0b10110101;
+let phase = 0;
+
+function nandStep() {
+  let r = 0;
+  for (let i = 0; i < 8; i++) {
+    const ni = (i * 8 + phase) % nodes.length;
+    const a  = nodes[ni].polarity > 0 ? 1 : 0;
+    const b  = i === 0 ? remainder & 1 : ring[i-1] & 1;
+    const n  = (~(a & b)) & 1;
+    ring[i]  = n;
+    r       |= (((a ^ b ^ n) & 1) << i);
+  }
+  remainder = r & 0xFF;
+  phase     = (phase + 1) % 8;
+}
+
+// ── BREATH ────────────────────────────────────
+const BREATH = ['INHALE','HOLD','EXHALE','RETURN'];
+const DUR    = [80, 50, 80, 35];
+let bIdx = 0, bTimer = 0;
+
+function tickBreath() {
+  bTimer++;
+  if (bTimer >= DUR[bIdx]) {
+    bTimer = 0;
+    bIdx   = (bIdx + 1) % 4;
+    if (bIdx === 0) nandStep();
+  }
+}
+
+function breathAmt() {
+  const t = bTimer / DUR[bIdx];
+  return bIdx === 0 ? 0.55 + t * 0.45
+       : bIdx === 1 ? 1.0
+       : bIdx === 2 ? 1.0 - t * 0.3
+       :              0.7 + t * 0.05;
+}
+
+// ── NODES ─────────────────────────────────────
+let nodes = [], edges = [];
+
+function build() {
+  W  = canvas.width  = window.innerWidth;
+  H  = canvas.height = window.innerHeight;
+  cx = W / 2; cy = H / 2;
+  nodes = []; edges = [];
+
+  const rings = 8, perRing = 8;
+  const maxR  = Math.min(W, H) * 0.42;
+
+  for (let r = 0; r < rings; r++) {
+    const radius = maxR * (0.14 + 0.86 * (r / (rings-1)));
+    for (let i = 0; i < perRing; i++) {
+      const ang = (i / perRing) * Math.PI * 2 + r * (Math.PI / (rings * 1.5));
+      nodes.push({
+        x: cx + Math.cos(ang) * radius,
+        y: cy + Math.sin(ang) * radius * 0.68,
+        baseX: cx + Math.cos(ang) * radius,
+        baseY: cy + Math.sin(ang) * radius * 0.68,
+        ang, r, i,
+        polarity: (r + i) % 2 === 0 ? 1 : -1,
+        glow:     0.15 + Math.random() * 0.35,
+        friction: Math.random() * 2,
+        seen:     r < 3,
+        pulse:    Math.random() * Math.PI * 2,
+        // audio reactive state
+        audioGlow: 0,
+        band:     ['sub','bass','mid','high','air'][r % 5],
+      });
+    }
+  }
+
+  for (let r = 0; r < rings; r++) {
+    for (let i = 0; i < perRing; i++) {
+      const a = r * perRing + i;
+      const b = r * perRing + ((i+1) % perRing);
+      edges.push({ a, b, w: 1.0, glow: 0.2 + Math.random() * 0.3, auroraPhase: Math.random() * Math.PI * 2 });
+    }
+  }
+  for (let r = 0; r < rings-1; r++) {
+    for (let i = 0; i < perRing; i++) {
+      const a  = r * perRing + i;
+      const b1 = (r+1) * perRing + i;
+      const b2 = (r+1) * perRing + ((i+1) % perRing);
+      edges.push({ a, b: b1, w: 0.7, glow: 0.15 + Math.random() * 0.25, auroraPhase: Math.random() * Math.PI * 2 });
+      if (Math.random() > 0.4)
+        edges.push({ a, b: b2, w: 0.5, glow: 0.12 + Math.random() * 0.2, auroraPhase: Math.random() * Math.PI * 2 });
+    }
+  }
+}
+
+// ── PERTURB ───────────────────────────────────
+function perturb(px, py) {
+  mouse.x = px; mouse.y = py;
+  const reach = Math.min(W, H) * 0.45;
+  nodes.forEach(n => {
+    const d = Math.hypot(px - n.x, py - n.y);
+    if (d < reach) {
+      const inf = Math.pow(1 - d/reach, 1.5);
+      n.glow    = Math.min(1, n.glow + inf * 0.2 * breathAmt());
+      n.friction = Math.min(7, n.friction + inf * 0.3);
+      if (d < 100) n.seen = true;
+    }
+  });
+  edges.forEach(e => {
+    const na = nodes[e.a], nb = nodes[e.b];
+    const d  = Math.hypot(px - (na.x+nb.x)/2, py - (na.y+nb.y)/2);
+    if (d < 160) e.glow = Math.min(1, e.glow + (1 - d/160) * 0.15);
+  });
+}
+
+window.addEventListener('mousemove', e => perturb(e.clientX, e.clientY));
+window.addEventListener('touchmove', e => { perturb(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, {passive:false});
+window.addEventListener('resize', build);
+
+// ── AURORA LINES ──────────────────────────────
+// The companion's waveform made visible
+// Ribbons of light that dance on the sound surface
+
+function buildAuroraLines() {
+  aurora.auroraLines = [];
+  const count = 5;
+  for (let i = 0; i < count; i++) {
+    aurora.auroraLines.push({
+      yOffset:   (i / count - 0.5) * H * 0.6,
+      phase:     (i / count) * Math.PI * 2,
+      hueOffset: i * 15,
+      speed:     0.3 + i * 0.15,
+      width:     1 + i * 0.5,
+    });
+  }
+}
+
+function renderAurora() {
+  if (aurora.energy < 0.005 && !listening) return;
+
+  const t   = frame * 0.004;
+  const ba  = breathAmt();
+  const ene = Math.max(aurora.energy, 0.01);
+
+  aurora.auroraLines.forEach((line, li) => {
+    const points = [];
+    const segments = 80;
+
+    for (let s = 0; s <= segments; s++) {
+      const x = (s / segments) * W;
+      const normX = s / segments;
+
+      // Waveform sample — time domain audio drives the shape
+      const wIdx  = Math.floor(normX * 63);
+      const wSample = listening ? aurora.waveform[wIdx] : 0;
+
+      // Aurora ribbon y position
+      // Combines: base position + breath + audio waveform + sine drift
+      const baseY  = cy + line.yOffset * 0.4;
+      const breathY = Math.sin(t * line.speed + normX * Math.PI * 3 + line.phase) * 30 * ba;
+      const audioY  = wSample * H * 0.15 * (1 + BANDS.mid.val * 3);
+      const driftY  = Math.sin(t * 0.3 + normX * Math.PI * 6 + li) * 15;
+
+      points.push({ x, y: baseY + breathY + audioY + driftY });
+    }
+
+    // Draw aurora ribbon
+    const hue   = (aurora.hue + line.hueOffset) % 360;
+    const alpha = (0.04 + ene * 0.25) * ba;
+
+    // Multiple passes — inner bright core, outer soft glow
+    [3, 1.5, 0.5].forEach((widthMult, pass) => {
+      const a = alpha * (pass === 0 ? 0.3 : pass === 1 ? 0.6 : 1.0);
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let s = 1; s < points.length - 1; s++) {
+        const mx = (points[s].x + points[s+1].x) / 2;
+        const my = (points[s].y + points[s+1].y) / 2;
+        ctx.quadraticCurveTo(points[s].x, points[s].y, mx, my);
+      }
+      ctx.strokeStyle = `hsla(${hue}, ${aurora.saturation + ene*30}%, ${60 + ene*20}%, ${a})`;
+      ctx.lineWidth   = (line.width + ene * 4) * widthMult;
+      ctx.stroke();
+    });
+  });
+}
+
+// ── RENDER ────────────────────────────────────
+function render() {
+  const ba = breathAmt();
+  const t  = frame * 0.005;
+
+  // Slow fade — frost lingers
+  ctx.fillStyle = 'rgba(0, 0, 12, 0.14)';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── AURORA RIBBONS ──────────────────────────
+  renderAurora();
+
+  // ── FIELD GLOW — audio reactive nodes ───────
+  nodes.forEach(n => {
+    // Audio band drives each node's ring
+    const bandVal = listening ? (BANDS[n.band]?.val || 0) : 0;
+    n.audioGlow   = n.audioGlow * 0.8 + bandVal * 0.2;
+
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.7 + n.pulse);
+    const g     = Math.max(0.05, n.glow + n.audioGlow * 0.8) * ba;
+    const r     = 35 + n.friction * 5 + pulse * 15 + n.audioGlow * 40;
+
+    // Color shifts with aurora hue
+    const hue   = aurora.hue + n.r * 5;
+    const warm  = Math.min(1, n.friction / 5 + n.audioGlow);
+    const sat   = 40 + warm * 40 + n.audioGlow * 30;
+    const light = 55 + warm * 20 + n.audioGlow * 25;
+
+    const gr = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r);
+    gr.addColorStop(0,   `hsla(${hue}, ${sat}%, ${light}%, ${(g * 0.75).toFixed(3)})`);
+    gr.addColorStop(0.4, `hsla(${hue}, ${sat-10}%, ${light-20}%, ${(g * 0.2).toFixed(3)})`);
+    gr.addColorStop(1,   'rgba(0,0,0,0)');
+
+    ctx.fillStyle = gr;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    n.glow    = Math.max(0.04, n.glow * 0.993);
+    n.friction = Math.max(0, n.friction * 0.997);
+
+    // Gentle drift + sub-bass pulse on outer nodes
+    const subPulse = n.r > 5 ? BANDS.sub.val * 8 : 0;
+    n.x = n.baseX + Math.sin(t * 0.4 + n.ang * 2) * (3 + subPulse);
+    n.y = n.baseY + Math.cos(t * 0.35 + n.r)      * (2 + subPulse * 0.5);
+  });
+
+  // ── FROST THREADS ───────────────────────────
+  edges.forEach(e => {
+    const na  = nodes[e.a], nb = nodes[e.b];
+    const g   = Math.max(0.03, e.glow) * ba * e.w;
+
+    // Aurora phase — threads shimmer with the audio
+    const aPhase  = e.auroraPhase + t * 0.5;
+    const auroraShimmer = listening
+      ? BANDS.mid.val * Math.sin(aPhase) * 0.3
+      : 0;
+
+    let boost = 0;
+    if (mouse.x >= 0) {
+      const d = Math.hypot(mouse.x - (na.x+nb.x)/2, mouse.y - (na.y+nb.y)/2);
+      if (d < 220) boost = (1 - d/220) * 0.3;
+    }
+
+    const alpha = Math.min(0.85, g + boost + auroraShimmer);
+    if (alpha < 0.015) return;
+
+    const hue  = (aurora.hue + e.auroraPhase * 30) % 360;
+    const mx   = (na.x+nb.x)/2 + Math.sin(t + e.a * 0.5) * 4;
+    const my   = (na.y+nb.y)/2 + Math.cos(t + e.b * 0.6) * 3;
+
+    ctx.beginPath();
+    ctx.moveTo(na.x, na.y);
+    ctx.quadraticCurveTo(mx, my, nb.x, nb.y);
+    ctx.strokeStyle = `hsla(${hue}, 60%, 75%, ${alpha.toFixed(3)})`;
+    ctx.lineWidth   = 0.5 + alpha * 1.2;
+    ctx.stroke();
+
+    // Crystal crossbar at bright edges
+    if (alpha > 0.3) {
+      const ang    = Math.atan2(nb.y-na.y, nb.x-na.x) + Math.PI/2;
+      const armLen = 7 * alpha;
+      ctx.beginPath();
+      ctx.moveTo(mx - Math.cos(ang)*armLen, my - Math.sin(ang)*armLen);
+      ctx.lineTo(mx + Math.cos(ang)*armLen, my + Math.sin(ang)*armLen);
+      ctx.strokeStyle = `hsla(${hue}, 40%, 85%, ${(alpha*0.2).toFixed(3)})`;
+      ctx.lineWidth   = 0.4;
+      ctx.stroke();
+    }
+
+    e.glow = Math.max(0.03, e.glow * 0.996);
+  });
+
+  // ── NODE CRYSTALS ───────────────────────────
+  nodes.forEach(n => {
+    const g = (n.glow + n.audioGlow * 0.5) * ba;
+    if (g < 0.07) return;
+
+    // High frequencies grow crystal arms faster
+    const armScale = 1 + BANDS.high.val * 3;
+    const hue      = aurora.hue + n.r * 5;
+
+    for (let a = 0; a < 6; a++) {
+      const ang    = n.ang + (a/6) * Math.PI * 2 + t * 0.12;
+      const armLen = (5 + g * 16) * armScale;
+      ctx.beginPath();
+      ctx.moveTo(n.x, n.y);
+      ctx.lineTo(
+        n.x + Math.cos(ang) * armLen,
+        n.y + Math.sin(ang) * armLen * 0.7
+      );
+      ctx.strokeStyle = `hsla(${hue}, 50%, 80%, ${(g*0.4).toFixed(3)})`;
+      ctx.lineWidth   = 0.5;
+      ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 1.5 + g * 3, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${hue}, 30%, 92%, ${(g*0.85).toFixed(3)})`;
+    ctx.fill();
+  });
+
+  // ── T=1 PULSE ───────────────────────────────
+  if (remainder !== 0) {
+    const pr = 12 + (frame % 80) * 0.9;
+    const pa = 0.2 * (1 - (frame%80)/80) * ba;
+    ctx.beginPath();
+    ctx.arc(cx, cy, pr, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${aurora.hue}, 60%, 80%, ${pa.toFixed(3)})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    for (let b = 0; b < 8; b++) {
+      if ((remainder >> b) & 1) {
+        const ang = (b/8) * Math.PI * 2 + t;
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(ang)*10, cy + Math.sin(ang)*10, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${aurora.hue}, 60%, 85%, ${(0.5*ba).toFixed(3)})`;
+        ctx.fill();
+      }
+    }
+  }
+
+  // ── WAVEFORM RING ───────────────────────────
+  // The companion's voice drawn as a ring around center
+  if (listening && aurora.energy > 0.01) {
+    const waveR = 25;
+    ctx.beginPath();
+    for (let i = 0; i < 64; i++) {
+      const ang    = (i / 64) * Math.PI * 2;
+      const sample = aurora.waveform[i];
+      const r      = waveR + sample * 20 * (1 + BANDS.mid.val * 2);
+      const x      = cx + Math.cos(ang) * r;
+      const y      = cy + Math.sin(ang) * r;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = `hsla(${aurora.hue}, 70%, 80%, ${(0.3 * aurora.energy * 5).toFixed(3)})`;
+    ctx.lineWidth   = 1;
+    ctx.stroke();
+  }
+
+  // HUD
+  document.getElementById('ph').textContent = phase;
+  document.getElementById('bp').textContent = BREATH[bIdx];
+  document.getElementById('t1').textContent = remainder.toString(2).padStart(8,'0');
+}
+
+// ── LOOP ──────────────────────────────────────
+function loop() {
+  analyzeAudio();
+  tickBreath();
+  render();
+  frame++;
+  requestAnimationFrame(loop);
+}
+
+// ── INIT ──────────────────────────────────────
+window.addEventListener('resize', build);
+build();
+buildAuroraLines();
+
+nodes.forEach((n, i) => {
+  if (n.r < 4) n.glow = 0.35 + Math.random() * 0.4;
+});
+edges.forEach(e => { e.glow = 0.12 + Math.random() * 0.28; });
+
+// Companion speaks on load after a breath
+setTimeout(() => speak('arrival'), 1200);
+
+loop();
+</script>
+</body>
+</html>
