@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saltflower — Frost Web</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000010;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Courier New', monospace;
+  }
+  canvas {
+    position: absolute;
+    top: 0; left: 0;
+    display: block;
+  }
+  #hud {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(160, 210, 255, 0.5);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  #state {
+    position: absolute;
+    top: 16px;
+    left: 20px;
+    color: rgba(140, 200, 255, 0.45);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    line-height: 2;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="state">
+  PHASE <span id="ph">0</span>/7 &nbsp; <span id="bp">INHALE</span><br>
+  T=1 &nbsp;<span id="t1">00000000</span><br>
+  ENTROPY <span id="ent">0.50</span>
+</div>
+<div id="hud">saltflower · frost web · τ=1</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+
+let W, H, cx, cy;
+let frame = 0;
+let mouse = { x: -1, y: -1 };
+
+// ── NAND RING ──────────────────────────────────
+let ring      = new Uint8Array(8);
+let remainder = 0b10110101; // non-zero seed
+let phase     = 0;
+
+function nandStep() {
+  let r = 0;
+  for (let i = 0; i < 8; i++) {
+    const ni  = (i * 8 + phase) % nodes.length;
+    const a   = nodes[ni].polarity > 0 ? 1 : 0;
+    const b   = i === 0 ? remainder & 1 : ring[i-1] & 1;
+    const n   = (~(a & b)) & 1;
+    const t   = (a ^ b ^ n) & 1;
+    ring[i]   = n;
+    r        |= (t << i);
+  }
+  remainder = r & 0xFF;
+  phase     = (phase + 1) % 8;
+}
+
+// ── BREATH ────────────────────────────────────
+const BREATH = ['INHALE','HOLD','EXHALE','RETURN'];
+const DUR    = [80, 50, 80, 35];
+let bIdx = 0, bTimer = 0;
+
+function tickBreath() {
+  bTimer++;
+  if (bTimer >= DUR[bIdx]) {
+    bTimer = 0;
+    bIdx   = (bIdx + 1) % 4;
+    if (bIdx === 0) nandStep();
+  }
+}
+
+function breathAmt() {
+  const t = bTimer / DUR[bIdx];
+  return bIdx === 0 ? 0.6 + t * 0.4
+       : bIdx === 1 ? 1.0
+       : bIdx === 2 ? 1.0 - t * 0.35
+       :              0.65 + t * 0.05;
+}
+
+// ── NODES ─────────────────────────────────────
+let nodes = [];
+let edges = [];
+
+function build() {
+  W  = canvas.width  = window.innerWidth;
+  H  = canvas.height = window.innerHeight;
+  cx = W / 2;
+  cy = H / 2;
+  nodes = [];
+  edges = [];
+
+  const rings   = 8;
+  const perRing = 8;
+  const maxR    = Math.min(W, H) * 0.42;
+
+  for (let r = 0; r < rings; r++) {
+    const radius = maxR * (0.15 + 0.85 * (r / (rings - 1)));
+    for (let i = 0; i < perRing; i++) {
+      const ang = (i / perRing) * Math.PI * 2 + r * (Math.PI / (rings * 1.5));
+      nodes.push({
+        x:        cx + Math.cos(ang) * radius,
+        y:        cy + Math.sin(ang) * radius * 0.68,
+        baseX:    cx + Math.cos(ang) * radius,
+        baseY:    cy + Math.sin(ang) * radius * 0.68,
+        ang,
+        r,
+        i,
+        polarity: (r + i) % 2 === 0 ? 1 : -1,
+        glow:     0.2 + Math.random() * 0.4,   // start visible
+        friction: Math.random() * 2,
+        seen:     r < 3,                        // inner rings already seen
+        pulse:    Math.random() * Math.PI * 2,
+      });
+    }
+  }
+
+  // ring edges
+  for (let r = 0; r < rings; r++) {
+    for (let i = 0; i < perRing; i++) {
+      const a = r * perRing + i;
+      const b = r * perRing + ((i + 1) % perRing);
+      edges.push({ a, b, w: 1.0, glow: 0.3 + Math.random() * 0.3 });
+    }
+  }
+
+  // radial / diagonal edges
+  for (let r = 0; r < rings - 1; r++) {
+    for (let i = 0; i < perRing; i++) {
+      const a  = r * perRing + i;
+      const b1 = (r+1) * perRing + i;
+      const b2 = (r+1) * perRing + ((i+1) % perRing);
+      edges.push({ a, b: b1, w: 0.7, glow: 0.2 + Math.random() * 0.25 });
+      if (Math.random() > 0.4)
+        edges.push({ a, b: b2, w: 0.5, glow: 0.15 + Math.random() * 0.2 });
+    }
+  }
+}
+
+// ── PERTURB ───────────────────────────────────
+let entropy = 0.5;
+
+function perturb(px, py) {
+  mouse.x = px; mouse.y = py;
+  const reach = Math.min(W, H) * 0.45;
+
+  nodes.forEach(n => {
+    const d = Math.hypot(px - n.x, py - n.y);
+    if (d < reach) {
+      const inf = Math.pow(1 - d / reach, 1.5);
+      n.glow    = Math.min(1, n.glow + inf * 0.25 * breathAmt());
+      n.friction = Math.min(7, n.friction + inf * 0.4);
+      if (d < 100) n.seen = true;
+    }
+  });
+
+  edges.forEach(e => {
+    const na = nodes[e.a], nb = nodes[e.b];
+    const mx = (na.x + nb.x) / 2, my = (na.y + nb.y) / 2;
+    const d  = Math.hypot(px - mx, py - my);
+    if (d < 160) {
+      e.glow = Math.min(1, e.glow + (1 - d/160) * 0.2);
+    }
+  });
+
+  entropy = Math.min(0.95, Math.max(0.05, entropy + 0.002));
+}
+
+window.addEventListener('mousemove', e => perturb(e.clientX, e.clientY));
+window.addEventListener('touchmove',  e => { perturb(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, {passive:false});
+window.addEventListener('resize',     build);
+
+// ── RENDER ────────────────────────────────────
+function render() {
+  const ba  = breathAmt();
+  const t   = frame * 0.006;
+
+  // Fade trail — slow so frost lingers
+  ctx.fillStyle = 'rgba(0, 0, 16, 0.13)';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── FIELD GLOW — nodes ──────────────────────
+  nodes.forEach(n => {
+    // ambient pulse even without touch
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.8 + n.pulse);
+    const g     = Math.max(0.06, n.glow) * ba;
+    const r     = 40 + n.friction * 6 + pulse * 20;
+
+    // cold blue-white core, amber at friction boundary
+    const warm = Math.min(1, n.friction / 5);
+    const R = Math.round(60  + warm * 180);
+    const G = Math.round(140 + warm * 60);
+    const B = Math.round(255 - warm * 60);
+
+    const gr = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r);
+    gr.addColorStop(0,   `rgba(${R},${G},${B},${(g * 0.8).toFixed(3)})`);
+    gr.addColorStop(0.4, `rgba(${R-20},${G-30},${B},${(g * 0.25).toFixed(3)})`);
+    gr.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = gr;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // slow decay
+    n.glow    = Math.max(0.04, n.glow * 0.994);
+    n.friction = Math.max(0, n.friction * 0.997);
+
+    // gentle drift
+    n.x = n.baseX + Math.sin(t * 0.5 + n.ang * 2) * 3;
+    n.y = n.baseY + Math.cos(t * 0.4 + n.r)       * 2;
+  });
+
+  // ── FROST THREADS ───────────────────────────
+  edges.forEach(e => {
+    const na = nodes[e.a], nb = nodes[e.b];
+    const g  = Math.max(0.04, e.glow) * ba * e.w;
+    if (g < 0.02) return;
+
+    // mouse proximity boost
+    let boost = 0;
+    if (mouse.x >= 0) {
+      const mx = (na.x + nb.x) / 2, my = (na.y + nb.y) / 2;
+      const d  = Math.hypot(mouse.x - mx, mouse.y - my);
+      if (d < 220) boost = (1 - d / 220) * 0.35;
+    }
+
+    const alpha = Math.min(0.9, g + boost);
+
+    // crystal curve — frost bends slightly
+    const mx   = (na.x + nb.x) / 2 + Math.sin(t + e.a * 0.5) * 5;
+    const my   = (na.y + nb.y) / 2 + Math.cos(t + e.b * 0.6) * 4;
+
+    const warm = (na.friction + nb.friction) / 14;
+    const R    = Math.round(130 + warm * 100);
+    const G    = Math.round(185 + warm * 30);
+
+    ctx.beginPath();
+    ctx.moveTo(na.x, na.y);
+    ctx.quadraticCurveTo(mx, my, nb.x, nb.y);
+    ctx.strokeStyle = `rgba(${R}, ${G}, 255, ${alpha.toFixed(3)})`;
+    ctx.lineWidth   = 0.6 + alpha * 1.2;
+    ctx.stroke();
+
+    // crystal arm at midpoint when bright
+    if (alpha > 0.35) {
+      const armAng = Math.atan2(nb.y - na.y, nb.x - na.x) + Math.PI / 2;
+      const armLen = 8 * alpha;
+      ctx.beginPath();
+      ctx.moveTo(mx - Math.cos(armAng) * armLen, my - Math.sin(armAng) * armLen);
+      ctx.lineTo(mx + Math.cos(armAng) * armLen, my + Math.sin(armAng) * armLen);
+      ctx.strokeStyle = `rgba(200, 225, 255, ${(alpha * 0.25).toFixed(3)})`;
+      ctx.lineWidth   = 0.5;
+      ctx.stroke();
+    }
+
+    e.glow = Math.max(0.04, e.glow * 0.996);
+  });
+
+  // ── NODE CRYSTALS ───────────────────────────
+  nodes.forEach(n => {
+    const g = n.glow * ba;
+    if (g < 0.08) return;
+
+    // hexagonal frost arms
+    for (let a = 0; a < 6; a++) {
+      const ang    = n.ang + (a / 6) * Math.PI * 2 + t * 0.15;
+      const armLen = 6 + g * 18;
+      ctx.beginPath();
+      ctx.moveTo(n.x, n.y);
+      ctx.lineTo(n.x + Math.cos(ang) * armLen, n.y + Math.sin(ang) * armLen * 0.7);
+      ctx.strokeStyle = `rgba(200, 225, 255, ${(g * 0.45).toFixed(3)})`;
+      ctx.lineWidth   = 0.5;
+      ctx.stroke();
+    }
+
+    // core point
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 1.5 + g * 3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(230, 240, 255, ${(g * 0.9).toFixed(3)})`;
+    ctx.fill();
+  });
+
+  // ── T=1 REMAINDER PULSE ─────────────────────
+  if (remainder !== 0) {
+    const pr = 15 + (frame % 80) * 0.8;
+    const pa = 0.18 * (1 - (frame % 80) / 80) * ba;
+    ctx.beginPath();
+    ctx.arc(cx, cy, pr, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(180, 220, 255, ${pa.toFixed(3)})`;
+    ctx.lineWidth   = 1.2;
+    ctx.stroke();
+
+    // bit pattern as 8 tiny sparks around center
+    for (let b = 0; b < 8; b++) {
+      if ((remainder >> b) & 1) {
+        const ang = (b / 8) * Math.PI * 2 + t;
+        const rx  = cx + Math.cos(ang) * 10;
+        const ry  = cy + Math.sin(ang) * 10;
+        ctx.beginPath();
+        ctx.arc(rx, ry, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 230, 255, ${(0.5 * ba).toFixed(3)})`;
+        ctx.fill();
+      }
+    }
+  }
+
+  // ── HUD ─────────────────────────────────────
+  document.getElementById('ph').textContent  = phase;
+  document.getElementById('bp').textContent  = BREATH[bIdx];
+  document.getElementById('t1').textContent  = remainder.toString(2).padStart(8,'0');
+  document.getElementById('ent').textContent = entropy.toFixed(2);
+}
+
+// ── LOOP ──────────────────────────────────────
+function loop() {
+  tickBreath();
+  render();
+  frame++;
+  requestAnimationFrame(loop);
+}
+
+build();
+
+// warm the inner nodes immediately
+nodes.forEach((n, i) => {
+  if (n.r < 4) n.glow = 0.4 + Math.random() * 0.4;
+});
+edges.forEach(e => { e.glow = 0.15 + Math.random() * 0.3; });
+
+loop();
+</script>
+</body>
+</html>
