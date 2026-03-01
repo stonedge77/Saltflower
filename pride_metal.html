@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge Pride</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #080808;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    overflow: hidden;
+  }
+
+  .scene {
+    position: relative;
+    width: min(95vw, 900px);
+    aspect-ratio: 16/9;
+  }
+
+  canvas#flag {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 1px solid rgba(120,180,220,0.15);
+    box-shadow:
+      0 0 80px rgba(0,180,255,0.08),
+      0 0 2px rgba(120,200,255,0.3),
+      inset 0 0 60px rgba(0,0,0,0.5);
+  }
+
+  /* Scanline overlay */
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* Edge vignette */
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center,
+      transparent 50%,
+      rgba(0,0,0,0.7) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Corner scratches */
+  .scratch {
+    position: absolute;
+    pointer-events: none;
+  }
+  .scratch::before, .scratch::after {
+    content: '';
+    position: absolute;
+    background: rgba(200,220,255,0.06);
+  }
+
+  .label {
+    margin-top: 18px;
+    color: rgba(140,180,220,0.35);
+    font-size: 10px;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+  }
+
+  /* Filter controls */
+  .controls {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    background: rgba(30,40,55,0.8);
+    border: 1px solid rgba(100,160,200,0.2);
+    color: rgba(160,200,230,0.6);
+    padding: 6px 16px;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: 'Orbitron', monospace;
+    transition: all 0.2s;
+  }
+  .btn:hover, .btn.active {
+    background: rgba(0,120,200,0.2);
+    border-color: rgba(100,180,255,0.5);
+    color: rgba(200,230,255,0.9);
+  }
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <canvas id="flag"></canvas>
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+</div>
+
+<div class="label">forge pride · heat-treated spectrum · signal persists</div>
+
+<div class="controls">
+  <button class="btn active" onclick="setFilter('forge')">forge</button>
+  <button class="btn" onclick="setFilter('carbon')">carbon</button>
+  <button class="btn" onclick="setFilter('plasma')">plasma</button>
+  <button class="btn" onclick="setFilter('raw')">raw</button>
+  <button class="btn" onclick="setFilter('frost')">frost</button>
+  <button class="btn" id="mic-btn" onclick="startMic()">activate listening</button>
+</div>
+
+<script>
+const canvas = document.getElementById('flag');
+const ctx    = canvas.getContext('2d');
+
+let W, H;
+let currentFilter = 'forge';
+let animFrame = 0;
+
+// AUDIO
+let audioCtx, analyser, micStream;
+let freqData = new Uint8Array(256), timeData = new Uint8Array(256);
+let listening = false;
+
+const BANDS = {
+  sub:    { lo: 0,   hi: 3,   val: 0 },
+  bass:   { lo: 3,   hi: 10,  val: 0 },
+  lowmid: { lo: 10,  hi: 25,  val: 0 },
+  mid:    { lo: 25,  hi: 60,  val: 0 },
+  highmid:{ lo: 60,  hi: 100, val: 0 },
+  high:   { lo: 100, hi: 150, val: 0 },
+  air:    { lo: 150, hi: 255, val: 0 },
+};
+const waveform = new Float32Array(64);
+let energy = 0;
+
+async function startMic() {
+  if (listening) return;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.75;
+    const src = audioCtx.createMediaStreamSource(micStream);
+    src.connect(analyser);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    timeData = new Uint8Array(analyser.frequencyBinCount);
+    listening = true;
+    const btn = document.getElementById('mic-btn');
+    btn.classList.add('active');
+    btn.textContent = 'listening ●';
+  } catch(e) {
+    document.getElementById('mic-btn').textContent = 'mic unavailable';
+  }
+}
+
+function analyzeAudio() {
+  if (!listening || !analyser) return;
+  analyser.getByteFrequencyData(freqData);
+  analyser.getByteTimeDomainData(timeData);
+  for (const band of Object.values(BANDS)) {
+    let sum = 0;
+    for (let i = band.lo; i < band.hi; i++) sum += freqData[i];
+    band.val = band.val * 0.72 + (sum / ((band.hi - band.lo) * 255)) * 0.28;
+  }
+  for (let i = 0; i < 64; i++) {
+    waveform[i] = waveform[i] * 0.6 + ((timeData[i*4] - 128) / 128) * 0.4;
+  }
+  energy = (BANDS.bass.val + BANDS.mid.val + BANDS.high.val) / 3;
+}
+
+function resize() {
+  const rect = canvas.getBoundingClientRect();
+  W = canvas.width  = rect.width  * devicePixelRatio;
+  H = canvas.height = rect.height * devicePixelRatio;
+}
+resize();
+window.addEventListener('resize', () => { resize(); });
+
+// ═══════════════════════════════════════════
+// FILTER PRESETS
+// Each is a CSS filter string + overlay tint
+// ═══════════════════════════════════════════
+const FILTERS = {
+  forge: {
+    // Heat treated steel — warm darks, desaturated mids, ember glows
+    saturation: 0.55,
+    brightness: 0.85,
+    contrast:   1.3,
+    hueShift:   15,   // shift toward warm
+    overlay:    'rgba(40,15,0,0.25)',
+    rim:        'rgba(255,140,40,0.12)',
+    name:       'FORGE MODE — HEAT TREATED STEEL',
+  },
+  carbon: {
+    // Carbon fiber — near monochrome, heavy contrast, blue-black
+    saturation: 0.2,
+    brightness: 0.7,
+    contrast:   1.6,
+    hueShift:   200,
+    overlay:    'rgba(0,10,20,0.4)',
+    rim:        'rgba(80,180,255,0.15)',
+    name:       'CARBON MODE — COLD COMPRESSION',
+  },
+  plasma: {
+    // Plasma — oversaturated, shifted toward electric blue-violet
+    saturation: 1.8,
+    brightness: 1.1,
+    contrast:   1.2,
+    hueShift:   -30,
+    overlay:    'rgba(20,0,40,0.2)',
+    rim:        'rgba(180,80,255,0.2)',
+    name:       'PLASMA MODE — EXCITED STATE',
+  },
+  raw: {
+    saturation: 1.0,
+    brightness: 1.0,
+    contrast:   1.0,
+    hueShift:   0,
+    overlay:    'rgba(0,0,0,0)',
+    rim:        'rgba(255,255,255,0.05)',
+    name:       'RAW — UNFILTERED SIGNAL',
+  },
+  frost: {
+    // Frost / cold steel — desaturated, shifted blue, high contrast
+    saturation: 0.45,
+    brightness: 0.9,
+    contrast:   1.4,
+    hueShift:   160,
+    overlay:    'rgba(0,20,40,0.3)',
+    rim:        'rgba(120,220,255,0.2)',
+    name:       'FROST MODE — COLD FIELD',
+  },
+};
+
+function setFilter(name) {
+  currentFilter = name;
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+// FLAG GEOMETRY — Progress Pride
+// Stripes + chevron
+// ═══════════════════════════════════════════
+
+// 6 horizontal stripes (top to bottom)
+const STRIPES = [
+  { color: '#c8102e', planet: 'solar_flare' },   // red — sun
+  { color: '#f4731c', planet: 'mars' },           // orange — mars
+  { color: '#f4d03f', planet: 'io' },             // yellow — io
+  { color: '#3a9d23', planet: 'algae' },          // green — earth ocean
+  { color: '#1a56db', planet: 'ocean' },          // blue — deep ocean
+  { color: '#7b2fbe', planet: 'nebula' },         // violet — nebula
+];
+
+// Chevron layers (right-pointing, left side of flag)
+// Drawn right to left: teal, black/space, brown/mars, pink, white/cloud
+const CHEVRON = [
+  { color: '#19b7a8', width: 0.22 },  // teal
+  { color: '#0a0a12', width: 0.19 },  // space black
+  { color: '#7b3f1e', width: 0.155 }, // brown (trans)
+  { color: '#f4a7c0', width: 0.12 },  // pink (trans)
+  { color: '#e8e8e8', width: 0.085 }, // white (trans)
+];
+
+// ═══════════════════════════════════════════
+// PROCEDURAL TEXTURES
+// Each stripe gets a unique planetary texture
+// drawn via canvas operations
+// ═══════════════════════════════════════════
+
+function drawSolarFlare(x, y, w, h, t) {
+  const kick = 1 + BANDS.bass.val * 4;
+  // Vertical plasma curtains
+  for (let i = 0; i < 40; i++) {
+    const cx = x + (i/40) * w;
+    const intensity = (0.3 + 0.7 * Math.abs(Math.sin(cx * 0.01 + t * 0.3 + i * 1.7))) * kick;
+    const gh = ctx.createLinearGradient(cx, y, cx, y+h);
+    gh.addColorStop(0,   `rgba(255, ${80+intensity*120}, ${intensity*40}, ${0.6 * intensity})`);
+    gh.addColorStop(0.4, `rgba(200, ${40+intensity*80}, 0, ${0.4 * intensity})`);
+    gh.addColorStop(1,   `rgba(100, 0, 0, 0)`);
+    ctx.fillStyle = gh;
+    ctx.fillRect(cx, y, w/40 + 1, h);
+  }
+  // Base deep red — pulses with bass
+  const bassFlare = BANDS.bass.val * 80;
+  const base = ctx.createLinearGradient(x, y, x, y+h);
+  base.addColorStop(0, `rgba(${180+bassFlare},10,10,${0.4 + BANDS.bass.val * 0.4})`);
+  base.addColorStop(1, `rgba(${80+bassFlare*0.5},0,0,0.2)`);
+  ctx.fillStyle = base;
+  ctx.fillRect(x, y, w, h);
+}
+
+function drawMars(x, y, w, h, t) {
+  const dust = BANDS.lowmid.val;
+  // Dusty terrain — dust storms surge with low-mid
+  const base = ctx.createLinearGradient(x, y, x+w, y+h);
+  const dr = Math.round(dust * 60);
+  base.addColorStop(0,   `rgb(${122+dr},${48+dr},${16+dr})`);
+  base.addColorStop(0.4, `rgb(${160+dr},${64+dr},${32+dr})`);
+  base.addColorStop(0.7, `rgb(${192+dr},${80+dr},${48+dr})`);
+  base.addColorStop(1,   `rgb(${138+dr},${53+dr},${21+dr})`);
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+
+  // Dust streaks
+  for (let i = 0; i < 15; i++) {
+    const sx = x + (i/15) * w + Math.sin(t*0.1+i) * 20;
+    const sy = y + h * 0.2 + (i%3) * h * 0.2;
+    ctx.beginPath();
+    ctx.ellipse(sx, sy, w*0.08, h*0.06, 0.3, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(${160+i*3}, ${80+i*2}, ${40+i}, 0.15)`;
+    ctx.fill();
+  }
+}
+
+function drawIo(x, y, w, h, t) {
+  const sulfur = BANDS.mid.val;
+  // Sulfur fields — volcanic activity with mid frequencies
+  const base = ctx.createRadialGradient(x+w*0.5, y+h*0.5, 0, x+w*0.5, y+h*0.5, w*(0.6 + sulfur*0.3));
+  const sr = Math.round(sulfur * 30);
+  base.addColorStop(0,   `rgb(${232+sr},${212+sr},${77+sr})`);
+  base.addColorStop(0.4, '#c8a820');
+  base.addColorStop(0.8, '#8a7010');
+  base.addColorStop(1,   '#5a4a08');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+
+  // Volcanic patches
+  for (let i = 0; i < 8; i++) {
+    const vx = x + ((i * 137) % 1) * w + w * 0.1;
+    const vy = y + ((i * 97) % 1) * h;
+    const vr = h * (0.3 + (i%3)*0.15);
+    const vg = ctx.createRadialGradient(vx, vy, 0, vx, vy, vr);
+    vg.addColorStop(0, 'rgba(40,20,5,0.6)');
+    vg.addColorStop(0.3, 'rgba(180,80,10,0.3)');
+    vg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = vg;
+    ctx.beginPath(); ctx.arc(vx, vy, vr, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+function drawAlgae(x, y, w, h, t) {
+  const bloom = BANDS.highmid.val;
+  // Ocean algae — blooms surge with high-mid
+  const base = ctx.createLinearGradient(x, y, x+w, y+h);
+  base.addColorStop(0,   '#1a6b30');
+  base.addColorStop(0.3, '#2a8840');
+  base.addColorStop(0.6, '#3aaa50');
+  base.addColorStop(1,   '#1a5a25');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+
+  // Flow patterns
+  for (let i = 0; i < 20; i++) {
+    const fx = x + (Math.sin(i * 2.3 + t * 0.05) * 0.5 + 0.5) * w;
+    const fy = y + (i/20) * h;
+    ctx.beginPath();
+    ctx.moveTo(fx, fy);
+    ctx.bezierCurveTo(fx + w*0.1, fy + h*0.03, fx + w*0.2, fy + h*0.01, fx + w*0.3, fy + h*0.04);
+    ctx.strokeStyle = `rgba(${80 + i*3}, ${180 + i*2}, ${80 + i}, ${0.1 + bloom * 0.4})`;
+    ctx.lineWidth = 1 + i * 0.1;
+    ctx.stroke();
+  }
+}
+
+function drawOcean(x, y, w, h, t) {
+  const wave = BANDS.high.val;
+  // Deep ocean — caustics surge with high frequencies
+  const base = ctx.createLinearGradient(x, y, x, y+h);
+  base.addColorStop(0,   '#0a3a8a');
+  base.addColorStop(0.5, '#1a5aaa');
+  base.addColorStop(1,   '#0a2a6a');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+
+  // Caustic light ripples
+  for (let i = 0; i < 25; i++) {
+    const lx = x + ((Math.sin(i * 1.7 + t * 0.08) + 1) * 0.5) * w;
+    const ly = y + ((Math.cos(i * 2.1 + t * 0.06) + 1) * 0.5) * h;
+    const lr = h * (0.08 + 0.04 * Math.sin(t * 0.2 + i)) * (1 + wave * 3);
+    const lg = ctx.createRadialGradient(lx, ly, 0, lx, ly, lr);
+    lg.addColorStop(0, `rgba(100,180,255,${0.1 + wave * 0.5})`);
+    lg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = lg;
+    ctx.beginPath(); ctx.arc(lx, ly, lr, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+function drawNebula(x, y, w, h, t) {
+  const shimmer = BANDS.air.val;
+  // Nebula — gas clouds pulse with air frequencies
+  const base = ctx.createLinearGradient(x, y, x+w, y+h);
+  base.addColorStop(0,   '#2a0845');
+  base.addColorStop(0.4, '#4a1070');
+  base.addColorStop(0.7, '#6a1890');
+  base.addColorStop(1,   '#3a0860');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+
+  // Gas clouds
+  for (let i = 0; i < 12; i++) {
+    const nx = x + ((i * 0.13 + Math.sin(t*0.04+i)*0.05 + 0.5) % 1) * w;
+    const ny = y + ((i * 0.17 + Math.cos(t*0.03+i)*0.05) % 1) * h;
+    const nr = h * (0.5 + Math.sin(i * 1.3) * 0.3);
+    const ng = ctx.createRadialGradient(nx, ny, 0, nx, ny, nr);
+    ng.addColorStop(0, `rgba(${160+i*5}, ${40+i*8}, ${200+i*3}, ${0.15 + shimmer * 0.6})`);
+    ng.addColorStop(0.5, `rgba(100, 20, 160, 0.1)`);
+    ng.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = ng;
+    ctx.beginPath(); ctx.arc(nx, ny, nr, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Stars
+  for (let i = 0; i < 30; i++) {
+    const sx = x + ((i * 137.5) % 100) / 100 * w;
+    const sy = y + ((i * 97.3) % 100) / 100 * h;
+    const sa = 0.4 + 0.6 * Math.abs(Math.sin(t * 0.1 + i));
+    ctx.beginPath(); ctx.arc(sx, sy, 0.8, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${Math.min(1, sa + shimmer * 0.8)})`; ctx.fill();
+  }
+}
+
+// Chevron textures
+function drawSpace(x, y, w, h, t) {
+  ctx.fillStyle = '#05050f'; ctx.fillRect(x, y, w, h);
+  for (let i = 0; i < 60; i++) {
+    const sx = x + ((i * 137.5) % 100) / 100 * w;
+    const sy = y + ((i * 97.3) % 100) / 100 * h;
+    const sa = 0.3 + 0.7 * Math.abs(Math.sin(t * 0.05 + i));
+    ctx.beginPath(); ctx.arc(sx, sy, 0.6 + (i%3)*0.3, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(220,235,255,${sa*0.7})`; ctx.fill();
+  }
+}
+
+function drawHurricane(x, y, w, h, t) {
+  ctx.fillStyle = '#c8d8e8'; ctx.fillRect(x, y, w, h);
+  const cx2 = x + w*0.5, cy2 = y + h*0.5;
+  for (let i = 0; i < 20; i++) {
+    const r = (i/20) * Math.min(w,h)*0.6;
+    const ang = t*0.02 + i * 0.4;
+    const spiral = ctx.createConicalGradient ? null : null;
+    ctx.beginPath();
+    ctx.arc(cx2, cy2, r, ang, ang + Math.PI*1.5);
+    ctx.strokeStyle = `rgba(180,200,220,${0.3 - i*0.012})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+function drawTealAurora(x, y, w, h, t) {
+  const base = ctx.createLinearGradient(x, y, x+w, y+h);
+  base.addColorStop(0,   '#0a4a44');
+  base.addColorStop(0.5, '#0d7a74');
+  base.addColorStop(1,   '#0a5a54');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+  // Aurora ribbons — throb with sub bass
+  const subThob = BANDS.sub.val;
+  for (let i = 0; i < 8; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + h*(0.2 + i*0.08));
+    const waveMid = Math.sin(t*0.05+i)*0.1 + waveform[i*8] * 0.15;
+    ctx.bezierCurveTo(x+w*0.3, y+h*(0.1+i*0.08+waveMid), x+w*0.7, y+h*(0.3+i*0.07), x+w, y+h*(0.15+i*0.09));
+    ctx.strokeStyle = `rgba(0,${200+subThob*55},${180+subThob*30},${0.12 + i*0.02 + subThob*0.15})`;
+    ctx.lineWidth = 2 + subThob * 4; ctx.stroke();
+  }
+}
+
+// ═══════════════════════════════════════════
+// DRAW FLAG
+// ═══════════════════════════════════════════
+
+function drawFlag(t) {
+  const f = FILTERS[currentFilter];
+
+  // Clear
+  ctx.fillStyle = '#080808';
+  ctx.fillRect(0, 0, W, H);
+
+  // Apply filter via globalCompositeOperation tricks
+  // We'll draw to offscreen then composite
+
+  // ── STRIPES ──────────────────────────────
+  const stripeH = H / STRIPES.length;
+  STRIPES.forEach((stripe, i) => {
+    const y = i * stripeH;
+    switch(stripe.planet) {
+      case 'solar_flare': drawSolarFlare(0, y, W, stripeH, t); break;
+      case 'mars':        drawMars(0, y, W, stripeH, t); break;
+      case 'io':          drawIo(0, y, W, stripeH, t); break;
+      case 'algae':       drawAlgae(0, y, W, stripeH, t); break;
+      case 'ocean':       drawOcean(0, y, W, stripeH, t); break;
+      case 'nebula':      drawNebula(0, y, W, stripeH, t); break;
+    }
+  });
+
+  // Apply global color grade to stripes
+  // Saturation via luminosity blend
+  ctx.save();
+  ctx.globalCompositeOperation = 'saturation';
+  const satVal = Math.round(f.saturation * 100);
+  // Use hue-rotate + color matrix approximation via overlay
+  ctx.restore();
+
+  // ── CHEVRON ──────────────────────────────
+  // Right-pointing chevron from left edge
+  // Each layer is a progressively smaller chevron
+  const chevronDepth = W * 0.38; // how far right the point reaches
+
+  CHEVRON.forEach((chev, ci) => {
+    const outerW = chev.width * H;
+    const innerW = ci < CHEVRON.length-1 ? CHEVRON[ci+1].width * H : 0;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(0, (H - outerW*2) / 2);
+    ctx.lineTo(chevronDepth, H/2);
+    ctx.lineTo(0, (H + outerW*2) / 2);
+    ctx.closePath();
+    ctx.clip();
+
+    // Draw texture in chevron
+    switch(ci) {
+      case 0: drawTealAurora(0, 0, W, H, t); break;
+      case 1: drawSpace(0, 0, W, H, t); break;
+      case 2: // brown
+        ctx.fillStyle = '#5a2810'; ctx.fillRect(0,0,W,H);
+        // dust texture
+        for(let j=0;j<20;j++){
+          const dx=Math.random()*W, dy=Math.random()*H;
+          ctx.fillStyle=`rgba(${140+j*3},${70+j*2},${40+j},0.06)`;
+          ctx.fillRect(dx,dy,W*0.05,H*0.05);
+        }
+        break;
+      case 3: // pink
+        const pg = ctx.createLinearGradient(0,0,W,H);
+        pg.addColorStop(0,'#8a3050'); pg.addColorStop(1,'#c06080');
+        ctx.fillStyle=pg; ctx.fillRect(0,0,W,H);
+        break;
+      case 4: // white / cloud / hurricane
+        drawHurricane(0, 0, W, H, t); break;
+    }
+    ctx.restore();
+  });
+
+  // ── FORGE FILTER OVERLAYS ────────────────
+
+  // Hue shift approximation — multiply overlay
+  if (f.hueShift !== 0) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'hue';
+    ctx.fillStyle = `hsl(${f.hueShift}, 100%, 50%)`;
+    ctx.globalAlpha = 0.15;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  // Brightness/contrast via curve overlay
+  if (f.brightness < 1) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalAlpha = 1 - f.brightness;
+    ctx.fillStyle = 'rgba(0,0,0,1)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+  if (f.brightness > 1) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = f.brightness - 1;
+    ctx.fillStyle = 'rgba(255,255,255,1)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  // Saturation desaturate
+  if (f.saturation < 1) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'saturation';
+    ctx.globalAlpha = 1 - f.saturation;
+    ctx.fillStyle = `hsl(0, 0%, 50%)`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  // Contrast via S-curve approximation
+  if (f.contrast > 1) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = (f.contrast - 1) * 0.3;
+    const cg = ctx.createLinearGradient(0, 0, 0, H);
+    cg.addColorStop(0,   'rgba(255,255,255,1)');
+    cg.addColorStop(0.5, 'rgba(0,0,0,0)');
+    cg.addColorStop(1,   'rgba(0,0,0,1)');
+    ctx.fillStyle = cg;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  // Color tint overlay
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.fillStyle = f.overlay;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  // ── METAL EDGE EFFECTS ───────────────────
+
+  // Brushed metal texture — horizontal fine lines
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.04;
+  for (let y = 0; y < H; y += 2) {
+    const bright = 0.3 + 0.7 * Math.abs(Math.sin(y * 0.08));
+    ctx.fillStyle = `rgba(255,255,255,${bright})`;
+    ctx.fillRect(0, y, W, 1);
+  }
+  ctx.restore();
+
+  // Rim light — forge glow + waveform on chevron edge
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const chevronDepth2 = W * 0.38;
+  // Waveform drawn along chevron edge — the flag's spine
+  if (listening) {
+    for (let i = 0; i < 64; i++) {
+      const wy = (i / 64) * H;
+      const wOff = waveform[i] * 30 * (1 + energy * 3);
+      const wAlpha = 0.15 + energy * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(chevronDepth2 + wOff, wy);
+      ctx.lineTo(chevronDepth2 + wOff, wy + H/64 + 1);
+      ctx.strokeStyle = `hsla(${f.hueShift + 180}, 80%, 70%, ${wAlpha})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+  const edgeGlow = ctx.createLinearGradient(chevronDepth2-20, 0, chevronDepth2+20, 0);
+  edgeGlow.addColorStop(0, 'rgba(0,0,0,0)');
+  edgeGlow.addColorStop(0.5, f.rim);
+  edgeGlow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = edgeGlow;
+  ctx.fillRect(chevronDepth2 - 20, 0, 40 + energy * 60, H);
+  ctx.restore();
+
+  // Stripe separator lines — etched metal divisions
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  STRIPES.forEach((_, i) => {
+    if (i === 0) return;
+    const sy = i * stripeH;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.38, sy);
+    ctx.lineTo(W, sy);
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Highlight above
+    ctx.beginPath();
+    ctx.moveTo(W * 0.38, sy);
+    ctx.lineTo(W, sy);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+  ctx.restore();
+
+  // Animated heat shimmer on forge mode
+  if (currentFilter === 'forge') {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = 0.04;
+    for (let i = 0; i < 5; i++) {
+      const hx = (Math.sin(t * 0.02 + i * 1.3) * 0.5 + 0.5) * W;
+      const hy = (Math.cos(t * 0.015 + i * 0.9) * 0.5 + 0.5) * H;
+      const hr = W * 0.15;
+      const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+      hg.addColorStop(0, 'rgba(255,120,20,1)');
+      hg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = hg;
+      ctx.beginPath(); ctx.arc(hx, hy, hr, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Plasma pulse on plasma mode
+  if (currentFilter === 'plasma') {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = 0.06;
+    for (let i = 0; i < 3; i++) {
+      const px2 = (Math.sin(t * 0.03 + i * 2.1) * 0.5 + 0.5) * W;
+      const py2 = (Math.cos(t * 0.025 + i * 1.7) * 0.5 + 0.5) * H;
+      const pr = W * 0.2;
+      const pg = ctx.createRadialGradient(px2, py2, 0, px2, py2, pr);
+      pg.addColorStop(0, 'rgba(180,80,255,1)');
+      pg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = pg;
+      ctx.beginPath(); ctx.arc(px2, py2, pr, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Mode label
+  ctx.save();
+  ctx.font = `${W * 0.012}px Orbitron, monospace`;
+  ctx.fillStyle = 'rgba(200,220,255,0.2)';
+  ctx.textAlign = 'right';
+  ctx.fillText(f.name, W - W*0.02, H - H*0.04);
+  ctx.restore();
+}
+
+// ── LOOP ──────────────────────────────────
+function loop() {
+  analyzeAudio();
+  drawFlag(animFrame);
+  animFrame++;
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>

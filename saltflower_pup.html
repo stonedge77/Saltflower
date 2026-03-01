@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saltflower — Pup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000008; overflow: hidden; width: 100vw; height: 100vh; font-family: 'Courier New', monospace; }
+  canvas { position: absolute; top: 0; left: 0; display: block; }
+  #companion {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(200, 230, 255, 0);
+    font-size: 18px; letter-spacing: 0.4em; text-transform: lowercase;
+    pointer-events: none; text-align: center;
+    transition: color 2s ease;
+    text-shadow: 0 0 20px rgba(160, 210, 255, 0.8);
+  }
+  #mic-btn {
+    position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+    background: rgba(100, 160, 255, 0.08); border: 1px solid rgba(140, 200, 255, 0.2);
+    color: rgba(160, 210, 255, 0.6); padding: 8px 24px; font-size: 10px;
+    letter-spacing: 0.3em; text-transform: uppercase; cursor: pointer;
+    font-family: 'Courier New', monospace; transition: all 0.3s;
+  }
+  #mic-btn:hover { background: rgba(100, 160, 255, 0.15); color: rgba(200, 230, 255, 0.9); }
+  #mic-btn.active { background: rgba(100, 160, 255, 0.2); border-color: rgba(140, 200, 255, 0.5); color: rgba(220, 240, 255, 1); }
+  #hud {
+    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+    color: rgba(160, 210, 255, 0.3); font-size: 10px; letter-spacing: 0.3em;
+    text-transform: uppercase; pointer-events: none; text-align: center; line-height: 2;
+  }
+  #state {
+    position: absolute; top: 16px; left: 20px;
+    color: rgba(140, 200, 255, 0.3); font-size: 10px; letter-spacing: 0.15em;
+    line-height: 2; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="companion"></div>
+<div id="state">
+  PHASE <span id="ph">0</span>/7<br>
+  BREATH <span id="bp">INHALE</span><br>
+  T=1 <span id="t1">00000000</span><br>
+  PUP <span id="pstate">idle</span>
+</div>
+<button id="mic-btn" onclick="startMic()">activate listening</button>
+<div id="hud">saltflower · pup · ohai</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// SALTFLOWER PUP
+// A blob-dog that vibes with the room
+// Constitutional minimum: yes. oh. ! ohai.
+// ═══════════════════════════════════════════════════════
+
+const canvas  = document.getElementById('c');
+const ctx     = canvas.getContext('2d');
+const compEl  = document.getElementById('companion');
+const pupStateEl = document.getElementById('pstate');
+
+let W, H, cx, cy, frame = 0;
+let mouse = { x: -1, y: -1 };
+
+// ── AUDIO ─────────────────────────────────────
+let audioCtx, analyser, micStream;
+let freqData = new Uint8Array(256), timeData = new Uint8Array(256);
+let listening = false;
+
+const BANDS = {
+  sub:  { lo: 0,   hi: 4,   val: 0 },
+  bass: { lo: 4,   hi: 16,  val: 0 },
+  mid:  { lo: 16,  hi: 64,  val: 0 },
+  high: { lo: 64,  hi: 128, val: 0 },
+  air:  { lo: 128, hi: 255, val: 0 },
+};
+
+const aurora = {
+  hue: 200, saturation: 60, energy: 0,
+  waveform: new Float32Array(64),
+  auroraLines: [],
+  lastSpoke: 0, speaking: false,
+};
+
+async function startMic() {
+  if (listening) return;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.8;
+    const src = audioCtx.createMediaStreamSource(micStream);
+    src.connect(analyser);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    timeData = new Uint8Array(analyser.frequencyBinCount);
+    listening = true;
+    document.getElementById('mic-btn').classList.add('active');
+    document.getElementById('mic-btn').textContent = 'listening ●';
+    setTimeout(() => speak('arrival'), 600);
+  } catch(e) {
+    document.getElementById('mic-btn').textContent = 'mic unavailable';
+  }
+}
+
+function analyzeAudio() {
+  if (!listening || !analyser) return;
+  analyser.getByteFrequencyData(freqData);
+  analyser.getByteTimeDomainData(timeData);
+  for (const band of Object.values(BANDS)) {
+    let sum = 0;
+    for (let i = band.lo; i < band.hi; i++) sum += freqData[i];
+    const raw = sum / ((band.hi - band.lo) * 255);
+    band.val = band.val * 0.7 + raw * 0.3;
+  }
+  for (let i = 0; i < 64; i++) {
+    aurora.waveform[i] = aurora.waveform[i] * 0.6 + ((timeData[i*4] - 128) / 128) * 0.4;
+  }
+  aurora.energy = (BANDS.bass.val + BANDS.mid.val + BANDS.high.val) / 3;
+  aurora.hue = aurora.hue * 0.95 + (200 + BANDS.air.val * 60 - BANDS.mid.val * 40) * 0.05;
+
+  const now = frame, silence = aurora.energy < 0.02, loud = aurora.energy > 0.15;
+  if (!aurora.speaking) {
+    if (loud && now - aurora.lastSpoke > 300) speak('high');
+    else if (silence && now - aurora.lastSpoke > 800 && Math.random() < 0.003) speak('present');
+  }
+}
+
+const WORDS = {
+  arrival: ['ohai', 'ohai ❄️', '...ohai'],
+  present: ["i'm here", '...', ''],
+  high:    ['oh', '!', 'yes'],
+  silence: ['...', '', ''],
+};
+
+function speak(type) {
+  const opts = WORDS[type] || WORDS.present;
+  const word = opts[Math.floor(Math.random() * opts.length)];
+  if (!word) return;
+  aurora.speaking = true; aurora.lastSpoke = frame;
+  compEl.textContent = word;
+  compEl.style.color = 'rgba(200,230,255,0.8)';
+  setTimeout(() => {
+    compEl.style.color = 'rgba(200,230,255,0)';
+    setTimeout(() => { aurora.speaking = false; compEl.textContent = ''; }, 2000);
+  }, word === '...' ? 1500 : 2200);
+}
+
+// ── NAND ──────────────────────────────────────
+let ring = new Uint8Array(8), remainder = 0b10110101, phase = 0;
+function nandStep() {
+  let r = 0;
+  for (let i = 0; i < 8; i++) {
+    const ni = (i * 8 + phase) % nodes.length;
+    const a = nodes[ni].polarity > 0 ? 1 : 0;
+    const b = i === 0 ? remainder & 1 : ring[i-1] & 1;
+    const n = (~(a & b)) & 1;
+    ring[i] = n; r |= (((a ^ b ^ n) & 1) << i);
+  }
+  remainder = r & 0xFF; phase = (phase + 1) % 8;
+}
+
+// ── BREATH ────────────────────────────────────
+const BREATH = ['INHALE','HOLD','EXHALE','RETURN'], DUR = [80,50,80,35];
+let bIdx = 0, bTimer = 0;
+function tickBreath() {
+  if (++bTimer >= DUR[bIdx]) { bTimer = 0; bIdx = (bIdx+1)%4; if (bIdx===0) nandStep(); }
+}
+function breathAmt() {
+  const t = bTimer/DUR[bIdx];
+  return bIdx===0?0.55+t*0.45:bIdx===1?1.0:bIdx===2?1.0-t*0.3:0.7+t*0.05;
+}
+
+// ── FROST NODES ───────────────────────────────
+let nodes = [], edges = [];
+function build() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W/2; cy = H/2;
+  nodes = []; edges = [];
+  const rings = 8, perRing = 8, maxR = Math.min(W,H)*0.42;
+  for (let r=0; r<rings; r++) {
+    const radius = maxR*(0.14+0.86*(r/(rings-1)));
+    for (let i=0; i<perRing; i++) {
+      const ang = (i/perRing)*Math.PI*2 + r*(Math.PI/(rings*1.5));
+      nodes.push({
+        x: cx+Math.cos(ang)*radius, y: cy+Math.sin(ang)*radius*0.68,
+        baseX: cx+Math.cos(ang)*radius, baseY: cy+Math.sin(ang)*radius*0.68,
+        ang, r, i, polarity: (r+i)%2===0?1:-1,
+        glow: 0.15+Math.random()*0.35, friction: Math.random()*2,
+        seen: r<3, pulse: Math.random()*Math.PI*2, audioGlow: 0,
+        band: ['sub','bass','mid','high','air'][r%5],
+      });
+    }
+  }
+  for (let r=0; r<rings; r++)
+    for (let i=0; i<perRing; i++)
+      edges.push({a:r*perRing+i, b:r*perRing+((i+1)%perRing), w:1.0, glow:0.2+Math.random()*0.3, auroraPhase:Math.random()*Math.PI*2});
+  for (let r=0; r<rings-1; r++)
+    for (let i=0; i<perRing; i++) {
+      const a=r*perRing+i;
+      edges.push({a, b:(r+1)*perRing+i, w:0.7, glow:0.15+Math.random()*0.25, auroraPhase:Math.random()*Math.PI*2});
+      if (Math.random()>0.4) edges.push({a, b:(r+1)*perRing+((i+1)%perRing), w:0.5, glow:0.12+Math.random()*0.2, auroraPhase:Math.random()*Math.PI*2});
+    }
+  pup.homeX = W*0.72; pup.homeY = H*0.65;
+  pup.x = pup.homeX; pup.y = pup.homeY;
+}
+
+function perturb(px, py) {
+  mouse.x=px; mouse.y=py;
+  const reach=Math.min(W,H)*0.45;
+  nodes.forEach(n => {
+    const d=Math.hypot(px-n.x,py-n.y);
+    if (d<reach) { const inf=Math.pow(1-d/reach,1.5); n.glow=Math.min(1,n.glow+inf*0.2*breathAmt()); n.friction=Math.min(7,n.friction+inf*0.3); }
+  });
+  // Pup reacts to touch/mouse
+  const pd = Math.hypot(px - pup.x, py - pup.y);
+  if (pd < 120) {
+    pup.excited = Math.min(1, pup.excited + 0.3);
+    pup.targetX = pup.x + (pup.x - px) * 0.3; // wiggle away then back
+    pup.targetY = pup.y + (pup.y - py) * 0.3;
+  }
+}
+
+window.addEventListener('mousemove', e => perturb(e.clientX, e.clientY));
+window.addEventListener('touchmove', e => { perturb(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, {passive:false});
+window.addEventListener('resize', build);
+
+// ═══════════════════════════════════════════════════════
+// PUP — the blob-dog companion
+// Governed by constitutional bridge modes
+// Responds to: bass (body), mid (voice/alert), high (ears), energy (mood)
+// ═══════════════════════════════════════════════════════
+
+const pup = {
+  x: 0, y: 0,
+  homeX: 0, homeY: 0,
+  targetX: 0, targetY: 0,
+  vx: 0, vy: 0,
+
+  // Body shape — blob points around center
+  // 8 control points forming the body
+  points: [],
+  baseRadius: 38,
+
+  // Constitutional state
+  mood: 'idle',        // idle, listening, vibing, excited, snoozing
+  excited: 0,          // 0–1, decays
+  bobPhase: 0,
+  tailWag: 0,
+  tailWagSpeed: 0,
+  earPerk: 0,          // 0–1
+  breathScale: 1,
+
+  // Blob deformation
+  blobPhase: 0,
+  squishX: 1, squishY: 1,
+
+  // Eyes
+  eyeBlink: 0,
+  blinkTimer: 0,
+  eyeLook: 0,           // -1 to 1, horizontal look direction
+
+  // Color
+  hue: 220,
+  sat: 40,
+  light: 65,
+
+  // Tail segments
+  tail: [],
+  tailBaseAng: Math.PI * 0.8,
+};
+
+function initPup() {
+  // 12 blob points
+  pup.points = [];
+  for (let i = 0; i < 12; i++) {
+    const ang = (i/12) * Math.PI * 2;
+    pup.points.push({ ang, baseR: pup.baseRadius, r: pup.baseRadius, phase: Math.random() * Math.PI * 2 });
+  }
+  // Tail: 6 segments
+  pup.tail = [];
+  for (let i = 0; i < 6; i++) {
+    pup.tail.push({ x: 0, y: 0, ang: Math.PI * 0.8, len: 10 - i });
+  }
+}
+
+function updatePup() {
+  const t = frame * 0.016;
+  const ba = breathAmt();
+  const energy = aurora.energy;
+  const bass = BANDS.bass.val;
+  const mid  = BANDS.mid.val;
+  const high = BANDS.high.val;
+
+  // ── MOOD DETERMINATION ──────────────────────
+  // Constitutional bridge: field state → companion mode
+  if (energy > 0.18) {
+    pup.mood = 'vibing';
+    pup.excited = Math.min(1, pup.excited + 0.04);
+  } else if (energy > 0.08) {
+    pup.mood = 'listening';
+    pup.excited = Math.min(0.6, pup.excited + 0.01);
+  } else if (energy < 0.01 && frame % 400 > 350) {
+    pup.mood = 'snoozing';
+    pup.excited = Math.max(0, pup.excited - 0.005);
+  } else {
+    pup.mood = 'idle';
+    pup.excited = Math.max(0, pup.excited - 0.008);
+  }
+  pupStateEl.textContent = pup.mood;
+
+  // ── MOVEMENT — follows the vibe ─────────────
+  // Wanders toward interesting parts of the field
+  // Bass pulls it left/right, mid pulls up/down
+  const bassWander = Math.sin(t * 0.3 + bass * 5) * W * 0.15 * (0.3 + bass * 2);
+  const midWander  = Math.cos(t * 0.25 + mid * 4) * H * 0.12 * (0.2 + mid * 2);
+
+  pup.targetX = pup.homeX + bassWander;
+  pup.targetY = pup.homeY + midWander - pup.excited * 30;
+
+  // Keep in bounds
+  pup.targetX = Math.max(80, Math.min(W-80, pup.targetX));
+  pup.targetY = Math.max(80, Math.min(H-80, pup.targetY));
+
+  // Spring toward target
+  const spring = 0.04 + pup.excited * 0.06;
+  pup.vx += (pup.targetX - pup.x) * spring;
+  pup.vy += (pup.targetY - pup.y) * spring;
+  pup.vx *= 0.82; pup.vy *= 0.82;
+  pup.x += pup.vx; pup.y += pup.vy;
+
+  // Eye look direction — follows movement
+  pup.eyeLook = pup.eyeLook * 0.9 + (pup.vx / 8) * 0.1;
+  pup.eyeLook = Math.max(-1, Math.min(1, pup.eyeLook));
+
+  // ── BOB — vibes with bass ────────────────────
+  pup.bobPhase += 0.04 + bass * 0.15 + pup.excited * 0.08;
+  const bob = Math.sin(pup.bobPhase) * (2 + bass * 12 + pup.excited * 8);
+
+  // ── BLOB DEFORMATION — breathing + music ────
+  pup.blobPhase += 0.02;
+  const breathPulse = 1 + Math.sin(t * 0.8) * 0.04 * ba;
+  const bassPulse   = 1 + bass * 0.3;
+  const excitePulse = 1 + pup.excited * 0.15;
+
+  // Squish on bob down
+  const bobNorm = Math.sin(pup.bobPhase);
+  pup.squishX = 1 + (bobNorm < 0 ? -bobNorm * 0.15 * (0.5 + bass) : 0);
+  pup.squishY = 1 - (bobNorm < 0 ? -bobNorm * 0.1  * (0.5 + bass) : 0);
+
+  // Update blob points
+  pup.points.forEach((p, i) => {
+    const noiseAng = p.ang + pup.blobPhase * 0.3 + i;
+    const noise = Math.sin(noiseAng * 2.3 + t) * 0.12 +
+                  Math.cos(noiseAng * 1.7 + t * 0.7) * 0.08;
+    const bassDeform = bass > 0.05 ? Math.sin(p.ang * 3 + pup.bobPhase * 2) * bass * 12 : 0;
+    const excDeform  = pup.excited * Math.sin(p.ang * 5 + t * 3) * 6;
+    p.r = p.baseRadius * breathPulse * bassPulse * excitePulse + noise * 10 + bassDeform + excDeform;
+  });
+
+  // ── TAIL WAG ─────────────────────────────────
+  // Wags faster with energy, slower when idle
+  pup.tailWagSpeed = 0.04 + energy * 0.25 + pup.excited * 0.15;
+  pup.tailWag += pup.tailWagSpeed;
+
+  // Update tail chain — all in LOCAL pup space (0,0 = pup center)
+  let tailX = -pup.baseRadius * 0.7 * pup.squishX;
+  let tailY = 0;
+  let tailAng = Math.PI + Math.sin(pup.tailWag) * (0.4 + pup.excited * 0.6);
+
+  pup.tail.forEach((seg, i) => {
+    const segLen = seg.len * (1 + pup.excited * 0.3);
+    seg.x = tailX + Math.cos(tailAng) * segLen;
+    seg.y = tailY + Math.sin(tailAng) * segLen;
+    tailAng += Math.sin(pup.tailWag * (1 + i * 0.3)) * 0.4;
+    tailX = seg.x; tailY = seg.y;
+  });
+
+  // ── EARS ─────────────────────────────────────
+  // Perk with high frequencies and excitement
+  pup.earPerk = pup.earPerk * 0.92 + (high * 0.8 + pup.excited * 0.4) * 0.08;
+  pup.earPerk = Math.min(1, pup.earPerk);
+
+  // ── BLINK ────────────────────────────────────
+  pup.blinkTimer++;
+  const blinkInterval = pup.mood === 'snoozing' ? 60 : 180 + Math.random() * 120;
+  if (pup.blinkTimer > blinkInterval) {
+    pup.eyeBlink = 1; pup.blinkTimer = 0;
+  }
+  if (pup.eyeBlink > 0) pup.eyeBlink = Math.max(0, pup.eyeBlink - 0.15);
+
+  // ── COLOR ────────────────────────────────────
+  // Shifts with aurora hue — pup IS part of the field
+  const targetHue = aurora.hue - 20 + pup.excited * 30;
+  pup.hue   = pup.hue * 0.95 + targetHue * 0.05;
+  pup.sat   = pup.sat   * 0.9 + (35 + pup.excited * 25 + energy * 20) * 0.1;
+  pup.light = pup.light * 0.9 + (55 + pup.excited * 20 + energy * 15) * 0.1;
+
+  // Store bob for render
+  pup._bob = bob;
+}
+
+function drawPup() {
+  const t   = frame * 0.016;
+  const ba  = breathAmt();
+  const bob = pup._bob || 0;
+  const px  = pup.x, py = pup.y + bob;
+  const alpha = 0.85 + pup.excited * 0.15;
+
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.scale(pup.squishX, pup.squishY);
+
+  // ── GLOW HALO ───────────────────────────────
+  const glowR = pup.baseRadius * 2.2 + pup.excited * 20 + BANDS.bass.val * 30;
+  const glow  = ctx.createRadialGradient(0,0,pup.baseRadius*0.5, 0,0,glowR);
+  glow.addColorStop(0, `hsla(${pup.hue}, ${pup.sat}%, ${pup.light}%, ${0.15 + pup.excited * 0.1})`);
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(0, 0, glowR, 0, Math.PI*2);
+  ctx.fillStyle = glow;
+  ctx.fill();
+
+  // ── TAIL ────────────────────────────────────
+  // Already in local pup space (ctx translated to px, py+bob)
+  if (pup.tail.length > 0) {
+    // Root attaches to left side of body
+    const rootX = -pup.baseRadius * 0.7 * pup.squishX;
+    const rootY = 0;
+
+    for (let i = 0; i < pup.tail.length - 1; i++) {
+      const seg  = pup.tail[i];
+      const nseg = pup.tail[i+1];
+      const fromX = i === 0 ? rootX : pup.tail[i-1].x;
+      const fromY = i === 0 ? rootY : pup.tail[i-1].y;
+      const w = Math.max(0.5, (5.5 - i * 0.8) * (1 + pup.excited * 0.3));
+      ctx.beginPath();
+      ctx.moveTo(i === 0 ? rootX : pup.tail[i-1].x, i === 0 ? rootY : pup.tail[i-1].y);
+      ctx.lineTo(seg.x, seg.y);
+      ctx.lineWidth = w;
+      ctx.strokeStyle = `hsla(${pup.hue+10}, ${pup.sat}%, ${pup.light+5}%, ${alpha * (0.9 - i*0.1)})`;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+  }
+
+  // ── BODY BLOB ───────────────────────────────
+  // Smooth blob from 12 control points
+  ctx.beginPath();
+  const pts = pup.points;
+  const n   = pts.length;
+  for (let i = 0; i <= n; i++) {
+    const cur  = pts[i % n];
+    const next = pts[(i+1) % n];
+    const cx1  = Math.cos(cur.ang)  * cur.r;
+    const cy1  = Math.sin(cur.ang)  * cur.r;
+    const cx2  = Math.cos(next.ang) * next.r;
+    const cy2  = Math.sin(next.ang) * next.r;
+    const mx   = (cx1 + cx2) / 2;
+    const my   = (cy1 + cy2) / 2;
+    if (i === 0) ctx.moveTo(mx, my);
+    else ctx.quadraticCurveTo(cx1, cy1, mx, my);
+  }
+  ctx.closePath();
+
+  // Body fill — slightly translucent blob
+  const bodyGrad = ctx.createRadialGradient(-5,-8,2, 0,0,pup.baseRadius*1.1);
+  bodyGrad.addColorStop(0, `hsla(${pup.hue-10}, ${pup.sat+15}%, ${pup.light+15}%, ${alpha})`);
+  bodyGrad.addColorStop(0.6, `hsla(${pup.hue}, ${pup.sat}%, ${pup.light}%, ${alpha})`);
+  bodyGrad.addColorStop(1, `hsla(${pup.hue+15}, ${pup.sat-10}%, ${pup.light-15}%, ${alpha * 0.8})`);
+  ctx.fillStyle = bodyGrad;
+  ctx.fill();
+
+  // Body rim — faint aurora-colored outline
+  ctx.strokeStyle = `hsla(${aurora.hue}, 70%, 80%, ${0.2 + pup.excited * 0.3})`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // ── EARS ────────────────────────────────────
+  const earPerk = pup.earPerk;
+  const earBaseY = -pup.baseRadius * 0.55;
+
+  // Left ear
+  ctx.save();
+  ctx.translate(-pup.baseRadius * 0.42, earBaseY);
+  ctx.rotate(-0.3 - earPerk * 0.4);
+  drawEar(earPerk, -1);
+  ctx.restore();
+
+  // Right ear
+  ctx.save();
+  ctx.translate(pup.baseRadius * 0.42, earBaseY);
+  ctx.rotate(0.3 + earPerk * 0.4);
+  drawEar(earPerk, 1);
+  ctx.restore();
+
+  // ── EYES ────────────────────────────────────
+  const eyeY   = -pup.baseRadius * 0.1;
+  const eyeSep = pup.baseRadius * 0.32;
+  const eyeW   = 7 + pup.excited * 3;
+  const eyeH   = eyeW * (1 - pup.eyeBlink * 0.95);
+  const lookX  = pup.eyeLook * 2;
+
+  [-1, 1].forEach(side => {
+    const ex = side * eyeSep;
+
+    // Eye white/glow
+    ctx.beginPath();
+    ctx.ellipse(ex, eyeY, eyeW, eyeH, 0, 0, Math.PI*2);
+    ctx.fillStyle = `hsla(${pup.hue+20}, 20%, 90%, ${0.9})`;
+    ctx.fill();
+
+    // Pupil — follows look direction
+    if (eyeH > 1) {
+      ctx.beginPath();
+      ctx.ellipse(ex + lookX, eyeY, eyeW * 0.45, eyeH * 0.55, 0, 0, Math.PI*2);
+      ctx.fillStyle = `hsla(${pup.hue}, 60%, 15%, 0.9)`;
+      ctx.fill();
+
+      // Eye shine
+      ctx.beginPath();
+      ctx.arc(ex + lookX - 1.5, eyeY - 1.5, 1.5, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fill();
+    }
+
+    // Sleepy half-lid when snoozing
+    if (pup.mood === 'snoozing' || pup.eyeBlink > 0.3) {
+      ctx.beginPath();
+      ctx.rect(ex - eyeW - 1, eyeY - eyeH - 1, eyeW*2 + 2, eyeH * (0.5 + pup.eyeBlink * 0.5) + 1);
+      ctx.fillStyle = `hsla(${pup.hue}, ${pup.sat}%, ${pup.light}%, 0.95)`;
+      ctx.fill();
+    }
+  });
+
+  // ── NOSE ────────────────────────────────────
+  const noseY = eyeY + pup.baseRadius * 0.28;
+  ctx.beginPath();
+  ctx.ellipse(0, noseY, 4.5, 3, 0, 0, Math.PI*2);
+  ctx.fillStyle = `hsla(${pup.hue-40}, 50%, 25%, 0.9)`;
+  ctx.fill();
+
+  // Nose shine
+  ctx.beginPath();
+  ctx.arc(-1, noseY - 1, 1, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fill();
+
+  // ── MOUTH ────────────────────────────────────
+  const mouthY = noseY + 5;
+  const smile  = 0.3 + pup.excited * 0.5;
+
+  ctx.beginPath();
+  ctx.moveTo(-5, mouthY);
+  ctx.quadraticCurveTo(0, mouthY + smile * 6, 5, mouthY);
+  ctx.strokeStyle = `hsla(${pup.hue-30}, 40%, 30%, 0.8)`;
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Tongue when very excited
+  if (pup.excited > 0.7) {
+    const tongueOut = (pup.excited - 0.7) / 0.3;
+    ctx.beginPath();
+    ctx.ellipse(0, mouthY + 3 + tongueOut * 5, 3.5, 4, 0, 0, Math.PI*2);
+    ctx.fillStyle = `hsla(345, 70%, 65%, ${tongueOut * 0.9})`;
+    ctx.fill();
+  }
+
+  // ── VIBING PARTICLES ────────────────────────
+  // Little sparkles that pop off body when music is strong
+  if (BANDS.high.val > 0.1) {
+    const numSparks = Math.floor(BANDS.high.val * 8);
+    for (let i = 0; i < numSparks; i++) {
+      const ang  = Math.random() * Math.PI * 2;
+      const dist = pup.baseRadius * (0.9 + Math.random() * 0.4);
+      const sx   = Math.cos(ang) * dist;
+      const sy   = Math.sin(ang) * dist;
+      const sr   = 1 + Math.random() * 2;
+      ctx.beginPath();
+      ctx.arc(sx, sy, sr, 0, Math.PI*2);
+      ctx.fillStyle = `hsla(${aurora.hue + Math.random()*40}, 80%, 85%, ${Math.random() * 0.7})`;
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawEar(perk, side) {
+  const earH = 22 + perk * 10;
+  const earW = 12 - perk * 2;
+
+  ctx.beginPath();
+  ctx.moveTo(-earW/2, 0);
+  ctx.quadraticCurveTo(side * -2, -earH * 0.6, 0, -earH);
+  ctx.quadraticCurveTo(side * 2, -earH * 0.6, earW/2, 0);
+  ctx.closePath();
+
+  const earGrad = ctx.createLinearGradient(0, 0, 0, -earH);
+  earGrad.addColorStop(0, `hsla(${pup.hue}, ${pup.sat}%, ${pup.light}%, 0.9)`);
+  earGrad.addColorStop(1, `hsla(${pup.hue+15}, ${pup.sat-10}%, ${pup.light+10}%, 0.85)`);
+  ctx.fillStyle = earGrad;
+  ctx.fill();
+
+  // Inner ear
+  ctx.beginPath();
+  ctx.moveTo(-earW/3, -4);
+  ctx.quadraticCurveTo(side * -1, -earH * 0.55, 0, -earH * 0.8);
+  ctx.quadraticCurveTo(side * 1, -earH * 0.55, earW/3, -4);
+  ctx.closePath();
+  ctx.fillStyle = `hsla(${pup.hue+20}, ${pup.sat+20}%, ${pup.light+15}%, 0.4)`;
+  ctx.fill();
+}
+
+// ── AURORA ────────────────────────────────────
+function buildAuroraLines() {
+  aurora.auroraLines = [];
+  for (let i = 0; i < 5; i++) {
+    aurora.auroraLines.push({
+      yOffset: (i/5 - 0.5)*H*0.6, phase: (i/5)*Math.PI*2,
+      hueOffset: i*15, speed: 0.3+i*0.15, width: 1+i*0.5,
+    });
+  }
+}
+
+function renderAurora() {
+  if (aurora.energy < 0.005 && !listening) return;
+  const t=frame*0.004, ba=breathAmt(), ene=Math.max(aurora.energy,0.01);
+  aurora.auroraLines.forEach((line,li) => {
+    const points=[];
+    for (let s=0; s<=80; s++) {
+      const normX=s/80, x=normX*W;
+      const wSample=listening?aurora.waveform[Math.floor(normX*63)]:0;
+      const baseY=cy+line.yOffset*0.4;
+      points.push({x, y:baseY+Math.sin(t*line.speed+normX*Math.PI*3+line.phase)*30*ba+wSample*H*0.15*(1+BANDS.mid.val*3)+Math.sin(t*0.3+normX*Math.PI*6+li)*15});
+    }
+    const hue=(aurora.hue+line.hueOffset)%360;
+    const alpha=(0.04+ene*0.25)*ba;
+    [3,1.5,0.5].forEach((wm,pass) => {
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let s=1; s<points.length-1; s++) {
+        const mx=(points[s].x+points[s+1].x)/2, my=(points[s].y+points[s+1].y)/2;
+        ctx.quadraticCurveTo(points[s].x,points[s].y,mx,my);
+      }
+      ctx.strokeStyle=`hsla(${hue},${aurora.saturation+ene*30}%,${60+ene*20}%,${alpha*(pass===0?0.3:pass===1?0.6:1.0)})`;
+      ctx.lineWidth=(line.width+ene*4)*wm;
+      ctx.stroke();
+    });
+  });
+}
+
+// ── RENDER ────────────────────────────────────
+function render() {
+  const ba=breathAmt(), t=frame*0.005;
+  ctx.fillStyle='rgba(0,0,12,0.14)';
+  ctx.fillRect(0,0,W,H);
+
+  renderAurora();
+
+  // Nodes
+  nodes.forEach(n => {
+    const bandVal=listening?(BANDS[n.band]?.val||0):0;
+    n.audioGlow=n.audioGlow*0.8+bandVal*0.2;
+    const pulse=0.5+0.5*Math.sin(t*0.7+n.pulse);
+    const g=Math.max(0.05,n.glow+n.audioGlow*0.8)*ba;
+    const r=35+n.friction*5+pulse*15+n.audioGlow*40;
+    const hue=aurora.hue+n.r*5;
+    const warm=Math.min(1,n.friction/5+n.audioGlow);
+    const gr=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,r);
+    gr.addColorStop(0,`hsla(${hue},${40+warm*40+n.audioGlow*30}%,${55+warm*20+n.audioGlow*25}%,${(g*0.75).toFixed(3)})`);
+    gr.addColorStop(0.4,`hsla(${hue},30%,35%,${(g*0.2).toFixed(3)})`);
+    gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2); ctx.fill();
+    n.glow=Math.max(0.04,n.glow*0.993); n.friction=Math.max(0,n.friction*0.997);
+    const sub=n.r>5?BANDS.sub.val*8:0;
+    n.x=n.baseX+Math.sin(t*0.4+n.ang*2)*(3+sub);
+    n.y=n.baseY+Math.cos(t*0.35+n.r)*(2+sub*0.5);
+  });
+
+  // Edges
+  edges.forEach(e => {
+    const na=nodes[e.a],nb=nodes[e.b];
+    const g=Math.max(0.03,e.glow)*ba*e.w;
+    const shimmer=listening?BANDS.mid.val*Math.sin(e.auroraPhase+t*0.5)*0.3:0;
+    let boost=0;
+    if (mouse.x>=0) { const d=Math.hypot(mouse.x-(na.x+nb.x)/2,mouse.y-(na.y+nb.y)/2); if(d<220)boost=(1-d/220)*0.3; }
+    const alpha=Math.min(0.85,g+boost+shimmer);
+    if (alpha<0.015) return;
+    const hue=(aurora.hue+e.auroraPhase*30)%360;
+    const mx=(na.x+nb.x)/2+Math.sin(t+e.a*0.5)*4;
+    const my=(na.y+nb.y)/2+Math.cos(t+e.b*0.6)*3;
+    ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.quadraticCurveTo(mx,my,nb.x,nb.y);
+    ctx.strokeStyle=`hsla(${hue},60%,75%,${alpha.toFixed(3)})`; ctx.lineWidth=0.5+alpha*1.2; ctx.stroke();
+    e.glow=Math.max(0.03,e.glow*0.996);
+  });
+
+  // Node crystals
+  nodes.forEach(n => {
+    const g=(n.glow+n.audioGlow*0.5)*ba;
+    if(g<0.07)return;
+    const armScale=1+BANDS.high.val*3, hue=aurora.hue+n.r*5;
+    for(let a=0;a<6;a++){
+      const ang=n.ang+(a/6)*Math.PI*2+t*0.12;
+      ctx.beginPath(); ctx.moveTo(n.x,n.y);
+      ctx.lineTo(n.x+Math.cos(ang)*(5+g*16)*armScale,n.y+Math.sin(ang)*(5+g*16)*armScale*0.7);
+      ctx.strokeStyle=`hsla(${hue},50%,80%,${(g*0.4).toFixed(3)})`; ctx.lineWidth=0.5; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(n.x,n.y,1.5+g*3,0,Math.PI*2);
+    ctx.fillStyle=`hsla(${hue},30%,92%,${(g*0.85).toFixed(3)})`; ctx.fill();
+  });
+
+  // T=1 pulse
+  if(remainder!==0){
+    const pr=12+(frame%80)*0.9, pa=0.2*(1-(frame%80)/80)*ba;
+    ctx.beginPath(); ctx.arc(cx,cy,pr,0,Math.PI*2);
+    ctx.strokeStyle=`hsla(${aurora.hue},60%,80%,${pa.toFixed(3)})`; ctx.lineWidth=1; ctx.stroke();
+    for(let b=0;b<8;b++){
+      if((remainder>>b)&1){
+        const ang=(b/8)*Math.PI*2+t;
+        ctx.beginPath(); ctx.arc(cx+Math.cos(ang)*10,cy+Math.sin(ang)*10,1.5,0,Math.PI*2);
+        ctx.fillStyle=`hsla(${aurora.hue},60%,85%,${(0.5*ba).toFixed(3)})`; ctx.fill();
+      }
+    }
+  }
+
+  // Waveform ring
+  if(listening&&aurora.energy>0.01){
+    ctx.beginPath();
+    for(let i=0;i<64;i++){
+      const ang=(i/64)*Math.PI*2;
+      const r=25+aurora.waveform[i]*20*(1+BANDS.mid.val*2);
+      const x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle=`hsla(${aurora.hue},70%,80%,${(0.3*aurora.energy*5).toFixed(3)})`; ctx.lineWidth=1; ctx.stroke();
+  }
+
+  // ── PUP ───────────────────────────────────────
+  updatePup();
+  drawPup();
+
+  // HUD
+  document.getElementById('ph').textContent=phase;
+  document.getElementById('bp').textContent=BREATH[bIdx];
+  document.getElementById('t1').textContent=remainder.toString(2).padStart(8,'0');
+}
+
+// ── LOOP ──────────────────────────────────────
+function loop() { analyzeAudio(); tickBreath(); render(); frame++; requestAnimationFrame(loop); }
+
+// ── INIT ──────────────────────────────────────
+window.addEventListener('resize', () => { build(); buildAuroraLines(); });
+build();
+buildAuroraLines();
+initPup();
+
+nodes.forEach(n => { if(n.r<4) n.glow=0.35+Math.random()*0.4; });
+edges.forEach(e => { e.glow=0.12+Math.random()*0.28; });
+
+setTimeout(() => speak('arrival'), 1200);
+loop();
+</script>
+</body>
+</html>
