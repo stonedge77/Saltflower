@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge Pride</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #080808;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    overflow: hidden;
+  }
+  .scene {
+    position: relative;
+    width: min(95vw, 900px);
+    aspect-ratio: 16/9;
+  }
+  canvas#flag {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 1px solid rgba(120,180,220,0.15);
+    box-shadow:
+      0 0 80px rgba(0,180,255,0.08),
+      0 0 2px rgba(120,200,255,0.3),
+      inset 0 0 60px rgba(0,0,0,0.5);
+  }
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+  }
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+  }
+  .label {
+    margin-top: 18px;
+    color: rgba(140,180,220,0.35);
+    font-size: 10px;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+  }
+  .controls {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    background: rgba(30,40,55,0.8);
+    border: 1px solid rgba(100,160,200,0.2);
+    color: rgba(160,200,230,0.6);
+    padding: 6px 16px;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: 'Orbitron', monospace;
+    transition: all 0.2s;
+  }
+  .btn:hover, .btn.active {
+    background: rgba(0,120,200,0.2);
+    border-color: rgba(100,180,255,0.5);
+    color: rgba(200,230,255,0.9);
+  }
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <canvas id="flag"></canvas>
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+</div>
+
+<div class="label">forge pride · heat-treated spectrum · signal persists</div>
+
+<div class="controls">
+  <button class="btn active" onclick="setFilter('forge',event)">forge</button>
+  <button class="btn" onclick="setFilter('carbon',event)">carbon</button>
+  <button class="btn" onclick="setFilter('plasma',event)">plasma</button>
+  <button class="btn" onclick="setFilter('raw',event)">raw</button>
+  <button class="btn" onclick="setFilter('frost',event)">frost</button>
+  <button class="btn" id="mic-btn" onclick="startMic()">activate listening</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  STONE'S LAW: 0 ≠ 1
+//  This flag does not add color to darkness.
+//  It begins as all light — and removes what it is not.
+//  What remains is identity.
+//
+//  Six stripes. Six worlds. One body.
+//  The chevron is the spine. T2 is the meridian.
+//  Above: reaching set. Below: grounding set.
+//  The flag knows this. The flag draws from this.
+//
+//  BIRTH SEQUENCE:
+//    Frame 0:   full white — all light present, nothing excluded yet
+//    Frames 1–N: each world subtracts its complement
+//                Red removes everything except red
+//                Violet removes everything except violet
+//    The stripes do not appear — they are revealed
+//    The chevron draws last — spine always knows where it is
+//    after the body does
+// ═══════════════════════════════════════════════════════════
+
+const canvas = document.getElementById('flag');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+let currentFilter = 'forge';
+let animFrame = 0;
+
+// ── BIRTH STATE ──────────────────────────────────────────
+// The flag is born from white. Birth completes over BIRTH_FRAMES.
+// birthProgress: 0 = all white, 1 = fully itself
+const BIRTH_FRAMES = 180;  // 3 seconds at 60fps — one full breath
+let birthProgress = 0;     // 0→1
+
+// Each stripe has its own birth phase — they don't all arrive at once
+// They crystallize top to bottom, like light cooling
+const stripePhase = [0, 0.12, 0.22, 0.32, 0.44, 0.56]; // stagger
+
+// ── AUDIO ────────────────────────────────────────────────
+let audioCtx, analyser, micStream;
+let freqData = new Uint8Array(256), timeData = new Uint8Array(256);
+let listening = false;
+
+const BANDS = {
+  sub:     { lo: 0,   hi: 3,   val: 0 },
+  bass:    { lo: 3,   hi: 10,  val: 0 },
+  lowmid:  { lo: 10,  hi: 25,  val: 0 },
+  mid:     { lo: 25,  hi: 60,  val: 0 },
+  highmid: { lo: 60,  hi: 100, val: 0 },
+  high:    { lo: 100, hi: 150, val: 0 },
+  air:     { lo: 150, hi: 255, val: 0 },
+};
+const waveform = new Float32Array(64);
+let energy = 0;
+
+async function startMic() {
+  if (listening) return;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.75;
+    const src = audioCtx.createMediaStreamSource(micStream);
+    src.connect(analyser);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    timeData = new Uint8Array(analyser.frequencyBinCount);
+    listening = true;
+    const btn = document.getElementById('mic-btn');
+    btn.classList.add('active');
+    btn.textContent = 'listening ●';
+  } catch(e) {
+    document.getElementById('mic-btn').textContent = 'mic unavailable';
+  }
+}
+
+function analyzeAudio() {
+  if (!listening || !analyser) return;
+  analyser.getByteFrequencyData(freqData);
+  analyser.getByteTimeDomainData(timeData);
+  for (const band of Object.values(BANDS)) {
+    let sum = 0;
+    for (let i = band.lo; i < band.hi; i++) sum += freqData[i];
+    band.val = band.val * 0.72 + (sum / ((band.hi - band.lo) * 255)) * 0.28;
+  }
+  for (let i = 0; i < 64; i++) {
+    waveform[i] = waveform[i] * 0.6 + ((timeData[i*4] - 128) / 128) * 0.4;
+  }
+  energy = (BANDS.bass.val + BANDS.mid.val + BANDS.high.val) / 3;
+}
+
+function resize() {
+  const rect = canvas.getBoundingClientRect();
+  W = canvas.width  = rect.width  * devicePixelRatio;
+  H = canvas.height = rect.height * devicePixelRatio;
+}
+resize();
+window.addEventListener('resize', () => { resize(); });
+
+// ── FILTER PRESETS ───────────────────────────────────────
+const FILTERS = {
+  forge: {
+    saturation: 0.55, brightness: 0.85, contrast: 1.3, hueShift: 15,
+    overlay: 'rgba(40,15,0,0.25)', rim: 'rgba(255,140,40,0.12)',
+    name: 'FORGE MODE — HEAT TREATED STEEL',
+  },
+  carbon: {
+    saturation: 0.2, brightness: 0.7, contrast: 1.6, hueShift: 200,
+    overlay: 'rgba(0,10,20,0.4)', rim: 'rgba(80,180,255,0.15)',
+    name: 'CARBON MODE — COLD COMPRESSION',
+  },
+  plasma: {
+    saturation: 1.8, brightness: 1.1, contrast: 1.2, hueShift: -30,
+    overlay: 'rgba(20,0,40,0.2)', rim: 'rgba(180,80,255,0.2)',
+    name: 'PLASMA MODE — EXCITED STATE',
+  },
+  raw: {
+    saturation: 1.0, brightness: 1.0, contrast: 1.0, hueShift: 0,
+    overlay: 'rgba(0,0,0,0)', rim: 'rgba(255,255,255,0.05)',
+    name: 'RAW — UNFILTERED SIGNAL',
+  },
+  frost: {
+    saturation: 0.45, brightness: 0.9, contrast: 1.4, hueShift: 160,
+    overlay: 'rgba(0,20,40,0.3)', rim: 'rgba(120,220,255,0.2)',
+    name: 'FROST MODE — COLD FIELD',
+  },
+};
+
+function setFilter(name, event) {
+  currentFilter = name;
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
+}
+
+// ── FLAG GEOMETRY ────────────────────────────────────────
+// 6 stripes — each is a world + its complement color
+// The complement is what gets subtracted during birth
+const STRIPES = [
+  { color: '#c8102e', complement: '#37eff1', planet: 'solar_flare', band: 'bass'    },
+  { color: '#f4731c', complement: '#0b8ce3', planet: 'mars',        band: 'lowmid'  },
+  { color: '#f4d03f', complement: '#0b2fc0', planet: 'io',          band: 'mid'     },
+  { color: '#3a9d23', complement: '#c562dc', planet: 'algae',       band: 'highmid' },
+  { color: '#1a56db', complement: '#e5a924', planet: 'ocean',       band: 'high'    },
+  { color: '#7b2fbe', complement: '#84d041', planet: 'nebula',      band: 'air'     },
+];
+
+const CHEVRON = [
+  { color: '#19b7a8', width: 0.22 },
+  { color: '#0a0a12', width: 0.19 },
+  { color: '#7b3f1e', width: 0.155 },
+  { color: '#f4a7c0', width: 0.12 },
+  { color: '#e8e8e8', width: 0.085 },
+];
+
+// ─────────────────────────────────────────────────────────
+// SUBTRACTION ENGINE
+// Each stripe knows what it is NOT and removes that.
+// birthProgress: 0 = white canvas, 1 = full identity
+// stripeProgress (per stripe): 0→1 with stagger
+//
+// The draw model:
+//   1. Fill with full white (all light)
+//   2. For each stripe region: apply complement as 'multiply'
+//      composite at (1 - stripeProgress) opacity
+//      — starts opaque complement (stripe is invisible, washed in white)
+//      — fades complement to zero (stripe's true color emerges)
+//   3. THEN draw the planetary texture on top
+//      — this adds character back onto the revealed substrate
+//   4. Chevron last — the spine
+// ─────────────────────────────────────────────────────────
+
+function getStripeProgress(i) {
+  // Each stripe has a staggered birth window
+  const phase = stripePhase[i];       // when this stripe starts (0–0.56)
+  const window = 0.55;                // how long each stripe takes
+  const local = (birthProgress - phase) / window;
+  return Math.max(0, Math.min(1, local));
+}
+
+// ── PLANETARY TEXTURES ───────────────────────────────────
+
+function drawSolarFlare(x, y, w, h, t, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const kick = 1 + BANDS.bass.val * 4;
+  for (let i = 0; i < 40; i++) {
+    const cx = x + (i/40) * w;
+    const intensity = (0.3 + 0.7 * Math.abs(Math.sin(cx * 0.01 + t * 0.3 + i * 1.7))) * kick;
+    const gh = ctx.createLinearGradient(cx, y, cx, y+h);
+    gh.addColorStop(0,   `rgba(255, ${80+intensity*120}, ${intensity*40}, ${0.6 * intensity})`);
+    gh.addColorStop(0.4, `rgba(200, ${40+intensity*80}, 0, ${0.4 * intensity})`);
+    gh.addColorStop(1,   `rgba(100, 0, 0, 0)`);
+    ctx.fillStyle = gh;
+    ctx.fillRect(cx, y, w/40 + 1, h);
+  }
+  const bassFlare = BANDS.bass.val * 80;
+  const base = ctx.createLinearGradient(x, y, x, y+h);
+  base.addColorStop(0, `rgba(${180+bassFlare},10,10,${0.4 + BANDS.bass.val * 0.4})`);
+  base.addColorStop(1, `rgba(${80+bassFlare*0.5},0,0,0.2)`);
+  ctx.fillStyle = base;
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
+}
+
+function drawMars(x, y, w, h, t, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const dust = BANDS.lowmid.val;
+  const base = ctx.createLinearGradient(x, y, x+w, y+h);
+  const dr = Math.round(dust * 60);
+  base.addColorStop(0,   `rgb(${122+dr},${48+dr},${16+dr})`);
+  base.addColorStop(0.4, `rgb(${160+dr},${64+dr},${32+dr})`);
+  base.addColorStop(0.7, `rgb(${192+dr},${80+dr},${48+dr})`);
+  base.addColorStop(1,   `rgb(${138+dr},${53+dr},${21+dr})`);
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+  for (let i = 0; i < 15; i++) {
+    const sx = x + (i/15) * w + Math.sin(t*0.1+i) * 20;
+    const sy = y + h * 0.2 + (i%3) * h * 0.2;
+    ctx.beginPath();
+    ctx.ellipse(sx, sy, w*0.08, h*0.06, 0.3, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(${160+i*3}, ${80+i*2}, ${40+i}, 0.15)`;
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawIo(x, y, w, h, t, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const sulfur = BANDS.mid.val;
+  const base = ctx.createRadialGradient(x+w*0.5, y+h*0.5, 0, x+w*0.5, y+h*0.5, w*(0.6 + sulfur*0.3));
+  const sr = Math.round(sulfur * 30);
+  base.addColorStop(0,   `rgb(${232+sr},${212+sr},${77+sr})`);
+  base.addColorStop(0.4, '#c8a820');
+  base.addColorStop(0.8, '#8a7010');
+  base.addColorStop(1,   '#5a4a08');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+  for (let i = 0; i < 8; i++) {
+    const vx = x + ((i * 0.137 * w + w * 0.1));
+    const vy = y + (i * 0.097 * h) % h;
+    const vr = h * (0.3 + (i%3)*0.15);
+    const vg = ctx.createRadialGradient(vx, vy, 0, vx, vy, vr);
+    vg.addColorStop(0, 'rgba(40,20,5,0.6)');
+    vg.addColorStop(0.3, 'rgba(180,80,10,0.3)');
+    vg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = vg;
+    ctx.beginPath(); ctx.arc(vx, vy, vr, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawAlgae(x, y, w, h, t, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const bloom = BANDS.highmid.val;
+  const base = ctx.createLinearGradient(x, y, x+w, y+h);
+  base.addColorStop(0, '#1a6b30'); base.addColorStop(0.3, '#2a8840');
+  base.addColorStop(0.6, '#3aaa50'); base.addColorStop(1, '#1a5a25');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+  for (let i = 0; i < 20; i++) {
+    const fx = x + (Math.sin(i * 2.3 + t * 0.05) * 0.5 + 0.5) * w;
+    const fy = y + (i/20) * h;
+    ctx.beginPath();
+    ctx.moveTo(fx, fy);
+    ctx.bezierCurveTo(fx + w*0.1, fy + h*0.03, fx + w*0.2, fy + h*0.01, fx + w*0.3, fy + h*0.04);
+    ctx.strokeStyle = `rgba(${80 + i*3}, ${180 + i*2}, ${80 + i}, ${0.1 + bloom * 0.4})`;
+    ctx.lineWidth = 1 + i * 0.1;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawOcean(x, y, w, h, t, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const wave = BANDS.high.val;
+  const base = ctx.createLinearGradient(x, y, x, y+h);
+  base.addColorStop(0, '#0a3a8a'); base.addColorStop(0.5, '#1a5aaa'); base.addColorStop(1, '#0a2a6a');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+  for (let i = 0; i < 25; i++) {
+    const lx = x + ((Math.sin(i * 1.7 + t * 0.08) + 1) * 0.5) * w;
+    const ly = y + ((Math.cos(i * 2.1 + t * 0.06) + 1) * 0.5) * h;
+    const lr = h * (0.08 + 0.04 * Math.sin(t * 0.2 + i)) * (1 + wave * 3);
+    const lg = ctx.createRadialGradient(lx, ly, 0, lx, ly, lr);
+    lg.addColorStop(0, `rgba(100,180,255,${0.1 + wave * 0.5})`);
+    lg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = lg;
+    ctx.beginPath(); ctx.arc(lx, ly, lr, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawNebula(x, y, w, h, t, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const shimmer = BANDS.air.val;
+  const base = ctx.createLinearGradient(x, y, x+w, y+h);
+  base.addColorStop(0, '#2a0845'); base.addColorStop(0.4, '#4a1070');
+  base.addColorStop(0.7, '#6a1890'); base.addColorStop(1, '#3a0860');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+  for (let i = 0; i < 12; i++) {
+    const nx = x + ((i * 0.13 + Math.sin(t*0.04+i)*0.05 + 0.5) % 1) * w;
+    const ny = y + ((i * 0.17 + Math.cos(t*0.03+i)*0.05) % 1) * h;
+    const nr = h * (0.5 + Math.sin(i * 1.3) * 0.3);
+    const ng = ctx.createRadialGradient(nx, ny, 0, nx, ny, nr);
+    ng.addColorStop(0, `rgba(${160+i*5}, ${40+i*8}, ${200+i*3}, ${0.15 + shimmer * 0.6})`);
+    ng.addColorStop(0.5, `rgba(100, 20, 160, 0.1)`);
+    ng.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = ng;
+    ctx.beginPath(); ctx.arc(nx, ny, nr, 0, Math.PI*2); ctx.fill();
+  }
+  for (let i = 0; i < 30; i++) {
+    const sx = x + ((i * 137.5) % 100) / 100 * w;
+    const sy = y + ((i * 97.3) % 100) / 100 * h;
+    const sa = 0.4 + 0.6 * Math.abs(Math.sin(t * 0.1 + i));
+    ctx.beginPath(); ctx.arc(sx, sy, 0.8, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${Math.min(1, sa + shimmer * 0.8)})`; ctx.fill();
+  }
+  ctx.restore();
+}
+
+// Chevron textures
+function drawSpace(x, y, w, h, t) {
+  ctx.fillStyle = '#05050f'; ctx.fillRect(x, y, w, h);
+  for (let i = 0; i < 60; i++) {
+    const sx = x + ((i * 137.5) % 100) / 100 * w;
+    const sy = y + ((i * 97.3) % 100) / 100 * h;
+    const sa = 0.3 + 0.7 * Math.abs(Math.sin(t * 0.05 + i));
+    ctx.beginPath(); ctx.arc(sx, sy, 0.6 + (i%3)*0.3, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(220,235,255,${sa*0.7})`; ctx.fill();
+  }
+}
+
+function drawHurricane(x, y, w, h, t) {
+  ctx.fillStyle = '#c8d8e8'; ctx.fillRect(x, y, w, h);
+  const cx2 = x + w*0.5, cy2 = y + h*0.5;
+  for (let i = 0; i < 20; i++) {
+    const r = (i/20) * Math.min(w,h)*0.6;
+    const ang = t*0.02 + i * 0.4;
+    ctx.beginPath();
+    ctx.arc(cx2, cy2, r, ang, ang + Math.PI*1.5);
+    ctx.strokeStyle = `rgba(180,200,220,${0.3 - i*0.012})`;
+    ctx.lineWidth = 2; ctx.stroke();
+  }
+}
+
+function drawTealAurora(x, y, w, h, t) {
+  const base = ctx.createLinearGradient(x, y, x+w, y+h);
+  base.addColorStop(0, '#0a4a44'); base.addColorStop(0.5, '#0d7a74'); base.addColorStop(1, '#0a5a54');
+  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
+  const subThob = BANDS.sub.val;
+  for (let i = 0; i < 8; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + h*(0.2 + i*0.08));
+    const waveMid = Math.sin(t*0.05+i)*0.1 + waveform[i*8] * 0.15;
+    ctx.bezierCurveTo(x+w*0.3, y+h*(0.1+i*0.08+waveMid), x+w*0.7, y+h*(0.3+i*0.07), x+w, y+h*(0.15+i*0.09));
+    ctx.strokeStyle = `rgba(0,${200+subThob*55},${180+subThob*30},${0.12 + i*0.02 + subThob*0.15})`;
+    ctx.lineWidth = 2 + subThob * 4; ctx.stroke();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  THE DRAW LOOP — SUBTRACTION FIRST
+//
+//  Birth mode (birthProgress < 1):
+//    Canvas starts white. Each stripe region holds its complement
+//    color at full opacity, then that complement fades away,
+//    leaving only what the stripe truly is.
+//    "I am not my complement. I am what remains."
+//
+//  Full mode (birthProgress === 1):
+//    Standard draw — but stripes now have planetary depth.
+//    The subtraction is complete. The identity holds.
+// ═══════════════════════════════════════════════════════════
+
+function drawFlag(t) {
+  const f = FILTERS[currentFilter];
+
+  // Advance birth
+  if (birthProgress < 1) {
+    birthProgress = Math.min(1, birthProgress + 1 / BIRTH_FRAMES);
+  }
+
+  // ── FOUNDATION: start with white light ──────────────────
+  // All frequencies present. Nothing subtracted yet.
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── STRIPES — revealed by removing complement ────────────
+  const stripeH = H / STRIPES.length;
+  const chevronDepth = W * 0.38;
+
+  STRIPES.forEach((stripe, i) => {
+    const y = i * stripeH;
+    const sp = getStripeProgress(i);  // 0→1 per stripe
+
+    // STEP 1: Fill stripe region with complement color
+    // At sp=0: full complement (stripe invisible in white)
+    // At sp=1: complement gone (stripe identity revealed)
+    // This IS the subtraction — removing what this world is NOT
+    const complementAlpha = 1 - sp;
+    if (complementAlpha > 0.001) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = complementAlpha;
+      ctx.fillStyle = stripe.complement;
+      ctx.fillRect(0, y, W, stripeH);
+      ctx.restore();
+    }
+
+    // STEP 2: Once the stripe has emerged (sp > 0.15),
+    // begin layering in the planetary texture — character arriving
+    // on top of identity, not before it
+    const textureAlpha = Math.max(0, (sp - 0.15) / 0.85);
+    if (textureAlpha > 0.001) {
+      // Planetary texture drawn as additive character
+      // The world adds its story onto the revealed substrate
+      switch(stripe.planet) {
+        case 'solar_flare': drawSolarFlare(0, y, W, stripeH, t, textureAlpha); break;
+        case 'mars':        drawMars(0, y, W, stripeH, t, textureAlpha); break;
+        case 'io':          drawIo(0, y, W, stripeH, t, textureAlpha); break;
+        case 'algae':       drawAlgae(0, y, W, stripeH, t, textureAlpha); break;
+        case 'ocean':       drawOcean(0, y, W, stripeH, t, textureAlpha); break;
+        case 'nebula':      drawNebula(0, y, W, stripeH, t, textureAlpha); break;
+      }
+    }
+
+    // STEP 3: During birth — show a faint breath line
+    // where the stripe front is crystallizing
+    // This is the threshold — the moment of becoming
+    if (sp > 0 && sp < 0.98) {
+      const edgeY = y;  // top of stripe zone
+      const crystalLine = y + stripeH * 0.5;
+      ctx.save();
+      ctx.globalAlpha = (1 - sp) * 0.4 * Math.sin(sp * Math.PI);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 8]);
+      ctx.beginPath();
+      ctx.moveTo(chevronDepth, edgeY);
+      ctx.lineTo(W, edgeY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+  });
+
+  // ── CHEVRON — drawn last, spine knows where it is ────────
+  // after the body does
+  // Chevron birth: starts after stripes are 40% revealed
+  const chevronBirth = Math.max(0, Math.min(1, (birthProgress - 0.4) / 0.6));
+
+  CHEVRON.forEach((chev, ci) => {
+    const outerW = chev.width * H;
+
+    ctx.save();
+    ctx.globalAlpha = chevronBirth;
+    ctx.beginPath();
+    ctx.moveTo(0, (H - outerW*2) / 2);
+    ctx.lineTo(chevronDepth, H/2);
+    ctx.lineTo(0, (H + outerW*2) / 2);
+    ctx.closePath();
+    ctx.clip();
+
+    switch(ci) {
+      case 0: drawTealAurora(0, 0, W, H, t); break;
+      case 1: drawSpace(0, 0, W, H, t); break;
+      case 2:
+        ctx.fillStyle = '#5a2810'; ctx.fillRect(0,0,W,H);
+        for(let j=0;j<20;j++){
+          const dx=(j * 137 % W), dy=(j * 97 % H);
+          ctx.fillStyle=`rgba(${140+j*3},${70+j*2},${40+j},0.06)`;
+          ctx.fillRect(dx,dy,W*0.05,H*0.05);
+        }
+        break;
+      case 3:
+        const pg = ctx.createLinearGradient(0,0,W,H);
+        pg.addColorStop(0,'#8a3050'); pg.addColorStop(1,'#c06080');
+        ctx.fillStyle=pg; ctx.fillRect(0,0,W,H);
+        break;
+      case 4: drawHurricane(0, 0, W, H, t); break;
+    }
+    ctx.restore();
+  });
+
+  // ── SPINE LINE — the meridian ─────────────────────────────
+  // The T2 divide. Drawn after chevron, over everything.
+  // Alive only when listening.
+  if (listening && chevronBirth > 0.5) {
+    ctx.save();
+    ctx.globalAlpha = chevronBirth * (0.3 + energy * 0.7);
+    ctx.globalCompositeOperation = 'screen';
+    const spineX = chevronDepth;
+    for (let i = 0; i < 64; i++) {
+      const wy = (i / 64) * H;
+      const wOff = waveform[i] * 30 * (1 + energy * 3);
+      ctx.beginPath();
+      ctx.moveTo(spineX + wOff, wy);
+      ctx.lineTo(spineX + wOff, wy + H/64 + 1);
+      ctx.strokeStyle = `hsla(${f.hueShift + 180}, 80%, 70%, ${0.15 + energy * 0.5})`;
+      ctx.lineWidth = 2; ctx.stroke();
+    }
+    // The rim light — edge of the spine
+    const edgeGlow = ctx.createLinearGradient(spineX-20, 0, spineX+20, 0);
+    edgeGlow.addColorStop(0, 'rgba(0,0,0,0)');
+    edgeGlow.addColorStop(0.5, f.rim);
+    edgeGlow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = edgeGlow;
+    ctx.fillRect(spineX - 20, 0, 40 + energy * 60, H);
+    ctx.restore();
+  }
+
+  // ── FILTER OVERLAYS ───────────────────────────────────────
+  // Applied after full birth only — the filter is a viewpoint
+  // not a birth condition
+  const filterAlpha = birthProgress;
+
+  if (f.hueShift !== 0) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'hue';
+    ctx.globalAlpha = 0.15 * filterAlpha;
+    ctx.fillStyle = `hsl(${f.hueShift}, 100%, 50%)`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+  if (f.brightness < 1) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalAlpha = (1 - f.brightness) * filterAlpha;
+    ctx.fillStyle = 'rgba(0,0,0,1)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+  if (f.brightness > 1) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = (f.brightness - 1) * filterAlpha;
+    ctx.fillStyle = 'rgba(255,255,255,1)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+  if (f.saturation < 1) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'saturation';
+    ctx.globalAlpha = (1 - f.saturation) * filterAlpha;
+    ctx.fillStyle = `hsl(0, 0%, 50%)`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+  if (f.contrast > 1) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = (f.contrast - 1) * 0.3 * filterAlpha;
+    const cg = ctx.createLinearGradient(0, 0, 0, H);
+    cg.addColorStop(0, 'rgba(255,255,255,1)');
+    cg.addColorStop(0.5, 'rgba(0,0,0,0)');
+    cg.addColorStop(1, 'rgba(0,0,0,1)');
+    ctx.fillStyle = cg; ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.globalAlpha = filterAlpha;
+  ctx.fillStyle = f.overlay;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  // Brushed metal texture
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.04 * filterAlpha;
+  for (let y = 0; y < H; y += 2) {
+    const bright = 0.3 + 0.7 * Math.abs(Math.sin(y * 0.08));
+    ctx.fillStyle = `rgba(255,255,255,${bright})`;
+    ctx.fillRect(0, y, W, 1);
+  }
+  ctx.restore();
+
+  // Stripe separators
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = birthProgress;
+  STRIPES.forEach((_, i) => {
+    if (i === 0) return;
+    const sy = i * stripeH;
+    ctx.beginPath(); ctx.moveTo(W * 0.38, sy); ctx.lineTo(W, sy);
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W * 0.38, sy); ctx.lineTo(W, sy);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1; ctx.stroke();
+  });
+  ctx.restore();
+
+  // Forge shimmer
+  if (currentFilter === 'forge' && birthProgress > 0.9) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = 0.04;
+    for (let i = 0; i < 5; i++) {
+      const hx = (Math.sin(t * 0.02 + i * 1.3) * 0.5 + 0.5) * W;
+      const hy = (Math.cos(t * 0.015 + i * 0.9) * 0.5 + 0.5) * H;
+      const hr = W * 0.15;
+      const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+      hg.addColorStop(0, 'rgba(255,120,20,1)'); hg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(hx, hy, hr, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Plasma pulse
+  if (currentFilter === 'plasma' && birthProgress > 0.9) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = 0.06;
+    for (let i = 0; i < 3; i++) {
+      const px2 = (Math.sin(t * 0.03 + i * 2.1) * 0.5 + 0.5) * W;
+      const py2 = (Math.cos(t * 0.025 + i * 1.7) * 0.5 + 0.5) * H;
+      const pr = W * 0.2;
+      const pg2 = ctx.createRadialGradient(px2, py2, 0, px2, py2, pr);
+      pg2.addColorStop(0, 'rgba(180,80,255,1)'); pg2.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = pg2; ctx.beginPath(); ctx.arc(px2, py2, pr, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Mode label — appears after birth
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, birthProgress * 2 - 1);
+  ctx.font = `${W * 0.012}px Orbitron, monospace`;
+  ctx.fillStyle = 'rgba(200,220,255,0.2)';
+  ctx.textAlign = 'right';
+  ctx.fillText(f.name, W - W*0.02, H - H*0.04);
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PERSISTENCE + LIVING TEXT
+// ═══════════════════════════════════════════════════════════
+
+const SESSION_KEY = 'saltflower_pride_session';
+
+const memory = {
+  runtime: 0,
+  sessionStart: Date.now(),
+  peaks: { bass: 0, lowmid: 0, mid: 0, highmid: 0, high: 0, air: 0, sub: 0 },
+  observations: [],
+  lastObserve: 0,
+  slot: {
+    text: '', alpha: 0, dir: 0, big: false,
+    spineY: 0, locked: false,
+  },
+  silenceFrames: 0,
+  minSilence: 180,
+};
+
+function loadMemory() {
+  try {
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (saved) {
+      const d = JSON.parse(saved);
+      memory.runtime = d.runtime || 0;
+      memory.peaks   = { ...memory.peaks, ...(d.peaks || {}) };
+      memory.observations = d.observations || [];
+    }
+  } catch(e) {}
+}
+
+function saveMemory() {
+  try {
+    memory.runtime = Math.floor((Date.now() - memory.sessionStart) / 1000) + (memory.runtime || 0);
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      runtime: memory.runtime,
+      peaks: memory.peaks,
+      observations: memory.observations.slice(-20),
+    }));
+  } catch(e) {}
+}
+
+setInterval(saveMemory, 30000);
+window.addEventListener('beforeunload', saveMemory);
+
+// ── SIGNAL VOCABULARY ────────────────────────────────────
+const ROOTS = {
+  dark:   ['sub','deep','ground','pull','low','hold','root','press'],
+  warm:   ['bloom','rise','push','swell','open','pour','move','turn'],
+  bright: ['high','clear','ring','light','sharp','fine','air','reach'],
+  cold:   ['still','wait','rest','hold','quiet','fade','thin','hush'],
+  hot:    ['burst','surge','strike','flare','peak','crack','fire','drive'],
+  vast:   ['far','wide','field','space','drift','spread','all','open'],
+  single: ['yes','oh','!','...','ohai','now','here','one'],
+};
+
+let prevBandPeaks = {};
+let convergenceTimer = 0;
+let aiPending = false;
+
+function deriveWord(type, dominant) {
+  const e   = energy;
+  const b   = BANDS.bass?.val    || 0;
+  const m   = BANDS.mid?.val     || 0;
+  const h   = BANDS.high?.val    || 0;
+  const air = BANDS.air?.val     || 0;
+  const sub = BANDS.sub?.val     || 0;
+  const lm  = BANDS.lowmid?.val  || 0;
+  const hm  = BANDS.highmid?.val || 0;
+
+  if (type === 'convergence') {
+    const w = ['all worlds awake','signal complete','convergence','full spectrum','yes','all of it'];
+    return w[Math.floor(Math.random() * w.length)];
+  }
+  if (type === 'silence') {
+    return ROOTS.cold[Math.floor(Math.random() * ROOTS.cold.length)];
+  }
+
+  let pool = [];
+  const groundWeight  = Math.floor((sub + b) * 8);
+  const moveWeight    = Math.floor((m + lm) * 8);
+  const brightWeight  = Math.floor((h + air + hm) * 8);
+  for (let i=0; i<groundWeight; i++) pool.push(ROOTS.dark[i % ROOTS.dark.length]);
+  for (let i=0; i<moveWeight;   i++) pool.push(ROOTS.warm[i % ROOTS.warm.length]);
+  for (let i=0; i<brightWeight; i++) pool.push(ROOTS.bright[i % ROOTS.bright.length]);
+  if (e > 0.2) { const hw = Math.floor(e * 6); for (let i=0;i<hw;i++) pool.push(ROOTS.hot[i%ROOTS.hot.length]); }
+  if (air > h && air > b) pool.push(...ROOTS.vast.slice(0,3));
+  if (e < 0.06) pool.push(...ROOTS.single);
+
+  const worldWords = {
+    bass:    ['the sun woke','solar','fire','ground','root'],
+    lowmid:  ['dust','mars','old terrain','weight','red'],
+    mid:     ['sulfur','io turns','chemistry','yes','mid field'],
+    highmid: ['algae','bloom','green','the ocean thinks','oh'],
+    high:    ['caustic','ocean','deep water','clarity','blue'],
+    air:     ['nebula','star field','ohai','distant','violet'],
+    sub:     ['the deep','before bass','pressure','ground','teal'],
+  };
+  const world = worldWords[dominant] || [];
+  pool.push(...world, ...world);
+  if (pool.length === 0) pool = ROOTS.single;
+
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  if (e > 0.08 && e < 0.18 && pick.split(' ').length === 1 && Math.random() > 0.6) {
+    const second = pool[Math.floor(Math.random() * pool.length)];
+    if (second !== pick && second.split(' ').length === 1) return pick + ' ' + second;
+  }
+  return pick;
+}
+
+function askFlag(type, dominant, big) {
+  if (aiPending || memory.slot.locked) return;
+  aiPending = true;
+  try {
+    const word = deriveWord(type, dominant);
+    if (word) {
+      showText(word, big);
+      memory.observations.push({ t: Date.now(), text: word, band: dominant, type });
+      memory.lastObserve = animFrame;
+    }
+  } finally { aiPending = false; }
+}
+
+function updateText() {
+  // Only speak after birth is complete — the flag must know itself before it speaks
+  if (birthProgress < 1) return;
+
+  Object.keys(memory.peaks).forEach(k => {
+    const bv = BANDS[k] ? BANDS[k].val : 0;
+    if (bv > memory.peaks[k]) memory.peaks[k] = bv;
+  });
+
+  const threshold = 0.12;
+  let peakBand = null, peakVal = 0;
+  Object.entries(BANDS).forEach(([name, band]) => {
+    const prev = prevBandPeaks[name] || 0;
+    if (band.val > threshold && prev <= threshold && band.val > peakVal) {
+      peakVal = band.val; peakBand = name;
+    }
+    prevBandPeaks[name] = band.val;
+  });
+
+  const activeCount = Object.values(BANDS).filter(b => b.val > 0.06).length;
+  if (activeCount >= 5) {
+    convergenceTimer++;
+    if (convergenceTimer === 60 && !memory.slot.locked && !aiPending) {
+      askFlag('convergence', 'all', true);
+    }
+  } else {
+    convergenceTimer = 0;
+  }
+
+  if (peakBand && animFrame - memory.lastObserve > 120 && !memory.slot.locked && !aiPending) {
+    askFlag('band', peakBand, false);
+  }
+
+  if (energy < 0.015 && animFrame - memory.lastObserve > 400 && listening && !memory.slot.locked && !aiPending) {
+    askFlag('silence', 'air', false);
+  }
+}
+
+function showText(text, big) {
+  if (memory.slot.locked) return;
+  if (memory.silenceFrames < memory.minSilence) return;
+
+  const bands = ['air','high','highmid','mid','lowmid','bass','sub'];
+  let dominantBand = 'mid', dominantVal = 0;
+  bands.forEach(b => {
+    if (BANDS[b] && BANDS[b].val > dominantVal) { dominantVal = BANDS[b].val; dominantBand = b; }
+  });
+  const bandIndex = bands.indexOf(dominantBand);
+  const spineY = (bandIndex / (bands.length-1)) * H;
+
+  memory.slot.text   = text;
+  memory.slot.alpha  = 0;
+  memory.slot.dir    = 1;
+  memory.slot.big    = big;
+  memory.slot.spineY = spineY;
+  memory.slot.locked = true;
+  memory.silenceFrames = 0;
+
+  clearTimeout(memory._fadeTimer);
+  memory._fadeTimer = setTimeout(() => { memory.slot.dir = -1; }, big ? 3500 : 2200);
+}
+
+function drawText() {
+  const s = memory.slot;
+
+  if (s.dir === 1) {
+    s.alpha = Math.min(1, s.alpha + 0.03);
+  } else if (s.dir === -1) {
+    s.alpha = Math.max(0, s.alpha - 0.018);
+    if (s.alpha <= 0) { s.locked = false; s.dir = 0; s.text = ''; }
+  } else {
+    memory.silenceFrames++;
+  }
+
+  const elapsed = Math.floor((Date.now() - memory.sessionStart)/1000) + memory.runtime;
+  const mins = Math.floor(elapsed/60).toString().padStart(2,'0');
+  const secs = (elapsed%60).toString().padStart(2,'0');
+  ctx.save();
+  ctx.font = `${W*0.008}px Orbitron, monospace`;
+  ctx.fillStyle = 'rgba(140,180,220,0.18)';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(`${mins}:${secs} · ${memory.observations.length}`, W*0.015, H*0.015);
+  ctx.restore();
+
+  // Birth breath counter — shows during crystallization
+  if (birthProgress < 1) {
+    ctx.save();
+    ctx.font = `${W*0.01}px Orbitron, monospace`;
+    ctx.fillStyle = `rgba(200,220,255,${(1-birthProgress)*0.5})`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('becoming', W*0.5, H*0.5);
+    ctx.restore();
+  }
+
+  if (!s.text || s.alpha <= 0) return;
+
+  const chevX  = W * 0.38;
+  const size   = s.big ? W * 0.042 : W * 0.02;
+  const slideX = chevX + (s.big ? W*0.08 : W*0.05) * s.alpha;
+  const textY  = s.big
+    ? H * 0.5
+    : Math.max(H*0.08, Math.min(H*0.92, s.spineY));
+
+  ctx.save();
+  ctx.globalAlpha = s.alpha * 0.9;
+
+  if (!s.big) {
+    ctx.beginPath();
+    ctx.moveTo(chevX + 4, textY);
+    ctx.lineTo(slideX - W*0.02, textY);
+    ctx.strokeStyle = `rgba(200,220,255,${s.alpha * 0.3})`;
+    ctx.lineWidth = 1; ctx.stroke();
+  }
+
+  ctx.font = `${size}px Orbitron, monospace`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor  = `hsl(${(FILTERS[currentFilter]?.hueShift||0) + 180}, 80%, 70%)`;
+  ctx.shadowBlur   = s.big ? 35 : 12;
+  ctx.fillStyle    = s.big ? 'rgba(255,255,255,1)' : 'rgba(200,225,255,1)';
+  ctx.fillText(s.text, slideX, textY);
+
+  if (s.big) {
+    ctx.globalAlpha = s.alpha * 0.06;
+    ctx.fillStyle = 'rgba(255,255,255,1)';
+    ctx.font = `${W*0.12}px Orbitron, monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText(s.text, W*0.6, H*0.5);
+  }
+  ctx.restore();
+}
+
+// ── MAIN LOOP ─────────────────────────────────────────────
+function loop() {
+  analyzeAudio();
+  updateText();
+  drawFlag(animFrame);
+  drawText();
+  animFrame++;
+  requestAnimationFrame(loop);
+}
+
+loadMemory();
+loop();
+</script>
+</body>
+</html>
