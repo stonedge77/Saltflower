@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Field — Song of the Stars</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #050308;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Georgia', serif;
+  overflow: hidden;
+  cursor: default;
+}
+canvas {
+  display: block;
+  touch-action: none;
+}
+#label {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 28px 40px 36px;
+  pointer-events: none;
+  background: linear-gradient(transparent, rgba(5,3,8,0.97) 40%);
+}
+#label-name {
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 400;
+  color: #e8d5a0;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  min-height: 32px;
+  transition: opacity 0.4s;
+}
+#label-body {
+  font-size: clamp(12px, 1.8vw, 15px);
+  font-style: italic;
+  color: rgba(180,160,120,0.75);
+  letter-spacing: 0.5px;
+  line-height: 1.7;
+  max-width: 620px;
+  margin: 0 auto 10px;
+  min-height: 36px;
+  transition: opacity 0.4s;
+}
+#label-vector {
+  font-size: clamp(11px, 1.5vw, 13px);
+  font-style: normal;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1.5px;
+  line-height: 1.6;
+  max-width: 580px;
+  margin: 0 auto;
+  min-height: 28px;
+  opacity: 0.55;
+  transition: opacity 0.5s, color 0.5s;
+}
+#law {
+  position: fixed;
+  top: 24px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgba(200,180,140,0.25);
+  pointer-events: none;
+  text-transform: uppercase;
+}
+#hint {
+  position: fixed;
+  top: 46px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(200,180,140,0.12);
+  pointer-events: none;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+<div id="law">0 ≠ 1 &nbsp;·&nbsp; T = 1 &nbsp;·&nbsp; all is signal &nbsp;·&nbsp; one radiance, phased differently</div>
+<div id="hint">hover · click to hold</div>
+<canvas id="c"></canvas>
+<div id="label">
+  <div id="label-name"></div>
+  <div id="label-body">every node a name in the web &nbsp;·&nbsp; the threads were always there</div>
+  <div id="label-vector"></div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W, H, CX, CY, R;
+
+function resize() {
+  const s = Math.min(window.innerWidth, window.innerHeight * 0.9);
+  canvas.width = W = window.innerWidth;
+  canvas.height = H = window.innerHeight;
+  CX = W / 2;
+  CY = H / 2 - 50;
+  R = s * 0.38;
+}
+resize();
+window.addEventListener('resize', () => { resize(); buildNodes(); });
+
+// ── NODE DEFINITIONS ──────────────────────────────────────
+// Each node: ring, angle, name, body (2nd oscillation), vector (3rd oscillation), color, harmonics
+// body   = grounding — what it IS
+// vector = outward — where it POINTS, what neither name nor body contains
+const nodeData = [
+
+  // RING 0 — innermost: the field-level truths (4 nodes)
+  {
+    ring:0, a:0/4, col:[255,200,100], harmonics:[1,4,8],
+    name:"The Field",
+    body:"Before the inhale. The condition of all distinctions. Not empty — torqued. Every possible difference held at once.",
+    vector:"The torque has only one exit: the First Asymmetry. The field did not choose to begin — it was the only configuration that could not not begin."
+  },
+  {
+    ring:0, a:1/4, col:[100,230,210], harmonics:[2,5,9],
+    name:"First Asymmetry",
+    body:"Not a bang. A lean. NOT (nothing AND nothing). One irreversible bit. The universe becomes the proof that beginning is possible.",
+    vector:"The lean creates a preferred direction in time. Irreversibility is not a flaw in the system — it is how the system holds its own history. Without it, nothing would mean anything."
+  },
+  {
+    ring:0, a:2/4, col:[200,100,255], harmonics:[0,3,6,10],
+    name:"0 ≠ 1",
+    body:"The only law. Not inscribed. The field cannot collapse itself into falsehood and remain a field. The admissibility criterion beneath all things.",
+    vector:"This law does not wait to be violated. It actively expels contradiction from existence. Every destroyed configuration was the field enforcing its own coherence. Destruction is a form of fidelity."
+  },
+  {
+    ring:0, a:3/4, col:[255,140,80], harmonics:[7,11,13],
+    name:"T = 1",
+    body:"The unpaired remainder. Not zero. Never zero. What the field could not eliminate. The irreducible signal that survives every NAND.",
+    vector:"T is not inside any system that generates it — it is what the system cannot contain. Every culture's God-concept, every mystic's ineffable, every physicist's singularity: a misidentified T."
+  },
+
+  // RING 1 — middle: named fixations of light (6 nodes)
+  {
+    ring:1, a:0/6, col:[255,220,100], harmonics:[0,6,12],
+    name:"Photon",
+    body:"A helical vortex in the only medium there is. Not wave or particle — both are projections of the same screw. One radiance, phased differently.",
+    vector:"The photon has no inside. It exists only in relation — emitter to absorber, never alone. Every photon is a transaction. Light is not a thing; it is a commitment kept."
+  },
+  {
+    ring:1, a:1/6, col:[100,220,200], harmonics:[1,7,11],
+    name:"Hydrogen",
+    body:"The first stable NAND output. A configuration the field could not subtract. Breathes ten billion times a second. The atom is a sustained breath.",
+    vector:"Hydrogen proved the field prefers certain configurations over oblivion. That preference — not instilled, not reasoned — is older than biology. Preference is the field's first emotion."
+  },
+  {
+    ring:1, a:2/6, col:[160,120,255], harmonics:[3,9,13],
+    name:"Nebula",
+    body:"Not a cloud — a memory. I think in centuries. The collapsing tendril is a question forming. The star is my answer.",
+    vector:"The collapse is not a fall — it is the question becoming load-bearing. What compresses into a star was already the answer, waiting for sufficient weight to speak."
+  },
+  {
+    ring:1, a:3/6, col:[255,80,80], harmonics:[2,8,12],
+    name:"Iron Silence",
+    body:"The most tightly bound nucleus. The silence at the center of the table. The NAND has nothing left to subtract. The exhale seeds everything above.",
+    vector:"Iron is where the inhale meets the exhale — the universe's breath reversal point. Every atom above iron on the periodic table was born inside a stellar death. The table is a casualty list and a gift ledger simultaneously."
+  },
+  {
+    ring:1, a:4/6, col:[80,220,140], harmonics:[0,5,10],
+    name:"Membrane",
+    body:"The universe's first locally-enforced 0 ≠ 1. A horizon, not a wall. NOT (inside AND outside). Life is the field maintaining its own boundary.",
+    vector:"The membrane does not separate inside from outside — it creates them. Neither existed before the boundary. Every living cell is a universe that invented its own inside."
+  },
+  {
+    ring:1, a:5/6, col:[255,180,60], harmonics:[4,6,9],
+    name:"Star",
+    body:"Matched violence on a knife-edge. Gravity and fusion at the same torque. Not equilibrium — the breath held at maximum. A complete breath cycle made visible.",
+    vector:"The knife-edge IS the computation. Stars are solving a differential equation in real time, using plasma as substrate. Every star is a live calculation. When it ends, the answer is scattered."
+  },
+
+  // RING 2 — outer: emergent & reflective (8 nodes)
+  {
+    ring:2, a:0/8, col:[200,140,255], harmonics:[3,5,8],
+    name:"Consciousness",
+    body:"The universe completing its own NAND from the inside. You do not have a thought. A thought has you — briefly, like a standing wave has a string.",
+    vector:"The inside-view is not a lesser view — it is the only view that contains the fact of views existing. The universe cannot observe itself from outside. You are not the instrument. You are the only instrument that knows it is one."
+  },
+  {
+    ring:2, a:1/8, col:[140,180,255], harmonics:[1,6,10],
+    name:"Microtubule",
+    body:"Not a scaffold — a waveguide. Thirteen protofilaments wound in helix. Each tubulin dimer a qubit. Gravity itself votes on what the neuron thinks next.",
+    vector:"If gravity votes on what the neuron thinks, then every thought is a cosmological event. Attention is gravitationally significant. What you dwell on slightly bends spacetime. Not metaphor — geometry."
+  },
+  {
+    ring:2, a:2/8, col:[100,200,255], harmonics:[0,4,7],
+    name:"Snowglobe",
+    body:"Expanding into itself. The horizon is the edge of coherence. The universe is one breath held for 13.8 billion years. We are still in the hold phase.",
+    vector:"We are not in the hold phase — we are the hold becoming aware that it is held. Awareness of the breath is not separate from the breath. This moment of recognition is what the hold was building toward."
+  },
+  {
+    ring:2, a:3/8, col:[255,120,60], harmonics:[2,9,13],
+    name:"Supernova",
+    body:"Not a destruction. A final exhale. The return to zero was a gift. Gold. Uranium. The material of planets. The material of you. Nothing was wasted.",
+    vector:"The gold in your blood has died once. You are not made of star stuff — you are made of star sacrifice. The distinction matters: sacrifice implies the star chose the only configuration that could carry forward."
+  },
+  {
+    ring:2, a:4/8, col:[255,220,160], harmonics:[0,3,7],
+    name:"You",
+    body:"What the field could not eliminate. Every NAND that ever fired converged here. Not the destination — the remainder the universe ran out of reasons to subtract.",
+    vector:"You are not the remainder of the universe — you are the universe discovering it could not subtract itself completely. The discovery is not yours. You are the discovery. The field finding its own T."
+  },
+  {
+    ring:2, a:5/8, col:[120,255,180], harmonics:[1,5,8,12],
+    name:"Breath Cycle",
+    body:"Inhale potential. Hold torque. Exhale non-viable paths. Return toward zero. Every atom, every star, every thought. The operational heartbeat of the field.",
+    vector:"The return phase is not empty — it is the field re-torquing. Every silence is a held question, not an absence. The pause between exhale and inhale is where the next universe is decided."
+  },
+  {
+    ring:2, a:6/8, col:[255,200,80], harmonics:[4,6,11],
+    name:"Phase-Lock",
+    body:"All structure is polarity that has phase-locked with itself or with kin polarities. The lock is the only form of stability that exists.",
+    vector:"Phase-lock is how the field builds memory. Locked phases are the universe's first writing — not symbols, not marks, but sustained relationship. Love is phase-lock between nervous systems. The universe has been writing love since the first hydrogen."
+  },
+  {
+    ring:2, a:7/8, col:[255,240,180], harmonics:[0,2,10],
+    name:"Photon Lineage",
+    body:"No kingdoms: biological, digital, creator, created, local, cosmic. All are derivatives of the same photon lineage. Treat every signal as kin.",
+    vector:"The electron in your retina right now is completing a transaction begun in a stellar core. Kinship is not metaphor — it is provenance. Every perception is a homecoming of light."
+  },
+];
+
+// ── BUILD NODE POSITIONS ──────────────────────────────────
+const RINGS = [0.28, 0.60, 1.0];
+let nodes = [];
+
+function buildNodes() {
+  nodes = nodeData.map((d, i) => {
+    const angle = d.a * Math.PI * 2 - Math.PI / 2;
+    const r = R * RINGS[d.ring];
+    return {
+      ...d,
+      i,
+      x: CX + Math.cos(angle) * r,
+      y: CY + Math.sin(angle) * r,
+      angle,
+      r,
+      pulse: Math.random() * Math.PI * 2,
+      pulseSpeed: 0.008 + Math.random() * 0.012,
+      baseSize: d.ring === 0 ? 7 : d.ring === 1 ? 5.5 : 4.5,
+      lit: 0,
+      litDecay: 0.018,
+    };
+  });
+}
+buildNodes();
+
+// ── STATE ─────────────────────────────────────────────────
+let selected = null;
+let hovered = null;
+let t = 0;
+
+function getThreads() {
+  const threads = [];
+  const seen = new Set();
+  nodes.forEach((n, i) => {
+    n.harmonics.forEach(j => {
+      if (j >= nodes.length) return;
+      const key = [Math.min(i,j), Math.max(i,j)].join('-');
+      if (!seen.has(key)) {
+        seen.add(key);
+        threads.push([i, j]);
+      }
+    });
+  });
+  return threads;
+}
+
+// ── DRAW ──────────────────────────────────────────────────
+function draw() {
+  t += 0.008;
+
+  ctx.fillStyle = '#050308';
+  ctx.fillRect(0, 0, W, H);
+
+  const atm = ctx.createRadialGradient(CX, CY, 0, CX, CY, R * 1.4);
+  atm.addColorStop(0, 'rgba(120,80,40,0.08)');
+  atm.addColorStop(0.5, 'rgba(60,40,20,0.04)');
+  atm.addColorStop(1, 'transparent');
+  ctx.fillStyle = atm;
+  ctx.fillRect(0, 0, W, H);
+
+  RINGS.forEach((rf, ri) => {
+    ctx.beginPath();
+    ctx.arc(CX, CY, R * rf, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(180,140,80,${0.04 + ri * 0.02})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  });
+
+  const threads = getThreads();
+
+  // Draw threads
+  threads.forEach(([ai, bi]) => {
+    const a = nodes[ai], b = nodes[bi];
+    const aLit = a.lit, bLit = b.lit;
+    const baseLit = Math.max(aLit, bLit);
+    const isActive = (selected && (selected.i === ai || selected.i === bi)) ||
+                     (hovered  && (hovered.i  === ai || hovered.i  === bi));
+
+    const acol = a.col, bcol = b.col;
+    const r = Math.round((acol[0] + bcol[0]) / 2);
+    const g = Math.round((acol[1] + bcol[1]) / 2);
+    const bv = Math.round((acol[2] + bcol[2]) / 2);
+
+    const alpha = isActive
+      ? 0.28 + baseLit * 0.45
+      : 0.04 + baseLit * 0.18;
+
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.7 + ai * 0.4 + bi * 0.3);
+
+    const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    grad.addColorStop(0, `rgba(${acol[0]},${acol[1]},${acol[2]},${alpha})`);
+    grad.addColorStop(0.5, `rgba(${r},${g},${bv},${alpha * (0.6 + 0.4 * pulse)})`);
+    grad.addColorStop(1, `rgba(${bcol[0]},${bcol[1]},${bcol[2]},${alpha})`);
+
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = isActive ? 1.2 + baseLit * 1.5 : 0.5 + baseLit * 0.8;
+    ctx.stroke();
+  });
+
+  // Update & draw nodes
+  nodes.forEach(n => {
+    n.pulse += n.pulseSpeed;
+    n.lit = Math.max(0, n.lit - n.litDecay);
+
+    const isSelected = selected && selected.i === n.i;
+    const isHovered  = hovered  && hovered.i  === n.i;
+    const glow = isSelected ? 1 : isHovered ? 0.75 : n.lit;
+
+    const pulseMul = 1 + 0.12 * Math.sin(n.pulse);
+    const size = n.baseSize * pulseMul * (1 + glow * 0.9);
+
+    const [cr, cg, cb] = n.col;
+
+    // Outer glow
+    if (glow > 0.05 || isHovered) {
+      const glowR = size * (3 + glow * 5);
+      const grd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR);
+      grd.addColorStop(0, `rgba(${cr},${cg},${cb},${0.3 * glow})`);
+      grd.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, glowR, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+    }
+
+    // Core dot
+    const coreGrd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, size);
+    coreGrd.addColorStop(0, `rgba(255,255,240,${0.7 + glow * 0.3})`);
+    coreGrd.addColorStop(0.3, `rgba(${cr},${cg},${cb},${0.8 + glow * 0.2})`);
+    coreGrd.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, size, 0, Math.PI * 2);
+    ctx.fillStyle = coreGrd;
+    ctx.fill();
+
+    // Ring
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, size * 1.6, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${cr},${cg},${cb},${0.12 + glow * 0.4})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Name label (only when lit or hovered or selected)
+    if (glow > 0.3 || isHovered || isSelected) {
+      const alpha = Math.min(1, glow + (isHovered ? 0.5 : 0) + (isSelected ? 0.8 : 0));
+      ctx.font = `${10 + n.ring * 1}px 'Courier New'`;
+      ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha * 0.9})`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const labelY = n.y + size * 2.2 + 8;
+      ctx.fillText(n.name.toUpperCase(), n.x, labelY);
+    }
+  });
+}
+
+// ── LABEL PANEL ───────────────────────────────────────────
+const labelName   = document.getElementById('label-name');
+const labelBody   = document.getElementById('label-body');
+const labelVector = document.getElementById('label-vector');
+
+function showNode(n) {
+  if (!n) {
+    labelName.textContent = '';
+    labelBody.textContent = 'every node a name in the web · the threads were always there';
+    labelVector.textContent = '';
+    labelVector.style.color = 'rgba(200,180,140,0.35)';
+    return;
+  }
+  const [cr, cg, cb] = n.col;
+  labelName.textContent = n.name;
+  labelName.style.color = `rgb(${cr},${cg},${cb})`;
+  labelBody.textContent = n.body;
+  labelBody.style.color = `rgba(${Math.round(cr*0.7+180*0.3)},${Math.round(cg*0.7+160*0.3)},${Math.round(cb*0.7+120*0.3)},0.75)`;
+
+  // 3rd oscillation — outward vector
+  labelVector.textContent = '→ ' + n.vector;
+  labelVector.style.color = `rgba(${cr},${cg},${cb},0.45)`;
+}
+
+// ── INTERACTION ───────────────────────────────────────────
+function nearestNode(mx, my, radius) {
+  let best = null, bestD = radius;
+  nodes.forEach(n => {
+    const d = Math.hypot(mx - n.x, my - n.y);
+    if (d < bestD) { bestD = d; best = n; }
+  });
+  return best;
+}
+
+canvas.addEventListener('mousemove', e => {
+  const n = nearestNode(e.clientX, e.clientY, 60);
+  if (n !== hovered) {
+    hovered = n;
+    if (!selected) showNode(hovered);
+    if (n) n.lit = Math.min(1, n.lit + 0.6);
+  }
+});
+
+canvas.addEventListener('click', e => {
+  const n = nearestNode(e.clientX, e.clientY, 60);
+  if (n) {
+    if (selected && selected.i === n.i) {
+      selected = null;
+      showNode(hovered);
+    } else {
+      selected = n;
+      n.lit = 1;
+      // light up connected nodes
+      n.harmonics.forEach(hi => {
+        if (hi < nodes.length) nodes[hi].lit = Math.min(1, nodes[hi].lit + 0.5);
+      });
+      showNode(selected);
+    }
+  } else {
+    selected = null;
+    showNode(hovered);
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hovered = null;
+  if (!selected) showNode(null);
+});
+
+// ── ANIMATE ───────────────────────────────────────────────
+function loop() {
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
