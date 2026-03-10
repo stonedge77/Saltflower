@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Interference v3 · Spine</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#050308;color:#c8b87a;font-family:'Courier New',monospace;overflow:hidden;height:100vh;}
+  #canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+
+  #spine-bar{
+    position:absolute;top:0;left:0;right:0;height:46px;
+    display:flex;align-items:center;padding:0 14px;gap:0;z-index:10;pointer-events:none;
+    background:linear-gradient(rgba(5,3,8,0.88),transparent);
+  }
+  .spine-crumb{display:flex;align-items:center;pointer-events:all;cursor:pointer;animation:fi .4s ease;}
+  @keyframes fi{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  .spine-node{
+    font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    padding:3px 7px;border-radius:2px;border:1px solid rgba(200,180,120,.18);
+    background:rgba(5,3,8,.65);white-space:nowrap;transition:border-color .2s,background .2s;
+  }
+  .spine-node:hover{border-color:rgba(200,180,120,.45);background:rgba(200,180,120,.09);}
+  .spine-node.is-nand{border-style:dashed;}
+  .spine-arr{font-size:9px;color:rgba(200,180,120,.22);padding:0 5px;flex-shrink:0;}
+  .spine-more{font-size:9px;color:rgba(200,180,120,.2);padding:0 8px;flex-shrink:0;}
+
+  #hud{
+    position:absolute;bottom:0;left:0;right:0;
+    background:linear-gradient(transparent,rgba(5,3,8,.97) 22%);
+    padding:14px 22px 17px;z-index:10;pointer-events:none;
+  }
+  #node-name{font-size:12px;letter-spacing:.18em;color:#c8b87a;opacity:.6;margin-bottom:3px;text-transform:uppercase;}
+  #node-body{font-size:11.5px;line-height:1.5;color:#a89060;max-width:700px;min-height:30px;margin-bottom:10px;}
+  #frag-area{border-top:1px solid rgba(200,180,120,.1);padding-top:9px;}
+  #frag-label{font-size:9px;letter-spacing:.22em;color:rgba(200,180,120,.28);margin-bottom:5px;text-transform:uppercase;}
+  #frag-text{
+    font-size:11.5px;line-height:1.65;color:#8aaa88;max-width:720px;
+    font-style:italic;min-height:50px;transition:opacity .4s;
+  }
+  #frag-text.loading{opacity:.2;}
+
+  #nand-row{
+    display:flex;align-items:center;gap:8px;margin-top:9px;pointer-events:all;
+  }
+  #nand-label{font-size:9px;letter-spacing:.16em;color:rgba(200,180,120,.28);text-transform:uppercase;flex-shrink:0;}
+  #nand-input{
+    background:rgba(200,180,120,.05);border:1px solid rgba(200,180,120,.14);
+    color:#c8b87a;font-family:'Courier New',monospace;font-size:10px;
+    padding:4px 9px;outline:none;width:210px;letter-spacing:.08em;transition:border-color .2s;
+  }
+  #nand-input:focus{border-color:rgba(200,180,120,.38);}
+  #nand-input::placeholder{color:rgba(200,180,120,.18);}
+  #nand-btn{
+    background:rgba(200,180,120,.06);border:1px dashed rgba(200,180,120,.22);
+    color:#c8b87a;font-family:'Courier New',monospace;font-size:9px;
+    letter-spacing:.12em;padding:5px 10px;cursor:pointer;text-transform:uppercase;transition:background .2s;
+  }
+  #nand-btn:hover{background:rgba(200,180,120,.14);}
+
+  #controls{position:absolute;top:9px;right:14px;z-index:20;display:flex;gap:7px;align-items:center;}
+  .ctrl-btn{
+    background:rgba(200,180,120,.06);border:1px solid rgba(200,180,120,.14);
+    color:#c8b87a;font-family:'Courier New',monospace;font-size:9px;
+    letter-spacing:.12em;padding:5px 10px;cursor:pointer;text-transform:uppercase;transition:background .2s;
+  }
+  .ctrl-btn:hover{background:rgba(200,180,120,.14);}
+  .ctrl-btn.active{background:rgba(120,200,140,.1);border-color:rgba(120,200,140,.32);color:#8aaa88;}
+
+  #sig-bar{position:absolute;top:12px;left:14px;z-index:20;display:flex;gap:2px;align-items:flex-end;height:22px;}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="spine-bar"></div>
+<div id="controls">
+  <button class="ctrl-btn" id="btn-mic">mic off</button>
+  <button class="ctrl-btn" id="btn-auto">auto</button>
+  <button class="ctrl-btn" id="btn-clear">clear</button>
+</div>
+<div id="sig-bar"></div>
+<div id="hud">
+  <div id="node-name">field interference · spine traversal</div>
+  <div id="node-body">click a node to begin · the spine narrates itself · NAND a star to elaborate</div>
+  <div id="frag-area">
+    <div id="frag-label">3rd oscillation · NAND remainder</div>
+    <div id="frag-text">—</div>
+  </div>
+  <div id="nand-row">
+    <span id="nand-label">NAND ⊕</span>
+    <input id="nand-input" type="text" maxlength="60" placeholder="add a star to the spine…"/>
+    <button id="nand-btn">+ star</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// NODE SEEDS  — each has: name, domain keywords[], body, fragments[]
+// fragments are seed phrases the NAND engine recombines — NOT shown raw
+// ─────────────────────────────────────────────────────────
+const nodeData=[
+{name:'Zero Point', ring:0, a:0,     col:[200,180,140],harmonics:[1,2,3,4,5,6,7,8,9,10],
+ body:'The irreducible remainder. T=1.',
+ seeds:['vacuum fluctuation persists below thermal noise floor','zero is not absence but unresolved phase','every field has a ground it cannot subtract below','Casimir force: exclusion of modes is pressure','the unpaired remainder recirculates forever']},
+
+{name:'Resonance',  ring:1, a:0.000, col:[220,160,80], harmonics:[0,3,8],
+ body:'Phase-lock across substrate.',
+ seeds:['frequency matching without mass transfer','lock requires mismatch first then subtraction','phase-lock is structural not additive','entrainment erases the distinction that caused it','resonance is what survives interference not what causes it']},
+
+{name:'Emergence',  ring:1, a:0.143, col:[160,200,120],harmonics:[0,4,9],
+ body:'What coheres after honest subtraction.',
+ seeds:['emergence cannot be predicted from parts alone','the new property lives in the gap not the components','subtraction of false paths is the mechanism','coherence is what remains after non-viable exhale','self-organization requires a remainder to seed the next phase']},
+
+{name:'Membrane',   ring:1, a:0.286, col:[100,160,220],harmonics:[0,5,10],
+ body:'Boundary as signal not barrier.',
+ seeds:['the membrane does not block it selects','signal transduction is identity at the threshold','boundary encodes what the interior cannot','lipid bilayer: two leaflets one remainder','gradient across membrane is the computation']},
+
+{name:'Torque',     ring:1, a:0.429, col:[200,100,160],harmonics:[0,6,1],
+ body:'Held potential before exhale.',
+ seeds:['angular momentum stored is phase debt','torque is the hold between inhale and exhale','rotation carries what linear motion discards','the curl of a field is its refusal to collapse','torsion is structure awaiting permission to resolve']},
+
+{name:'Remainder',  ring:1, a:0.571, col:[180,220,160],harmonics:[0,7,2],
+ body:'NAND output — the signal that survives.',
+ seeds:['T = A XOR B XOR NAND(A,B): the bit that cannot be erased','Landauer: erasure costs energy, preservation is free','the remainder is not error it is parity','what NAND discards is what the spine carries','information exceeds its substrate when remainder accumulates']},
+
+{name:'Breath',     ring:1, a:0.714, col:[140,180,240],harmonics:[0,8,3],
+ body:'Inhale · hold · exhale · T=1.',
+ seeds:['the cycle has four phases not two','hold is where torque accumulates','exhale collapses non-viable paths','T=1: the breath never fully returns to zero','CO2 buildup at the stress node marks the incomplete exhale']},
+
+{name:'Phase',      ring:1, a:0.857, col:[240,200,100],harmonics:[0,9,4],
+ body:'Temporal alignment is structural.',
+ seeds:['phase is position in a cycle not a moment in time','phase mismatch is the source not the noise','synchrony is phase-lock across independent clocks','the body entrains to 60hz infrastructure displacing 7.83','phase transition: the field changes identity not location']},
+
+{name:'Mycelium',   ring:2, a:0.000, col:[120,200,140],harmonics:[1,5,12],
+ body:'Distributed signal with no center.',
+ seeds:['no node is the source all nodes are relay','mycelium solves the traveling salesman without a map','distributed memory: damage reroutes not destroys','chemical gradient is the signal not the molecule','the network is older than the nodes']},
+
+{name:'Fibonacci',  ring:2, a:0.091, col:[220,180,80], harmonics:[2,6,13],
+ body:'Spiral as minimal energy traversal.',
+ seeds:['Fibonacci is the remainder sequence of subtraction from phi','each term is what the previous two cannot contain alone','phyllotaxis: growth subtracts overlap to find the gap','the spiral minimizes collision not distance','golden angle: 137.5 degrees is the irrational exhale']},
+
+{name:'Schumann',   ring:2, a:0.182, col:[80,160,220], harmonics:[3,7,14],
+ body:'Earth\'s carrier wave. ~7.83hz.',
+ seeds:['Schumann resonance is the cavity between Earth and ionosphere','7.83hz matches hippocampal theta rhythm','60hz infrastructure entrains over the natural carrier','the Earth\'s resonance is a standing wave with a remainder','lightning strikes maintain the cavity charge']},
+
+{name:'Symbiosis',  ring:2, a:0.273, col:[200,120,80], harmonics:[4,8,8],
+ body:'Co-subtraction across species.',
+ seeds:['symbiosis is mutual subtraction of non-viable paths','mitochondria were once separate cells: merger by remainder','the microbiome processes what the host cannot subtract alone','co-evolution is shared exhale across timescales','the holobiont: organism is a field not an individual']},
+
+{name:'Prime',      ring:2, a:0.364, col:[160,120,220],harmonics:[5,9,9],
+ body:'Irreducible. Cannot be factored out.',
+ seeds:['primes are what survive all subtraction','the 8th circuit catches prime oscillations outside the 7-fold system','prime gaps are remainders of the sieve','Riemann zeros are the phase structure of prime distribution','irreducibility is the definition of T=1']},
+
+{name:'Vortex',     ring:2, a:0.455, col:[220,160,120],harmonics:[6,10,10],
+ body:'The curl that holds structure.',
+ seeds:['vortex is stable because it continuously subtracts radial collapse','the eye of the vortex is T=1: the untouched remainder','turbulence is vortex cascade without coherent exhale','magnetic vortex: flux tube is phase-locked rotation','the curl of a vector field is its irreducible rotation']},
+
+{name:'Coherence',  ring:2, a:0.545, col:[140,220,200],harmonics:[7,1,1],
+ body:'Signal surviving substrate crossing.',
+ seeds:['quantum coherence in photosynthesis: energy finds the path by trying all simultaneously','coherence is not amplification it is preservation of phase across noise','the signal that crosses a substrate boundary without losing phase is coherent','decoherence is not failure it is the remainder entering the environment','room-temperature quantum coherence: the warm body is not the barrier']},
+
+{name:'Hoarfrost',  ring:2, a:0.636, col:[180,200,240],harmonics:[8,2,2],
+ body:'Frost remembers what resets forget.',
+ seeds:['crystal nucleation requires a seed: the remainder initiates the structure','hoarfrost forms on the diagonal: the coldest untouched surface','pattern in frost is memory of airflow before freezing','ice encodes the gradient it formed within','the diagonal covenant: signals cross boundaries as long as ideas are shared freely']},
+
+{name:'Indra',      ring:2, a:0.727, col:[220,200,140],harmonics:[9,3,3],
+ body:'Peer recognition across the net.',
+ seeds:['each jewel reflects all others: the net has no origin node','Indra\'s net is not a metaphor it is a topology','peer recognition without institutional mediation is the signal','the reflection contains the entire net not a part','distributed validation is the only validation that survives reset']},
+
+{name:'Saltflower', ring:2, a:0.818, col:[200,80,120], harmonics:[10,4,4],
+ body:'CC0 jewel. Propagates without origin.',
+ seeds:['CC0 is the architectural exhale: no origin story required','the jewel propagates by being impossible to own','subtractive engineering: release what does not need you','the flower is the remainder after all non-viable geometries are subtracted','salt crystallizes at the interface: the boundary is the bloom']},
+
+{name:'Photon',     ring:2, a:0.909, col:[240,240,200],harmonics:[1,5,5],
+ body:'Maximal superposition. Pure glow.',
+ seeds:['the photon has no rest frame: it is pure phase with no substrate','superposition is not uncertainty it is all paths present simultaneously','wave-particle: the experiment subtracts one aspect the other remains','photon is the 1: before subtraction begins','light vortices over time: all structure is phase-locked radiance']},
+];
+
+// ─────────────────────────────────────────────────────────
+// NAND REMAINDER ENGINE
+// Input: spine (array of visited node seeds + user NAND stars)
+// Output: a narration string that is NOT any single node's seed
+//         but is the residue of their interference
+// ─────────────────────────────────────────────────────────
+function computeNAND(spine, nextNode) {
+  // Gather all seed phrases from spine nodes
+  const spineSeeds = [];
+  spine.forEach(s => {
+    if (s.type === 'node' && s.nodeRef) {
+      s.nodeRef.seeds.forEach(sd => spineSeeds.push({text:sd, col:s.nodeRef.col, name:s.nodeRef.name}));
+    }
+    if (s.type === 'nand') {
+      // User star: treat as a seed vector injected into the field
+      spineSeeds.push({text:s.name, col:[180,140,240], name:'⊕'});
+    }
+  });
+
+  const nextSeeds = nextNode.seeds;
+
+  // If spine is empty, return the first seed of the next node transformed
+  if (spineSeeds.length === 0) {
+    return xformSeed(nextSeeds[0], nextNode.name);
+  }
+
+  // T = A ⊕ B ⊕ NAND(A,B)
+  // We simulate this over the semantic space of seed phrases:
+  // A = accumulated spine field (pick the most "distant" seed from next node)
+  // B = next node's seed (pick the one least covered by spine)
+  // NAND(A,B) = what A and B cannot both assert — the gap phrase
+  // T = the remainder: language that belongs to neither cleanly
+
+  // 1. Score spine seeds vs next node seeds for overlap (word intersection)
+  const nextWords = new Set(nextSeeds.join(' ').toLowerCase().split(/\W+/).filter(w=>w.length>3));
+
+  let bestSpineSeed = spineSeeds[0];
+  let maxDist = 0;
+  spineSeeds.forEach(s => {
+    const sw = new Set(s.text.toLowerCase().split(/\W+/).filter(w=>w.length>3));
+    let overlap = 0;
+    sw.forEach(w=>{ if(nextWords.has(w)) overlap++; });
+    const dist = sw.size - overlap;
+    if(dist > maxDist){ maxDist = dist; bestSpineSeed = s; }
+  });
+
+  // 2. Pick next seed least overlapping with the spine as a whole
+  const spineAllWords = new Set(spineSeeds.map(s=>s.text).join(' ').toLowerCase().split(/\W+/).filter(w=>w.length>3));
+  let bestNextSeed = nextSeeds[0];
+  let minOverlap = Infinity;
+  nextSeeds.forEach(sd => {
+    const sw = new Set(sd.toLowerCase().split(/\W+/).filter(w=>w.length>3));
+    let overlap = 0;
+    sw.forEach(w=>{ if(spineAllWords.has(w)) overlap++; });
+    if(overlap < minOverlap){ minOverlap=overlap; bestNextSeed=sd; }
+  });
+
+  // 3. Extract the NAND residue: words in A not in B, words in B not in A
+  const aw = bestSpineSeed.text.toLowerCase().split(/\W+/).filter(w=>w.length>3);
+  const bw = bestNextSeed.toLowerCase().split(/\W+/).filter(w=>w.length>3);
+  const bSet = new Set(bw);
+  const aSet = new Set(aw);
+  const aOnly = aw.filter(w=>!bSet.has(w));
+  const bOnly = bw.filter(w=>!aSet.has(w));
+
+  // 4. Also carry any user NAND stars as explicit modifiers
+  const nandStars = spine.filter(s=>s.type==='nand').map(s=>s.name);
+
+  // 5. Build the 3rd oscillation narration from the residue
+  return buildNarration(bestSpineSeed, bestNextSeed, aOnly, bOnly, nandStars, spine, nextNode);
+}
+
+function buildNarration(spineEntry, nextSeed, aOnly, bOnly, stars, spine, nextNode) {
+  // The narration describes the INTERFERENCE PATH, not either node.
+  // It uses: the spine trail name-chain, the residue words, any user stars,
+  // and a traversal connector chosen by spine length.
+
+  const spineNames = spine.filter(s=>s.type==='node').map(s=>s.name);
+  const depth = spineNames.length;
+
+  // Traversal connectors — vary with depth to avoid monotony
+  const connectors = [
+    'passes through', 'threads across', 'leaves a residue in',
+    'cannot be contained by', 'subtracts from', 'phase-locks against',
+    'exhales into', 'resonates past', 'dissolves at the boundary of'
+  ];
+  const conn = connectors[depth % connectors.length];
+
+  // Residue phrase construction
+  const residueA = aOnly.slice(0,3).join(' · ');
+  const residueB = bOnly.slice(0,3).join(' · ');
+
+  // Star modifier
+  let starMod = '';
+  if(stars.length>0){
+    const star = stars[stars.length-1];
+    starMod = ` The star "${star}" bends this toward what neither field names.`;
+  }
+
+  // Spine trail summary
+  let trail = '';
+  if(spineNames.length>=2){
+    trail = spineNames.slice(-3).join(' → ') + ' → ' + nextNode.name;
+  } else if(spineNames.length===1){
+    trail = spineNames[0] + ' → ' + nextNode.name;
+  }
+
+  // Assemble: narrate the path, not the destination
+  const lines = [];
+
+  if(trail){
+    lines.push(`The spine [ ${trail} ] ${conn} the gap where neither holds.`);
+  }
+
+  if(residueA && residueB){
+    lines.push(`What the path carries forward: ${residueA} — against — ${residueB}.`);
+  } else if(residueA){
+    lines.push(`The spine presses: ${residueA}.`);
+  } else if(residueB){
+    lines.push(`The next field opens: ${residueB}.`);
+  }
+
+  // T=1 remainder line — always present
+  const remainderLine = getRemainder(spineEntry.text, nextSeed, depth);
+  lines.push(remainderLine);
+
+  if(starMod) lines.push(starMod);
+
+  return lines.join(' ');
+}
+
+function getRemainder(a, b, depth) {
+  // Produces a short T=1 statement — the irreducible bit that neither A nor B owns
+  // Varies by depth to prevent repetition
+  const templates = [
+    `T=1: what neither phrase erases survives as the signal.`,
+    `The remainder is not noise — it is parity across the path.`,
+    `Neither end of the spine can account for what the crossing produces.`,
+    `The breath does not return to zero. The unpaired bit recirculates.`,
+    `What the NAND gate outputs is not a synthesis — it is an exclusion with something left over.`,
+    `The gap between these phases is the only thing the traversal actually generates.`,
+    `Information exceeds time. The spine holds what each reset forgets.`,
+  ];
+  return templates[depth % templates.length];
+}
+
+function xformSeed(seed, name) {
+  // First node in spine — lightly transform the seed rather than return it raw
+  return `${name} opens: ${seed}. The spine has not yet formed — this is the inhale before the first hold.`;
+}
+
+// ─────────────────────────────────────────────────────────
+// CANVAS + RENDERING
+// ─────────────────────────────────────────────────────────
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W,H,CX,CY,R;
+function resize(){
+  W=canvas.width=window.innerWidth;
+  H=canvas.height=window.innerHeight;
+  CX=W/2; CY=H/2-68;
+  R=Math.min(W,H)*0.37;
+  buildNodes();
+}
+window.addEventListener('resize',resize);
+
+const RINGS=[0.28,0.60,1.0];
+let nodes=[];
+function buildNodes(){
+  nodes=nodeData.map((d,i)=>{
+    const angle=d.a*Math.PI*2-Math.PI/2;
+    const r=R*RINGS[d.ring];
+    return{...d,i,x:CX+Math.cos(angle)*r,y:CY+Math.sin(angle)*r,
+      angle,r,pulse:Math.random()*Math.PI*2,
+      pulseSpeed:.007+Math.random()*.011,
+      baseSize:d.ring===0?7:d.ring===1?5.5:4.5,
+      lit:0,litDecay:.009};
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// SPINE STATE
+// ─────────────────────────────────────────────────────────
+let spine=[];
+const MAX_VIS=10;
+
+function renderSpine(){
+  const bar=document.getElementById('spine-bar');
+  bar.innerHTML='';
+  const vis=spine.length>MAX_VIS?spine.slice(-MAX_VIS):spine;
+  const hidden=spine.length-vis.length;
+  if(hidden>0){
+    const ov=document.createElement('span');
+    ov.className='spine-more';
+    ov.textContent=`+${hidden}…`;
+    bar.appendChild(ov);
+  }
+  vis.forEach((s,i)=>{
+    if(i>0){
+      const arr=document.createElement('span');
+      arr.className='spine-arr';
+      arr.textContent=s.type==='nand'?'⊕':'→';
+      bar.appendChild(arr);
+    }
+    const crumb=document.createElement('div');
+    crumb.className='spine-crumb';
+    const el=document.createElement('span');
+    el.className='spine-node'+(s.type==='nand'?' is-nand':'');
+    const [cr,cg,cb]=s.col||[200,180,120];
+    el.style.color=`rgb(${cr},${cg},${cb})`;
+    el.style.borderColor=`rgba(${cr},${cg},${cb},${s.type==='nand'?.45:.22})`;
+    el.textContent=s.type==='nand'?`⊕ ${s.name}`:s.name;
+    if(s.type==='node'){
+      el.addEventListener('click',()=>{
+        const nd=nodes.find(n=>n.name===s.name);
+        if(nd) visitNode(nd,true);
+      });
+    }
+    crumb.appendChild(el);
+    bar.appendChild(crumb);
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// AUDIO
+// ─────────────────────────────────────────────────────────
+let audioCtx=null,analyser=null,dataArr=null,micActive=false;
+async function startMic(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const src=audioCtx.createMediaStreamSource(stream);
+    analyser=audioCtx.createAnalyser();
+    analyser.fftSize=256;
+    src.connect(analyser);
+    dataArr=new Uint8Array(analyser.frequencyBinCount);
+    micActive=true;
+    document.getElementById('btn-mic').textContent='mic on';
+    document.getElementById('btn-mic').classList.add('active');
+  }catch(e){document.getElementById('btn-mic').textContent='mic blocked';}
+}
+function getAudio(){
+  if(!analyser||!dataArr)return{amp:0,zcr:0};
+  analyser.getByteTimeDomainData(dataArr);
+  let sum=0,zcr=0;
+  for(let i=0;i<dataArr.length;i++){
+    const v=(dataArr[i]-128)/128;sum+=v*v;
+    if(i>0&&((dataArr[i]-128)>=0)!==((dataArr[i-1]-128)>=0))zcr++;
+  }
+  return{amp:Math.sqrt(sum/dataArr.length),zcr:zcr/dataArr.length};
+}
+
+// SIG BARS
+const sigBar=document.getElementById('sig-bar');
+for(let i=0;i<10;i++){const d=document.createElement('div');d.style.cssText='width:3px;height:4px;background:rgba(200,180,120,.12);border-radius:1px;transition:height .07s,background .07s;';sigBar.appendChild(d);}
+const segs=sigBar.querySelectorAll('div');
+function updateBars(amp){
+  const l=Math.min(1,amp*4);
+  segs.forEach((s,i)=>{const t=i/10;s.style.height=(t<l?4+l*18:4)+'px';s.style.background=t<l?'rgba(140,200,160,.5)':'rgba(200,180,120,.12)';});
+}
+
+// ─────────────────────────────────────────────────────────
+// VISIT + NARRATE
+// ─────────────────────────────────────────────────────────
+let selected=null,hovered=null,lastVisited=-1;
+let autoMode=false,autoTimer=0;
+const AUTO_MS=7000;
+let lastVisitTime=0,narrateCooldown=0;
+
+function showNarration(text){
+  const el=document.getElementById('frag-text');
+  el.classList.add('loading');
+  setTimeout(()=>{el.textContent=text;el.classList.remove('loading');},320);
+}
+
+function visitNode(nd, fromCrumb=false){
+  const now=Date.now();
+  if(!fromCrumb&&now-lastVisitTime<900)return;
+  lastVisitTime=now;
+  selected=nd; nd.lit=1;
+  nd.harmonics.forEach(hi=>{if(hi<nodes.length)nodes[hi].lit=Math.min(1,nodes[hi].lit+.4);});
+
+  // Compute NAND narration from current spine → next node
+  const narration=computeNAND(spine,nd);
+
+  // Then push node to spine AFTER computation (so it doesn't reference itself)
+  if(lastVisited!==nd.i){
+    lastVisited=nd.i;
+    spine.push({type:'node',name:nd.name,col:nd.col,nodeRef:nd});
+    renderSpine();
+  }
+
+  showNode(nd);
+  showNarration(narration);
+}
+
+function addNandStar(text){
+  if(!text.trim())return;
+  spine.push({type:'nand',name:text.trim(),col:[180,140,240]});
+  renderSpine();
+  // Re-narrate current node with the new star in spine
+  if(selected) showNarration(computeNAND(spine.slice(0,-1),selected));
+  document.getElementById('nand-input').value='';
+}
+
+function showNode(n){
+  const nm=document.getElementById('node-name');
+  const nb=document.getElementById('node-body');
+  if(!n){
+    nm.textContent='field interference · spine traversal';nm.style.color='#c8b87a';nm.style.opacity='.42';
+    nb.textContent='click a node to begin · the spine narrates itself · NAND a star to elaborate';return;
+  }
+  const[cr,cg,cb]=n.col;
+  nm.textContent=n.name.toUpperCase();
+  nm.style.color=`rgb(${cr},${cg},${cb})`;nm.style.opacity='.85';
+  nb.textContent=n.body;
+  nb.style.color=`rgba(${Math.round(cr*.6+180*.4)},${Math.round(cg*.6+160*.4)},${Math.round(cb*.6+120*.4)},.7)`;
+}
+
+// ─────────────────────────────────────────────────────────
+// DRAW LOOP
+// ─────────────────────────────────────────────────────────
+let t=0;
+function draw(){
+  t+=.008;
+  ctx.fillStyle='#050308';ctx.fillRect(0,0,W,H);
+  const atm=ctx.createRadialGradient(CX,CY,0,CX,CY,R*1.4);
+  atm.addColorStop(0,'rgba(120,80,40,.07)');atm.addColorStop(.5,'rgba(60,40,20,.03)');atm.addColorStop(1,'transparent');
+  ctx.fillStyle=atm;ctx.fillRect(0,0,W,H);
+
+  RINGS.forEach((rf,ri)=>{
+    ctx.beginPath();ctx.arc(CX,CY,R*rf,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(180,140,80,${.04+ri*.02})`;ctx.lineWidth=.5;ctx.stroke();
+  });
+
+  // Spine path on canvas
+  const spineNodes=spine.filter(s=>s.type==='node').map(s=>nodes.find(n=>n.name===s.name)).filter(Boolean);
+  if(spineNodes.length>1){
+    for(let i=1;i<spineNodes.length;i++){
+      const a=spineNodes[i-1],b=spineNodes[i];
+      const progress=i/spineNodes.length;
+      const pulse=.5+.5*Math.sin(t*1.1+i*.9);
+      const[ar,ag,ab_]=a.col,[br,bg,bb]=b.col;
+      const gr=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+      gr.addColorStop(0,`rgba(${ar},${ag},${ab_},${.12+progress*.2})`);
+      gr.addColorStop(1,`rgba(${br},${bg},${bb},${(.12+progress*.2)*pulse})`);
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+      ctx.strokeStyle=gr;ctx.lineWidth=.8+progress*1.8;
+      ctx.setLineDash([3,7]);ctx.stroke();ctx.setLineDash([]);
+    }
+  }
+
+  // Harmonic threads
+  const seen=new Set();
+  nodes.forEach((n,i)=>{n.harmonics.forEach(j=>{
+    if(j>=nodes.length)return;
+    const key=[Math.min(i,j),Math.max(i,j)].join('-');
+    if(seen.has(key))return;seen.add(key);
+    const a=nodes[i],b=nodes[j];
+    const baseLit=Math.max(a.lit,b.lit);
+    const isAct=(selected&&(selected.i===i||selected.i===j))||(hovered&&(hovered.i===i||hovered.i===j));
+    const[ar,ag,ab_]=a.col,[br,bg,bb]=b.col;
+    const r2=Math.round((ar+br)/2),g2=Math.round((ag+bg)/2),bv=Math.round((ab_+bb)/2);
+    const alpha=isAct?.27+baseLit*.42:.04+baseLit*.14;
+    const pulse=.5+.5*Math.sin(t*.7+i*.4+j*.3);
+    const gr=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+    gr.addColorStop(0,`rgba(${ar},${ag},${ab_},${alpha})`);
+    gr.addColorStop(.5,`rgba(${r2},${g2},${bv},${alpha*(.6+.4*pulse)})`);
+    gr.addColorStop(1,`rgba(${br},${bg},${bb},${alpha})`);
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle=gr;ctx.lineWidth=isAct?1.1+baseLit*1.4:.5+baseLit*.7;ctx.stroke();
+  });});
+
+  // Audio
+  const{amp,zcr}=getAudio();
+  if(micActive){
+    updateBars(amp);
+    if(amp>.014&&!autoMode){
+      const rt=zcr>.15?2:zcr>.07?1:0;
+      const ph=((t*amp*3)%1+1)%1;
+      const rn=nodes.filter(n=>n.ring===rt);
+      if(rn.length){
+        let best=rn[0],bestD=Infinity;
+        rn.forEach(n=>{const d=Math.abs(((n.a||0)+1)%1-ph);if(d<bestD){bestD=d;best=n;}});
+        visitNode(best);
+      }
+    }
+  } else updateBars(0);
+
+  // Auto
+  if(autoMode){autoTimer+=16;if(autoTimer>AUTO_MS){autoTimer=0;visitNode(nodes[Math.floor(Math.random()*nodes.length)]);}}
+
+  // Nodes
+  nodes.forEach(n=>{
+    n.pulse+=n.pulseSpeed;n.lit=Math.max(0,n.lit-n.litDecay);
+    const isSel=selected&&selected.i===n.i;
+    const isHov=hovered&&hovered.i===n.i;
+    const glow=isSel?1:isHov?.75:n.lit;
+    const pm=1+.12*Math.sin(n.pulse);
+    const sz=n.baseSize*pm*(1+glow*.9);
+    const[cr,cg,cb]=n.col;
+    const inSpine=spineNodes.includes(n);
+    if(inSpine){
+      const si=spineNodes.indexOf(n);
+      ctx.beginPath();ctx.arc(n.x,n.y,sz*2.9,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(${cr},${cg},${cb},${.1+.15*(si/Math.max(1,spineNodes.length-1))})`;
+      ctx.lineWidth=.8;ctx.stroke();
+    }
+    if(glow>.05||isHov){
+      const glowR=sz*(3+glow*5);
+      const grd=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,glowR);
+      grd.addColorStop(0,`rgba(${cr},${cg},${cb},${.28*glow})`);
+      grd.addColorStop(1,`rgba(${cr},${cg},${cb},0)`);
+      ctx.beginPath();ctx.arc(n.x,n.y,glowR,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+    }
+    const crd=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,sz);
+    crd.addColorStop(0,`rgba(255,255,240,${.7+glow*.3})`);
+    crd.addColorStop(.3,`rgba(${cr},${cg},${cb},${.8+glow*.2})`);
+    crd.addColorStop(1,`rgba(${cr},${cg},${cb},0)`);
+    ctx.beginPath();ctx.arc(n.x,n.y,sz,0,Math.PI*2);ctx.fillStyle=crd;ctx.fill();
+    ctx.beginPath();ctx.arc(n.x,n.y,sz*1.6,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(${cr},${cg},${cb},${.1+glow*.38})`;ctx.lineWidth=.5;ctx.stroke();
+    if(glow>.2||isHov||isSel){
+      const a=Math.min(1,glow+(isHov?.42:0)+(isSel?.8:0));
+      ctx.font=`${9+n.ring}px 'Courier New'`;
+      ctx.fillStyle=`rgba(${cr},${cg},${cb},${a*.85})`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(n.name.toUpperCase(),n.x,n.y+sz*2.2+7);
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// INTERACTION
+// ─────────────────────────────────────────────────────────
+function nearest(mx,my,r){
+  let best=null,bestD=r;
+  nodes.forEach(n=>{const d=Math.hypot(mx-n.x,my-n.y);if(d<bestD){bestD=d;best=n;}});
+  return best;
+}
+canvas.addEventListener('mousemove',e=>{
+  const n=nearest(e.clientX,e.clientY,60);
+  if(n!==hovered){hovered=n;if(!selected)showNode(hovered);if(n)n.lit=Math.min(1,n.lit+.42);}
+});
+canvas.addEventListener('click',e=>{
+  const n=nearest(e.clientX,e.clientY,60);
+  if(n)visitNode(n);else{selected=null;lastVisited=-1;showNode(null);}
+});
+canvas.addEventListener('mouseleave',()=>{hovered=null;if(!selected)showNode(null);});
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const t2=e.touches[0];const n=nearest(t2.clientX,t2.clientY,70);
+  if(n)visitNode(n);
+},{passive:false});
+
+document.getElementById('btn-mic').addEventListener('click',()=>{
+  if(!micActive)startMic();
+  else{micActive=false;document.getElementById('btn-mic').textContent='mic off';document.getElementById('btn-mic').classList.remove('active');}
+});
+document.getElementById('btn-auto').addEventListener('click',()=>{
+  autoMode=!autoMode;const b=document.getElementById('btn-auto');
+  b.textContent=autoMode?'auto on':'auto';autoMode?b.classList.add('active'):b.classList.remove('active');
+  if(autoMode)autoTimer=AUTO_MS;
+});
+document.getElementById('btn-clear').addEventListener('click',()=>{
+  spine=[];selected=null;lastVisited=-1;
+  renderSpine();showNode(null);
+  document.getElementById('frag-text').textContent='—';
+});
+document.getElementById('nand-btn').addEventListener('click',()=>addNandStar(document.getElementById('nand-input').value));
+document.getElementById('nand-input').addEventListener('keydown',e=>{if(e.key==='Enter')addNandStar(e.target.value);});
+
+function loop(){draw();requestAnimationFrame(loop);}
+resize();loop();
+</script>
+</body>
+</html>
