@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>π Pride</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: #000;
+  min-height: 100dvh;
+  overflow: hidden;
+  font-family: Georgia, serif;
+  touch-action: none;
+  user-select: none;
+}
+
+canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+}
+
+/* π Pride title — lives in the field, not above it */
+#pi-pride-text {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  text-align: center;
+  z-index: 10;
+}
+
+#pi-pride-text .line1 {
+  display: block;
+  font-size: clamp(52px, 14vw, 110px);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  /* color set dynamically via JS */
+  color: rgba(255,255,255,0.92);
+  text-shadow:
+    0 0 40px rgba(255,255,255,0.15),
+    0 0 80px rgba(255,255,255,0.07);
+  transition: text-shadow 0.3s ease;
+}
+
+#pi-pride-text .line2 {
+  display: block;
+  font-size: clamp(14px, 3.5vw, 28px);
+  font-weight: 400;
+  letter-spacing: 0.55em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-top: 0.2em;
+  font-family: 'Courier New', monospace;
+}
+
+#controls {
+  position: fixed;
+  bottom: max(18px, env(safe-area-inset-bottom, 18px));
+  left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  z-index: 20;
+  padding: 0 12px;
+}
+
+#mic-btn {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.5);
+  color: rgba(255,255,255,0.4);
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 130px;
+  white-space: nowrap;
+}
+#mic-btn.active {
+  border-color: rgba(255,100,150,0.5);
+  color: rgba(255,160,180,0.8);
+}
+#mic-btn:active { transform: scale(0.94); }
+
+#date-tag {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top, 14px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: rgba(255,255,255,0.12);
+  pointer-events: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<div id="date-tag">3 · 1 · 4 · 1 · 5 · 9 · 2 · 6 · 5</div>
+
+<canvas id="c"></canvas>
+
+<div id="pi-pride-text">
+  <span class="line1" id="pi-glyph">π</span>
+  <span class="line2">Pride</span>
+</div>
+
+<div id="controls">
+  <button id="mic-btn">activate mic</button>
+</div>
+
+<script>
+// ── COSMOLOGY ─────────────────────────────────────────────────────────────────
+// Serotonin palette — warm ambers, rose, gold, sage, violet
+// Mapped to the 5-HT receptor spectrum
+const PALETTE = [
+  { rgb:[255,210, 80], name:'tryptophan'  }, // warm gold
+  { rgb:[255,160, 60], name:'5-HTP'       }, // amber
+  { rgb:[255,120,120], name:'serotonin'   }, // rose
+  { rgb:[200, 90,200], name:'melatonin'   }, // violet
+  { rgb:[ 80,200,160], name:'psilocin'    }, // teal
+  { rgb:[255,240,180], name:'dopamine'    }, // pale gold
+  { rgb:[160,100,255], name:'DMT'         }, // purple
+];
+
+// π digit sequence → palette index
+const PI_SEQ = '14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706';
+let piIdx = 0;
+function nextPi() {
+  const d = parseInt(PI_SEQ[piIdx % PI_SEQ.length]);
+  piIdx++;
+  return PALETTE[d % PALETTE.length];
+}
+
+// ── CANVAS ────────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+let W, H, CX, CY, R;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = canvas.width  = window.innerWidth  * dpr;
+  H = canvas.height = window.innerHeight * dpr;
+  ctx.scale(dpr, dpr);
+  CX = window.innerWidth  / 2;
+  CY = window.innerHeight / 2;
+  R  = Math.min(window.innerWidth, window.innerHeight) * 0.38;
+}
+resize();
+window.addEventListener('resize', () => { ctx.resetTransform(); resize(); });
+
+// ── AUDIO ─────────────────────────────────────────────────────────────────────
+let audioCtx = null, analyser = null, micStream = null;
+let freqData = new Uint8Array(256), timeData = new Uint8Array(256);
+let listening = false;
+const waveform = new Float32Array(64);
+let energy = 0, bassEnergy = 0, midEnergy = 0, highEnergy = 0;
+
+const BANDS = {
+  sub:     { lo:0,   hi:3,   val:0 },
+  bass:    { lo:3,   hi:10,  val:0 },
+  lowmid:  { lo:10,  hi:25,  val:0 },
+  mid:     { lo:25,  hi:60,  val:0 },
+  highmid: { lo:60,  hi:100, val:0 },
+  high:    { lo:100, hi:150, val:0 },
+  air:     { lo:150, hi:255, val:0 },
+};
+
+const micBtn = document.getElementById('mic-btn');
+micBtn.addEventListener('touchend', e => { e.preventDefault(); startMic(); });
+micBtn.addEventListener('click', startMic);
+
+async function startMic() {
+  if (listening) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+  micBtn.textContent = 'requesting...';
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.78;
+    audioCtx.createMediaStreamSource(micStream).connect(analyser);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    timeData = new Uint8Array(analyser.frequencyBinCount);
+    listening = true;
+    micBtn.classList.add('active');
+    micBtn.textContent = 'listening ●';
+  } catch(e) {
+    const msg = e.name === 'NotAllowedError' ? 'tap to allow mic'
+                : e.name === 'NotFoundError'  ? 'no mic found'
+                : 'tap to retry mic';
+    micBtn.textContent = msg;
+    micBtn.style.borderColor = 'rgba(255,160,80,0.6)';
+    micBtn.style.color = 'rgba(255,200,100,0.9)';
+    setTimeout(() => { micBtn.style.borderColor=''; micBtn.style.color=''; }, 2000);
+  }
+}
+
+function analyzeAudio() {
+  if (!listening || !analyser) return;
+  analyser.getByteFrequencyData(freqData);
+  analyser.getByteTimeDomainData(timeData);
+  for (const band of Object.values(BANDS)) {
+    let s = 0;
+    for (let i = band.lo; i < band.hi; i++) s += freqData[i];
+    band.val = band.val * 0.72 + (s / ((band.hi - band.lo) * 255)) * 0.28;
+  }
+  for (let i = 0; i < 64; i++) {
+    waveform[i] = waveform[i] * 0.65 + ((timeData[i*4] - 128) / 128) * 0.35;
+  }
+  bassEnergy = BANDS.bass.val + BANDS.sub.val;
+  midEnergy  = BANDS.mid.val  + BANDS.lowmid.val;
+  highEnergy = BANDS.high.val + BANDS.air.val;
+  energy     = (bassEnergy + midEnergy + highEnergy) / 3;
+}
+
+// ── SEROTONIN NODE ────────────────────────────────────────────────────────────
+// Geometry: indole ring (benzene fused to pyrrole) + ethylamine tail
+// Rendered as a warm bloom with the molecular vortex implied through layered rings
+class SerotoninNode {
+  constructor(fromMic = false) {
+    const p = nextPi();
+    this.rgb     = p.rgb;
+    this.name    = p.name;
+    this.fromMic = fromMic;
+
+    // Entry from the orbital boundary
+    this.entryAngle = Math.random() * Math.PI * 2;
+    this.r     = R * (0.85 + Math.random() * 0.2);
+    this.angle = this.entryAngle;
+
+    // Chirality — serotonin is chiral. Mix CW and CCW with slight CCW bias
+    // (L-tryptophan is the biological precursor — left-handed)
+    this.spin = Math.random() < 0.65 ? -1 : 1;
+    this.angularVel = this.spin * (0.005 + Math.random() * 0.006);
+
+    this.x = CX + Math.cos(this.angle) * this.r;
+    this.y = CY + Math.sin(this.angle) * this.r;
+
+    // Serotonin molecule has ~20 atoms — size reflects molecular weight
+    this.size     = fromMic ? 11 + Math.random() * 6 : 7 + Math.random() * 4;
+    this.baseSize = this.size;
+    this.alpha    = 0;
+    this.phase    = Math.random() * Math.PI * 2; // internal vibration phase
+
+    // Warmth trail — longer than before, molecules leave a thermal wake
+    this.trail    = [];
+    this.maxTrail = fromMic ? 110 : 80;
+
+    // Entry wobble
+    this.entryPhase = 0;
+    this.wobbling  = true;
+
+    // Perturbation from field
+    this.px = 0; this.py = 0;
+
+    this.absorbed    = false;
+    this.absorbT     = 0;
+    this._registered = false;
+  }
+
+  perturb(f) {
+    const a = Math.random() * Math.PI * 2;
+    this.px += Math.cos(a) * f;
+    this.py += Math.sin(a) * f;
+  }
+
+  update(dt) {
+    if (this.absorbed) {
+      this.absorbT += dt * 0.003;
+      this.alpha    = Math.max(0, 1 - this.absorbT * 1.2);
+      this.size    *= 0.97;
+      return;
+    }
+
+    this.alpha = Math.min(1, this.alpha + dt * 0.002);
+    this.phase += dt * 0.004;
+
+    // Entry S-wobble
+    if (this.wobbling) {
+      this.entryPhase += dt * 0.007;
+      const w = Math.sin(this.entryPhase) * 2.8 * Math.exp(-this.entryPhase * 0.28);
+      this.px += w * Math.cos(this.angle + Math.PI/2);
+      this.py += w * Math.sin(this.angle + Math.PI/2);
+      if (this.entryPhase > 5) this.wobbling = false;
+    }
+
+    // Inward spiral — angular momentum conservation
+    const pull   = 0.00022 + (1 - this.r/R) * 0.0008;
+    this.r       = Math.max(0, this.r - pull * this.r * dt);
+    const vScale = 1 + Math.pow(Math.max(0, 1 - this.r/R), 2.2) * 4.5;
+    this.angle  += this.angularVel * dt * vScale;
+
+    // Mic energy breathes the size — receptor binding modulation
+    if (this.fromMic) {
+      this.size = this.baseSize * (1 + energy * 1.8 + bassEnergy * 0.8);
+    } else {
+      // Non-mic nodes still pulse gently with mid frequencies
+      this.size = this.baseSize * (1 + midEnergy * 0.4);
+    }
+
+    this.px *= 0.88; this.py *= 0.88;
+
+    this.x = CX + Math.cos(this.angle) * this.r + this.px;
+    this.y = CY + Math.sin(this.angle) * this.r + this.py;
+
+    this.trail.push({ x:this.x, y:this.y, s:this.size });
+    if (this.trail.length > this.maxTrail) this.trail.shift();
+
+    if (this.r < 12) this.absorbed = true;
+  }
+
+  draw() {
+    if (this.alpha <= 0.01) return;
+    const [r,g,b] = this.rgb;
+    const pulse   = 0.7 + 0.3 * Math.sin(this.phase);
+
+    // ── Warmth blooms along trail ──
+    // Serotonin's thermal signature: diffuse, warm, lingering
+    const step = Math.max(1, Math.floor(this.trail.length / 14));
+    for (let i = 0; i < this.trail.length; i += step) {
+      const pt   = this.trail[i];
+      const prog = i / this.trail.length;
+      // Older = larger, more diffuse warmth sphere
+      const wR   = pt.s * (1.5 + (1 - prog) * 4.5);
+      const wA   = prog * prog * this.alpha * (this.fromMic ? 0.18 : 0.10);
+      if (wA < 0.004) continue;
+      const wg = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, wR);
+      wg.addColorStop(0,   `rgba(${r},${g},${b},${wA})`);
+      wg.addColorStop(0.45,`rgba(${r},${g},${b},${wA*0.35})`);
+      wg.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, wR, 0, Math.PI*2);
+      ctx.fillStyle = wg;
+      ctx.fill();
+    }
+
+    // ── Indole ring geometry — two fused rings ──
+    // Outer benzene ring (6-membered)
+    const benzR = this.size * 1.4 * pulse;
+    const benzG = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, benzR * 3.2);
+    benzG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.45 * pulse})`);
+    benzG.addColorStop(0.35,`rgba(${r},${g},${b},${this.alpha * 0.25})`);
+    benzG.addColorStop(0.7, `rgba(${r},${g},${b},${this.alpha * 0.06})`);
+    benzG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, benzR * 3.2, 0, Math.PI*2);
+    ctx.fillStyle = benzG;
+    ctx.fill();
+
+    // Inner pyrrole ring (5-membered, slightly offset — the NH)
+    // Offset along the ethylamine tail direction
+    const tailAngle = this.angle + Math.PI * 0.3;
+    const pyrrX = this.x + Math.cos(tailAngle) * this.size * 0.55;
+    const pyrrY = this.y + Math.sin(tailAngle) * this.size * 0.55;
+    const pyrrR = this.size * 0.9 * pulse;
+    const pyrrG = ctx.createRadialGradient(pyrrX, pyrrY, 0, pyrrX, pyrrY, pyrrR * 2.2);
+    pyrrG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.55})`);
+    pyrrG.addColorStop(0.4, `rgba(${r},${g},${b},${this.alpha * 0.2})`);
+    pyrrG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+    ctx.beginPath();
+    ctx.arc(pyrrX, pyrrY, pyrrR * 2.2, 0, Math.PI*2);
+    ctx.fillStyle = pyrrG;
+    ctx.fill();
+
+    // Core — the ring junction, where the two oscillations share an edge
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * 0.55, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,250,240,${this.alpha * 0.92})`;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * 0.9, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${this.alpha * 0.6})`;
+    ctx.fill();
+
+    // Ethylamine tail — the NAND output, the vector that exits the ring
+    // Drawn as a soft line from core outward in the angular direction
+    const tailLen = this.size * (2.2 + pulse * 0.8);
+    const tx2 = this.x + Math.cos(tailAngle) * tailLen;
+    const ty2 = this.y + Math.sin(tailAngle) * tailLen;
+    const tailG = ctx.createLinearGradient(this.x, this.y, tx2, ty2);
+    tailG.addColorStop(0, `rgba(${r},${g},${b},${this.alpha * 0.5})`);
+    tailG.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(tx2, ty2);
+    ctx.strokeStyle = tailG;
+    ctx.lineWidth   = this.size * 0.25;
+    ctx.lineCap     = 'round';
+    ctx.stroke();
+
+    // NH amino terminus — small bright dot at tail end
+    ctx.beginPath();
+    ctx.arc(tx2, ty2, this.size * 0.22 * pulse, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${this.alpha * 0.7})`;
+    ctx.fill();
+  }
+}
+
+// ── TEXT BREATHING ─────────────────────────────────────────────────────────────
+// π Pride text lives in the center of the field
+// It breathes with the music — bass = size pulse, high = color shift
+let textPhase = 0;
+let textHue    = 0;
+const piGlyph  = document.getElementById('pi-glyph');
+
+function updateText() {
+  textPhase += 0.018;
+
+  if (listening) {
+    // Bass drives size pulse
+    const scale = 1 + bassEnergy * 0.35 + midEnergy * 0.12;
+    // High frequencies shift color warmth
+    const warm  = Math.floor(highEnergy * 60);
+    const alpha = 0.85 + energy * 0.15;
+
+    // Cycle through warm palette colors with the field
+    const hShift = Math.sin(textPhase * 0.4) * 0.5 + 0.5;
+    const tIdx   = Math.floor(hShift * PALETTE.length);
+    const [tr,tg,tb] = PALETTE[tIdx % PALETTE.length].rgb;
+
+    piGlyph.style.transform  = `scale(${scale})`;
+    piGlyph.style.color      = `rgba(${tr+warm},${tg},${tb+warm},${alpha})`;
+    piGlyph.style.textShadow = `
+      0 0 ${20 + bassEnergy*60}px rgba(${tr},${tg},${tb},${0.3 + energy*0.4}),
+      0 0 ${60 + midEnergy*80}px rgba(${tr},${tg},${tb},${0.1 + energy*0.2})
+    `;
+  } else {
+    // Gentle autonomous breathing when no mic
+    const breath = 0.5 + 0.5 * Math.sin(textPhase * 0.6);
+    const idx    = Math.floor(breath * PALETTE.length);
+    const [tr,tg,tb] = PALETTE[idx % PALETTE.length].rgb;
+    piGlyph.style.transform  = `scale(${1 + breath * 0.04})`;
+    piGlyph.style.color      = `rgba(${tr},${tg},${tb},${0.75 + breath * 0.2})`;
+    piGlyph.style.textShadow = `
+      0 0 30px rgba(${tr},${tg},${tb},${0.15 + breath * 0.12}),
+      0 0 70px rgba(${tr},${tg},${tb},${0.05})
+    `;
+  }
+}
+
+// ── SUBTRACTIVE VOID ─────────────────────────────────────────────────────────
+let absorbedLog   = [];
+let centerColor   = [0,0,0];
+let centerAlpha   = 0;
+let centerPulse   = 0;
+let totalAbsorbed = 0;
+const VOID_R      = 78; // must match clip radius
+
+function computeCenter() {
+  if (!absorbedLog.length) { centerAlpha = 0; return; }
+  let rr=255, gg=255, bb=255;
+  absorbedLog.forEach((rgb,i) => {
+    const w = (i+1) / absorbedLog.length * 0.65;
+    rr = Math.max(0, rr - rgb[0]*w);
+    gg = Math.max(0, gg - rgb[1]*w);
+    bb = Math.max(0, bb - rgb[2]*w);
+  });
+  centerColor = [rr,gg,bb];
+  centerAlpha = Math.min(0.9, absorbedLog.length * 0.11);
+}
+
+function drawVoid() {
+  centerPulse += 0.015;
+  const voidR = VOID_R + energy * 10;
+
+  // Signal emerges only after many absorptions — earned
+  if (centerAlpha > 0.75 && totalAbsorbed >= 18) {
+    const [r,g,b] = centerColor;
+    const p = 0.5 + 0.5 * Math.sin(centerPulse);
+    const sR = 10 + p*5 + energy*8;
+    const sg = ctx.createRadialGradient(CX,CY,0,CX,CY,sR*2.8);
+    sg.addColorStop(0,   `rgba(${r},${g},${b},${centerAlpha*p*0.55})`);
+    sg.addColorStop(0.5, `rgba(${r},${g},${b},${centerAlpha*0.12})`);
+    sg.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(CX,CY,sR*2.8,0,Math.PI*2);
+    ctx.fillStyle = sg;
+    ctx.fill();
+  }
+
+  // Solid void — always paints last and wins
+  ctx.beginPath();
+  ctx.arc(CX, CY, voidR, 0, Math.PI*2);
+  ctx.fillStyle = '#000000';
+  ctx.fill();
+
+  // Edge fade
+  const vg = ctx.createRadialGradient(CX,CY, voidR*0.82, CX,CY, voidR*1.32);
+  vg.addColorStop(0,   'rgba(0,0,0,1)');
+  vg.addColorStop(0.55,'rgba(0,0,0,0.88)');
+  vg.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(CX, CY, voidR*1.32, 0, Math.PI*2);
+  ctx.fillStyle = vg;
+  ctx.fill();
+}
+
+// ── FIELD GEOMETRY ────────────────────────────────────────────────────────────
+let fieldRot = 0;
+
+function drawField() {
+  // Three spiral arms — irrational π winding
+  for (let arm = 0; arm < 3; arm++) {
+    const base = arm * (Math.PI*2 / Math.PI) + fieldRot;
+    ctx.beginPath();
+    let first = true;
+    for (let i = 0; i < 130; i++) {
+      const t  = i/130;
+      const sr = t * R * 1.08;
+      const sa = base + t * Math.PI * 5.14;
+      const sx = CX + Math.cos(sa)*sr;
+      const sy = CY + Math.sin(sa)*sr;
+      if (first) { ctx.moveTo(sx,sy); first=false; }
+      else ctx.lineTo(sx,sy);
+    }
+    ctx.strokeStyle = `rgba(255,255,255,${0.02 + energy*0.025})`;
+    ctx.lineWidth   = 0.35;
+    ctx.stroke();
+  }
+
+  // π-irrational ring spacing
+  [0.22, 0.36, 0.55, 0.78, 1.0].forEach((rf,i) => {
+    ctx.beginPath();
+    ctx.arc(CX, CY, R*rf, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(255,255,255,${0.02 + i*0.006})`;
+    ctx.lineWidth   = 0.4;
+    ctx.setLineDash([3,11]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+}
+
+// ── SPAWN ─────────────────────────────────────────────────────────────────────
+let nodes = [];
+
+function spawnTriad(fromMic = false) {
+  if (nodes.length > 28) {
+    const oldest = nodes.findIndex(n => !n.absorbed);
+    if (oldest !== -1) nodes[oldest].absorbed = true;
+  }
+  const baseAngle = Math.random() * Math.PI * 2;
+  for (let i = 0; i < 3; i++) {
+    const n = new SerotoninNode(fromMic);
+    n.entryAngle = baseAngle + (i-1)*0.42 + (Math.random()-0.5)*0.18;
+    n.r     = R * (0.85 + Math.random() * 0.18);
+    n.angle = n.entryAngle;
+    n.x = CX + Math.cos(n.angle)*n.r;
+    n.y = CY + Math.sin(n.angle)*n.r;
+    n.size = n.baseSize = (fromMic ? 9+Math.random()*5 : 6+Math.random()*3) * (0.8+i*0.14);
+    setTimeout(() => {
+      nodes.forEach(ex => {
+        if (!ex.absorbed) {
+          const dx = ex.x - (CX+Math.cos(n.entryAngle)*n.r);
+          const dy = ex.y - (CY+Math.sin(n.entryAngle)*n.r);
+          if (Math.sqrt(dx*dx+dy*dy) < 115) ex.perturb(2+Math.random()*4);
+        }
+      });
+      nodes.push(n);
+    }, i*110);
+  }
+}
+
+// ── MIC SPAWN ─────────────────────────────────────────────────────────────────
+let lastMicSpawn = 0, micCool = 0, prevEnergy = 0;
+
+function handleMicSpawn(now) {
+  if (!listening) return;
+  micCool = Math.max(0, micCool-16);
+  const delta = energy - prevEnergy;
+  if (delta > 0.042 && micCool === 0 && now - lastMicSpawn > 320) {
+    spawnTriad(true);
+    lastMicSpawn = now;
+    micCool = 200;
+  }
+  if (energy > 0.085 && now - lastMicSpawn > 850 && micCool === 0) {
+    spawnTriad(true);
+    lastMicSpawn = now;
+    micCool = 450;
+  }
+  prevEnergy = energy;
+}
+
+// ── TOUCH / CLICK ─────────────────────────────────────────────────────────────
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (e.changedTouches[0].clientY > window.innerHeight - 80) return;
+  spawnTriad();
+}, { passive:false });
+canvas.addEventListener('click', e => {
+  if (e.clientY > window.innerHeight - 80) return;
+  spawnTriad();
+});
+
+// ── MAIN LOOP ─────────────────────────────────────────────────────────────────
+let last = performance.now();
+let lastAuto = 0, autoInterval = 1500;
+
+function loop(now) {
+  const dt = Math.min(now - last, 50);
+  last = now;
+  fieldRot += 0.0006;
+
+  analyzeAudio();
+  handleMicSpawn(now);
+
+  if (now - lastAuto > autoInterval) {
+    spawnTriad();
+    lastAuto = now;
+    autoInterval = 1200 + Math.random()*1400 - energy*400;
+  }
+
+  // Very slow background fade — serotonin warmth lingers
+  ctx.fillStyle = 'rgba(0,0,0,0.07)';
+  ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+  drawField();
+
+  // Update nodes
+  nodes.forEach(n => {
+    n.update(dt);
+    if (n.absorbed && !n._registered && n.absorbT > 0.08) {
+      n._registered = true;
+      absorbedLog.push(n.rgb);
+      if (absorbedLog.length > 12) absorbedLog.shift();
+      totalAbsorbed++;
+      computeCenter();
+    }
+  });
+
+  // Draw nodes with void clipping — nothing paints inside the nucleus
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, window.innerWidth, window.innerHeight);
+  ctx.arc(CX, CY, VOID_R + energy*10, 0, Math.PI*2, true);
+  ctx.clip('evenodd');
+  nodes.sort((a,b) => b.r - a.r);
+  nodes.forEach(n => n.draw());
+  ctx.restore();
+
+  // Void always last — absolute authority over the nucleus
+  drawVoid();
+
+  // Text breathes with the field
+  updateText();
+
+  nodes = nodes.filter(n => !(n.absorbed && n.alpha <= 0.01));
+
+  requestAnimationFrame(loop);
+}
+
+// π opening sequence — 3·1·4·1·5·9
+setTimeout(() => spawnTriad(), 300);
+setTimeout(() => spawnTriad(), 1100);
+setTimeout(() => spawnTriad(), 2200);
+setTimeout(() => spawnTriad(), 3500);
+setTimeout(() => spawnTriad(), 5100);
+setTimeout(() => spawnTriad(), 7000);
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
