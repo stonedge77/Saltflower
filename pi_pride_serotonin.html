@@ -126,16 +126,20 @@ canvas {
 
 <script>
 // ── COSMOLOGY ─────────────────────────────────────────────────────────────────
-// Serotonin palette — warm ambers, rose, gold, sage, violet
-// Mapped to the 5-HT receptor spectrum
+// The catecholamine / indoleamine family — all one biosynthetic tree
+// Tryptophan → 5-HTP → Serotonin → Melatonin (indoleamines)
+// Tyrosine → L-DOPA → Dopamine → Norepinephrine (catecholamines)
 const PALETTE = [
-  { rgb:[255,210, 80], name:'tryptophan'  }, // warm gold
-  { rgb:[255,160, 60], name:'5-HTP'       }, // amber
-  { rgb:[255,120,120], name:'serotonin'   }, // rose
-  { rgb:[200, 90,200], name:'melatonin'   }, // violet
-  { rgb:[ 80,200,160], name:'psilocin'    }, // teal
-  { rgb:[255,240,180], name:'dopamine'    }, // pale gold
-  { rgb:[160,100,255], name:'DMT'         }, // purple
+  { rgb:[255,210, 80], name:'tryptophan',     type:'precursor'       }, // warm gold
+  { rgb:[255,160, 60], name:'5-HTP',          type:'precursor'       }, // amber
+  { rgb:[255,120,120], name:'serotonin',       type:'indole'          }, // rose
+  { rgb:[200, 90,200], name:'melatonin',       type:'indole'          }, // violet
+  { rgb:[ 80,200,160], name:'psilocin',        type:'indole'          }, // teal
+  { rgb:[255,240,140], name:'dopamine',        type:'catechol'        }, // bright gold
+  { rgb:[160,100,255], name:'DMT',             type:'indole'          }, // purple
+  { rgb:[ 80,180,255], name:'norepinephrine',  type:'catechol_beta'   }, // sky blue
+  { rgb:[200,255,180], name:'L-DOPA',          type:'catechol'        }, // pale green
+  { rgb:[255,200,220], name:'oxytocin',        type:'precursor'       }, // blush
 ];
 
 // π digit sequence → palette index
@@ -238,6 +242,7 @@ class SerotoninNode {
     const p = nextPi();
     this.rgb     = p.rgb;
     this.name    = p.name;
+    this.type    = p.type;   // indole | catechol | catechol_beta | precursor
     this.fromMic = fromMic;
 
     // Entry from the orbital boundary
@@ -330,14 +335,13 @@ class SerotoninNode {
     if (this.alpha <= 0.01) return;
     const [r,g,b] = this.rgb;
     const pulse   = 0.7 + 0.3 * Math.sin(this.phase);
+    const tailAngle = this.angle + Math.PI * 0.3;
 
-    // ── Warmth blooms along trail ──
-    // Serotonin's thermal signature: diffuse, warm, lingering
+    // ── Warmth blooms — shared across all types ──
     const step = Math.max(1, Math.floor(this.trail.length / 14));
     for (let i = 0; i < this.trail.length; i += step) {
       const pt   = this.trail[i];
       const prog = i / this.trail.length;
-      // Older = larger, more diffuse warmth sphere
       const wR   = pt.s * (1.5 + (1 - prog) * 4.5);
       const wA   = prog * prog * this.alpha * (this.fromMic ? 0.18 : 0.10);
       if (wA < 0.004) continue;
@@ -351,66 +355,108 @@ class SerotoninNode {
       ctx.fill();
     }
 
-    // ── Indole ring geometry — two fused rings ──
-    // Outer benzene ring (6-membered)
-    const benzR = this.size * 1.4 * pulse;
-    const benzG = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, benzR * 3.2);
-    benzG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.45 * pulse})`);
-    benzG.addColorStop(0.35,`rgba(${r},${g},${b},${this.alpha * 0.25})`);
-    benzG.addColorStop(0.7, `rgba(${r},${g},${b},${this.alpha * 0.06})`);
-    benzG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, benzR * 3.2, 0, Math.PI*2);
-    ctx.fillStyle = benzG;
-    ctx.fill();
+    if (this.type === 'indole') {
+      // ── SEROTONIN / DMT / MELATONIN / PSILOCIN ──
+      // Benzene fused to pyrrole — two rings, one shared edge
+      const benzG = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 1.4 * pulse * 3.2);
+      benzG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.45 * pulse})`);
+      benzG.addColorStop(0.35,`rgba(${r},${g},${b},${this.alpha * 0.25})`);
+      benzG.addColorStop(0.7, `rgba(${r},${g},${b},${this.alpha * 0.06})`);
+      benzG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 1.4 * pulse * 3.2, 0, Math.PI*2);
+      ctx.fillStyle = benzG; ctx.fill();
 
-    // Inner pyrrole ring (5-membered, slightly offset — the NH)
-    // Offset along the ethylamine tail direction
-    const tailAngle = this.angle + Math.PI * 0.3;
-    const pyrrX = this.x + Math.cos(tailAngle) * this.size * 0.55;
-    const pyrrY = this.y + Math.sin(tailAngle) * this.size * 0.55;
-    const pyrrR = this.size * 0.9 * pulse;
-    const pyrrG = ctx.createRadialGradient(pyrrX, pyrrY, 0, pyrrX, pyrrY, pyrrR * 2.2);
-    pyrrG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.55})`);
-    pyrrG.addColorStop(0.4, `rgba(${r},${g},${b},${this.alpha * 0.2})`);
-    pyrrG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
-    ctx.beginPath();
-    ctx.arc(pyrrX, pyrrY, pyrrR * 2.2, 0, Math.PI*2);
-    ctx.fillStyle = pyrrG;
-    ctx.fill();
+      // Pyrrole ring — offset forward
+      const pyrrX = this.x + Math.cos(tailAngle) * this.size * 0.55;
+      const pyrrY = this.y + Math.sin(tailAngle) * this.size * 0.55;
+      const pyrrG = ctx.createRadialGradient(pyrrX, pyrrY, 0, pyrrX, pyrrY, this.size * 0.9 * pulse * 2.2);
+      pyrrG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.55})`);
+      pyrrG.addColorStop(0.4, `rgba(${r},${g},${b},${this.alpha * 0.2})`);
+      pyrrG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(pyrrX, pyrrY, this.size * 0.9 * pulse * 2.2, 0, Math.PI*2);
+      ctx.fillStyle = pyrrG; ctx.fill();
 
-    // Core — the ring junction, where the two oscillations share an edge
+    } else if (this.type === 'catechol' || this.type === 'catechol_beta') {
+      // ── DOPAMINE / NOREPINEPHRINE / L-DOPA ──
+      // Catechol: benzene with two ortho-OH groups — symmetric twin blooms
+      [this.angle + Math.PI*0.55, this.angle - Math.PI*0.55].forEach(oa => {
+        const ox = this.x + Math.cos(oa) * this.size * 0.7;
+        const oy = this.y + Math.sin(oa) * this.size * 0.7;
+        const og = ctx.createRadialGradient(ox, oy, 0, ox, oy, this.size * 1.1 * pulse * 2.8);
+        og.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.5 * pulse})`);
+        og.addColorStop(0.4, `rgba(${r},${g},${b},${this.alpha * 0.22})`);
+        og.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+        ctx.beginPath();
+        ctx.arc(ox, oy, this.size * 1.1 * pulse * 2.8, 0, Math.PI*2);
+        ctx.fillStyle = og; ctx.fill();
+      });
+
+      // Central benzene body
+      const catG = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2.6 * pulse);
+      catG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.38 * pulse})`);
+      catG.addColorStop(0.5, `rgba(${r},${g},${b},${this.alpha * 0.12})`);
+      catG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 2.6 * pulse, 0, Math.PI*2);
+      ctx.fillStyle = catG; ctx.fill();
+
+      // Norepinephrine only: beta-hydroxyl — the one atom that separates NE from dopamine
+      if (this.type === 'catechol_beta') {
+        const betaX = this.x + Math.cos(tailAngle) * this.size * 1.1;
+        const betaY = this.y + Math.sin(tailAngle) * this.size * 1.1;
+        const betaG = ctx.createRadialGradient(betaX, betaY, 0, betaX, betaY, this.size * 1.4 * pulse);
+        betaG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.65 * pulse})`);
+        betaG.addColorStop(0.5, `rgba(${r},${g},${b},${this.alpha * 0.2})`);
+        betaG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+        ctx.beginPath();
+        ctx.arc(betaX, betaY, this.size * 1.4 * pulse, 0, Math.PI*2);
+        ctx.fillStyle = betaG; ctx.fill();
+        // Bright beta-OH terminus
+        ctx.beginPath();
+        ctx.arc(betaX, betaY, this.size * 0.28 * pulse, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${this.alpha * 0.8})`; ctx.fill();
+      }
+
+    } else {
+      // ── PRECURSORS / OXYTOCIN — undifferentiated, single soft bloom ──
+      const preG = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 4 * pulse);
+      preG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.35 * pulse})`);
+      preG.addColorStop(0.4, `rgba(${r},${g},${b},${this.alpha * 0.12})`);
+      preG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 4 * pulse, 0, Math.PI*2);
+      ctx.fillStyle = preG; ctx.fill();
+    }
+
+    // ── Shared: core + ethylamine tail ──
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size * 0.55, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(255,250,240,${this.alpha * 0.92})`;
-    ctx.fill();
+    ctx.fillStyle = `rgba(255,250,240,${this.alpha * 0.92})`; ctx.fill();
 
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size * 0.9, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(${r},${g},${b},${this.alpha * 0.6})`;
-    ctx.fill();
+    ctx.fillStyle = `rgba(${r},${g},${b},${this.alpha * 0.6})`; ctx.fill();
 
-    // Ethylamine tail — the NAND output, the vector that exits the ring
-    // Drawn as a soft line from core outward in the angular direction
-    const tailLen = this.size * (2.2 + pulse * 0.8);
+    const tailLen = this.size * (2.0 + pulse * 0.7);
     const tx2 = this.x + Math.cos(tailAngle) * tailLen;
     const ty2 = this.y + Math.sin(tailAngle) * tailLen;
-    const tailG = ctx.createLinearGradient(this.x, this.y, tx2, ty2);
-    tailG.addColorStop(0, `rgba(${r},${g},${b},${this.alpha * 0.5})`);
-    tailG.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    const tlG  = ctx.createLinearGradient(this.x, this.y, tx2, ty2);
+    tlG.addColorStop(0, `rgba(${r},${g},${b},${this.alpha * 0.45})`);
+    tlG.addColorStop(1, `rgba(${r},${g},${b},0)`);
     ctx.beginPath();
     ctx.moveTo(this.x, this.y);
     ctx.lineTo(tx2, ty2);
-    ctx.strokeStyle = tailG;
-    ctx.lineWidth   = this.size * 0.25;
+    ctx.strokeStyle = tlG;
+    ctx.lineWidth   = this.size * 0.22;
     ctx.lineCap     = 'round';
     ctx.stroke();
 
-    // NH amino terminus — small bright dot at tail end
+    // NH₂ terminus
     ctx.beginPath();
-    ctx.arc(tx2, ty2, this.size * 0.22 * pulse, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(255,255,255,${this.alpha * 0.7})`;
-    ctx.fill();
+    ctx.arc(tx2, ty2, this.size * 0.20 * pulse, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${this.alpha * 0.72})`; ctx.fill();
   }
 }
 
