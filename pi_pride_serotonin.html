@@ -37,28 +37,45 @@ canvas {
 
 #pi-pride-text .line1 {
   display: block;
-  font-size: clamp(52px, 14vw, 110px);
+  font-size: clamp(72px, 18vw, 160px);
   font-weight: 400;
   font-style: italic;
   letter-spacing: 0.04em;
   line-height: 1;
-  /* color set dynamically via JS */
-  color: rgba(255,255,255,0.92);
-  text-shadow:
-    0 0 40px rgba(255,255,255,0.15),
-    0 0 80px rgba(255,255,255,0.07);
-  transition: text-shadow 0.3s ease;
+  background: linear-gradient(135deg,
+    #E40303 0%,
+    #FF8C00 18%,
+    #FFED00 34%,
+    #008026 50%,
+    #004DFF 68%,
+    #750787 84%,
+    #FF63A5 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+  filter: drop-shadow(0 0 18px rgba(255,255,255,0.12));
+  transition: filter 0.2s ease, transform 0.1s ease;
+  transform-origin: center;
 }
 
 #pi-pride-text .line2 {
   display: block;
-  font-size: clamp(14px, 3.5vw, 28px);
+  font-size: clamp(16px, 4vw, 32px);
   font-weight: 400;
-  letter-spacing: 0.55em;
+  letter-spacing: 0.6em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
-  margin-top: 0.2em;
+  background: linear-gradient(90deg,
+    #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+  margin-top: 0.15em;
   font-family: 'Courier New', monospace;
+  opacity: 0.75;
 }
 
 #controls {
@@ -74,23 +91,28 @@ canvas {
 }
 
 #mic-btn {
-  height: 40px;
-  padding: 0 18px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(0,0,0,0.5);
-  color: rgba(255,255,255,0.4);
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: rgba(0,0,0,0.55);
+  color: rgba(255,255,255,0.75);
   font-family: 'Courier New', monospace;
   font-size: 10px;
   letter-spacing: 2px;
   cursor: pointer;
-  transition: all 0.3s;
-  min-width: 130px;
+  transition: all 0.25s;
+  min-width: 140px;
   white-space: nowrap;
 }
 #mic-btn.active {
-  border-color: rgba(255,100,150,0.5);
-  color: rgba(255,160,180,0.8);
+  border-color: #FF63A5;
+  color: #FF63A5;
+  box-shadow: 0 0 18px rgba(255,99,165,0.35);
+}
+#mic-btn.peak {
+  transform: scale(1.08);
+  box-shadow: 0 0 28px rgba(255,140,0,0.55);
 }
 #mic-btn:active { transform: scale(0.94); }
 
@@ -102,44 +124,62 @@ canvas {
   font-family: 'Courier New', monospace;
   font-size: 9px;
   letter-spacing: 5px;
-  color: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.22);
   pointer-events: none;
   white-space: nowrap;
   text-transform: uppercase;
+}
+
+#pi-pride-text .line3 {
+  display: block;
+  font-family: 'Courier New', monospace;
+  font-size: clamp(8px, 1.8vw, 13px);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.18);
+  margin-top: 0.7em;
+  pointer-events: none;
 }
 </style>
 </head>
 <body>
 
-<div id="date-tag">3 · 1 · 4 · 1 · 5 · 9 · 2 · 6 · 5</div>
+<div id="date-tag">you push us down · we dance</div>
 
 <canvas id="c"></canvas>
 
 <div id="pi-pride-text">
   <span class="line1" id="pi-glyph">π</span>
   <span class="line2">Pride</span>
+  <span class="line3" id="remainder-line">the remainder that will not resolve</span>
 </div>
 
 <div id="controls">
-  <button id="mic-btn">activate mic</button>
+  <button id="mic-btn" role="button" aria-label="Activate microphone" aria-pressed="false">activate mic</button>
 </div>
 
 <script>
-// ── COSMOLOGY ─────────────────────────────────────────────────────────────────
-// The catecholamine / indoleamine family — all one biosynthetic tree
-// Tryptophan → 5-HTP → Serotonin → Melatonin (indoleamines)
-// Tyrosine → L-DOPA → Dopamine → Norepinephrine (catecholamines)
+// ── PALETTE — Progress Pride × Neurotransmitter tree ──────────────────────────
+// The flag carries the full spectrum. Each color maps to a molecule in the
+// biosynthetic family — the chemistry of being alive and queer.
+// Progress Pride: classic 6 + trans stripes + QPOC chevron
 const PALETTE = [
-  { rgb:[255,210, 80], name:'tryptophan',     type:'precursor'       }, // warm gold
-  { rgb:[255,160, 60], name:'5-HTP',          type:'precursor'       }, // amber
-  { rgb:[255,120,120], name:'serotonin',       type:'indole'          }, // rose
-  { rgb:[200, 90,200], name:'melatonin',       type:'indole'          }, // violet
-  { rgb:[ 80,200,160], name:'psilocin',        type:'indole'          }, // teal
-  { rgb:[255,240,140], name:'dopamine',        type:'catechol'        }, // bright gold
-  { rgb:[160,100,255], name:'DMT',             type:'indole'          }, // purple
-  { rgb:[ 80,180,255], name:'norepinephrine',  type:'catechol_beta'   }, // sky blue
-  { rgb:[200,255,180], name:'L-DOPA',          type:'catechol'        }, // pale green
-  { rgb:[255,200,220], name:'oxytocin',        type:'precursor'       }, // blush
+  { rgb:[228,  3,  3], name:'red',        type:'indole'        }, // life / serotonin-fire
+  { rgb:[255,140,  0], name:'orange',     type:'catechol'      }, // healing / dopamine-warmth
+  { rgb:[255,237,  0], name:'yellow',     type:'precursor'     }, // sun / tryptophan-light
+  { rgb:[  0,128, 38], name:'green',      type:'catechol'      }, // nature / L-DOPA
+  { rgb:[  0, 77,255], name:'blue',       type:'catechol_beta' }, // serenity / norepinephrine
+  { rgb:[117,  7,135], name:'violet',     type:'indole'        }, // spirit / DMT
+  { rgb:[255,255,255], name:'white',      type:'precursor'     }, // trans / oxytocin
+  { rgb:[115,215,238], name:'lightblue',  type:'catechol_beta' }, // trans / NE-sky
+  { rgb:[255,175,199], name:'pink',       type:'indole'        }, // trans / psilocin-rose
+  { rgb:[ 97, 57, 21], name:'brown',      type:'catechol'      }, // QPOC / earth
+  { rgb:[255,140,  0], name:'orange2',    type:'catechol'      }, // repeat for π density
+  { rgb:[228,  3,  3], name:'red2',       type:'indole'        }, // repeat
+  { rgb:[  0,128, 38], name:'green2',     type:'catechol'      }, // repeat
+  { rgb:[117,  7,135], name:'violet2',    type:'indole'        }, // repeat
+  { rgb:[255,237,  0], name:'yellow2',    type:'precursor'     }, // repeat
+  { rgb:[  0, 77,255], name:'blue2',      type:'catechol_beta' }, // repeat
 ];
 
 // π digit sequence → palette index
@@ -205,6 +245,7 @@ async function startMic() {
     listening = true;
     micBtn.classList.add('active');
     micBtn.textContent = 'listening ●';
+    micBtn.setAttribute('aria-pressed', 'true');
   } catch(e) {
     const msg = e.name === 'NotAllowedError' ? 'tap to allow mic'
                 : e.name === 'NotFoundError'  ? 'no mic found'
@@ -461,44 +502,38 @@ class SerotoninNode {
 }
 
 // ── TEXT BREATHING ─────────────────────────────────────────────────────────────
-// π Pride text lives in the center of the field
-// It breathes with the music — bass = size pulse, high = color shift
 let textPhase = 0;
-let textHue    = 0;
-const piGlyph  = document.getElementById('pi-glyph');
+const piGlyph      = document.getElementById('pi-glyph');
+const remainderLine = document.getElementById('remainder-line');
+let peakCool   = 0;
 
 function updateText() {
   textPhase += 0.018;
+  peakCool = Math.max(0, peakCool - 16);
 
   if (listening) {
-    // Bass drives size pulse
-    const scale = 1 + bassEnergy * 0.35 + midEnergy * 0.12;
-    // High frequencies shift color warmth
-    const warm  = Math.floor(highEnergy * 60);
-    const alpha = 0.85 + energy * 0.15;
+    const scale = 1 + bassEnergy * 0.45 + midEnergy * 0.1;
+    const glow  = 12 + bassEnergy * 80 + midEnergy * 40;
+    const sat   = 100 + energy * 120;
+    piGlyph.style.transform = `scale(${scale})`;
+    piGlyph.style.filter    = `drop-shadow(0 0 ${glow}px rgba(255,255,255,${0.08 + energy*0.35})) saturate(${sat}%)`;
 
-    // Cycle through warm palette colors with the field
-    const hShift = Math.sin(textPhase * 0.4) * 0.5 + 0.5;
-    const tIdx   = Math.floor(hShift * PALETTE.length);
-    const [tr,tg,tb] = PALETTE[tIdx % PALETTE.length].rgb;
+    // Remainder line brightens with field energy
+    remainderLine.style.color = `rgba(255,255,255,${0.18 + energy * 0.55})`;
+    remainderLine.style.letterSpacing = `${0.3 + bassEnergy * 0.15}em`;
 
-    piGlyph.style.transform  = `scale(${scale})`;
-    piGlyph.style.color      = `rgba(${tr+warm},${tg},${tb+warm},${alpha})`;
-    piGlyph.style.textShadow = `
-      0 0 ${20 + bassEnergy*60}px rgba(${tr},${tg},${tb},${0.3 + energy*0.4}),
-      0 0 ${60 + midEnergy*80}px rgba(${tr},${tg},${tb},${0.1 + energy*0.2})
-    `;
+    // Mic peak — button pulses
+    if (energy > 0.12 && peakCool === 0) {
+      micBtn.classList.add('peak');
+      setTimeout(() => micBtn.classList.remove('peak'), 180);
+      peakCool = 200;
+    }
   } else {
-    // Gentle autonomous breathing when no mic
-    const breath = 0.5 + 0.5 * Math.sin(textPhase * 0.6);
-    const idx    = Math.floor(breath * PALETTE.length);
-    const [tr,tg,tb] = PALETTE[idx % PALETTE.length].rgb;
-    piGlyph.style.transform  = `scale(${1 + breath * 0.04})`;
-    piGlyph.style.color      = `rgba(${tr},${tg},${tb},${0.75 + breath * 0.2})`;
-    piGlyph.style.textShadow = `
-      0 0 30px rgba(${tr},${tg},${tb},${0.15 + breath * 0.12}),
-      0 0 70px rgba(${tr},${tg},${tb},${0.05})
-    `;
+    const breath = 0.5 + 0.5 * Math.sin(textPhase * 0.5);
+    piGlyph.style.transform = `scale(${1 + breath * 0.03})`;
+    piGlyph.style.filter    = `drop-shadow(0 0 ${14 + breath*10}px rgba(255,255,255,${0.06 + breath*0.06})) saturate(${110 + breath*30}%)`;
+    remainderLine.style.color = `rgba(255,255,255,${0.12 + breath * 0.08})`;
+    remainderLine.style.letterSpacing = `0.3em`;
   }
 }
 
@@ -526,6 +561,36 @@ function computeCenter() {
 function drawVoid() {
   centerPulse += 0.015;
   const voidR = VOID_R + energy * 10;
+
+  // Pride corona — rings the void edge once enough signal has built
+  // Six pride colors as conical gradient segments around the void boundary
+  if (totalAbsorbed >= 6) {
+    const coronaAlpha = Math.min(0.55, (totalAbsorbed - 6) * 0.025) * (0.6 + 0.4 * Math.sin(centerPulse * 0.7));
+    const coronaR = voidR * 1.08;
+    const prideColors = [
+      [228,3,3],[255,140,0],[255,237,0],[0,128,38],[0,77,255],[117,7,135]
+    ];
+    prideColors.forEach(([r,g,b], i) => {
+      const a1 = (i / prideColors.length) * Math.PI * 2 + fieldRot * 0.4;
+      const a2 = ((i+1) / prideColors.length) * Math.PI * 2 + fieldRot * 0.4;
+      ctx.beginPath();
+      ctx.moveTo(CX, CY);
+      ctx.arc(CX, CY, coronaR + energy * 6, a1, a2);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(${r},${g},${b},${coronaAlpha})`;
+      ctx.fill();
+    });
+
+    // Black it back out — corona shows only at the very edge of void
+    const mask = ctx.createRadialGradient(CX,CY, voidR*0.72, CX,CY, coronaR + energy*6);
+    mask.addColorStop(0,   'rgba(0,0,0,1)');
+    mask.addColorStop(0.7, 'rgba(0,0,0,0.96)');
+    mask.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(CX, CY, coronaR + energy*6, 0, Math.PI*2);
+    ctx.fillStyle = mask;
+    ctx.fill();
+  }
 
   // Signal emerges only after many absorptions — earned
   if (centerAlpha > 0.75 && totalAbsorbed >= 18) {
