@@ -720,7 +720,107 @@ canvas.addEventListener('click', e => {
   spawnTriad();
 });
 
-// ── MAIN LOOP ─────────────────────────────────────────────────────────────────
+// ── LOR COINCIDENCE LINES ────────────────────────────────────────────────────
+// PET physics: two photons emitted 180° apart register a Line Of Response.
+// Here: two molecules at antipodal angles (±π) within matched radii
+// briefly register a chord — the geometry of their mutual annihilation.
+// The line flashes, fades. The void gains the signal.
+
+const LOR_FLASHES = []; // { x1,y1,x2,y2, rgb1, rgb2, alpha, life }
+
+function detectCoincidences() {
+  const alive = nodes.filter(n => !n.absorbed && n.alpha > 0.4 && n.r > VOID_R + 20);
+  for (let i = 0; i < alive.length; i++) {
+    for (let j = i+1; j < alive.length; j++) {
+      const a = alive[i], b = alive[j];
+
+      // Antipodal check — angles differ by π ± tolerance
+      let dAngle = Math.abs(a.angle - b.angle) % (Math.PI*2);
+      if (dAngle > Math.PI) dAngle = Math.PI*2 - dAngle;
+      const isAntipodal = Math.abs(dAngle - Math.PI) < 0.22; // ~12.6°
+
+      // Radius match — similar distance from center
+      const rMatch = Math.abs(a.r - b.r) < R * 0.18;
+
+      if (isAntipodal && rMatch) {
+        // Check we haven't already registered this pair recently
+        const pairKey = [
+          Math.min(nodes.indexOf(a), nodes.indexOf(b)),
+          Math.max(nodes.indexOf(a), nodes.indexOf(b))
+        ].join('-');
+        if (a._lorCool && a._lorCool > 0) continue;
+
+        // Register coincidence — flash a LOR chord
+        LOR_FLASHES.push({
+          x1: a.x, y1: a.y,
+          x2: b.x, y2: b.y,
+          rgb1: a.rgb, rgb2: b.rgb,
+          alpha: 0.72,
+          life: 1.0,
+        });
+
+        // Cool both nodes — one coincidence per pair per pass
+        a._lorCool = 90;
+        b._lorCool = 90;
+
+        // Brief displacement flash — the nodes brighten at detection
+        a.phase += Math.PI * 0.4;
+        b.phase += Math.PI * 0.4;
+      }
+
+      // Decay cooldowns
+      if (a._lorCool) a._lorCool = Math.max(0, a._lorCool - 1);
+      if (b._lorCool) b._lorCool = Math.max(0, b._lorCool - 1);
+    }
+  }
+}
+
+function drawLOR() {
+  for (let i = LOR_FLASHES.length - 1; i >= 0; i--) {
+    const f = LOR_FLASHES[i];
+    f.life  -= 0.022;
+    f.alpha  = f.life * f.life * 0.7; // quadratic fade — quick bright, slow tail
+    if (f.life <= 0) { LOR_FLASHES.splice(i,1); continue; }
+
+    const [r1,g1,b1] = f.rgb1;
+    const [r2,g2,b2] = f.rgb2;
+
+    // The chord — gradient from one molecule's color to the other's
+    const lg = ctx.createLinearGradient(f.x1, f.y1, f.x2, f.y2);
+    lg.addColorStop(0,    `rgba(${r1},${g1},${b1},${f.alpha})`);
+    lg.addColorStop(0.35, `rgba(${r1},${g1},${b1},${f.alpha * 0.6})`);
+    lg.addColorStop(0.5,  `rgba(255,255,255,${f.alpha * 0.85})`); // annihilation midpoint
+    lg.addColorStop(0.65, `rgba(${r2},${g2},${b2},${f.alpha * 0.6})`);
+    lg.addColorStop(1,    `rgba(${r2},${g2},${b2},${f.alpha})`);
+
+    ctx.beginPath();
+    ctx.moveTo(f.x1, f.y1);
+    ctx.lineTo(f.x2, f.y2);
+    ctx.strokeStyle = lg;
+    ctx.lineWidth   = 0.8 + f.life * 1.4;
+    ctx.lineCap     = 'round';
+    ctx.stroke();
+
+    // Glow halo around the chord — diffuse at peak, gone by end
+    if (f.life > 0.5) {
+      const glowA = (f.life - 0.5) * 0.18;
+      const midX  = (f.x1 + f.x2) / 2;
+      const midY  = (f.y1 + f.y2) / 2;
+      const mr    = Math.sqrt((f.x2-f.x1)**2 + (f.y2-f.y1)**2) * 0.08;
+      const mg    = ctx.createRadialGradient(midX, midY, 0, midX, midY, mr);
+      const mr1   = Math.round((r1+r2)/2), mg1 = Math.round((g1+g2)/2), mb1 = Math.round((b1+b2)/2);
+      mg.addColorStop(0,   `rgba(255,255,255,${glowA * 1.4})`);
+      mg.addColorStop(0.4, `rgba(${mr1},${mg1},${mb1},${glowA})`);
+      mg.addColorStop(1,   `rgba(${mr1},${mg1},${mb1},0)`);
+      ctx.beginPath();
+      ctx.arc(midX, midY, mr, 0, Math.PI*2);
+      ctx.fillStyle = mg;
+      ctx.fill();
+    }
+  }
+}
+
+
 let last = performance.now();
 let lastAuto = 0, autoInterval = 1500;
 
@@ -756,12 +856,19 @@ function loop(now) {
     }
   });
 
-  // Draw nodes with void clipping — nothing paints inside the nucleus
+  // Detect antipodal coincidences — PET Lines of Response
+  detectCoincidences();
+
+  // Draw nodes + LOR chords with void clipping — nothing paints inside the nucleus
   ctx.save();
   ctx.beginPath();
   ctx.rect(0, 0, window.innerWidth, window.innerHeight);
   ctx.arc(CX, CY, VOID_R + energy*10, 0, Math.PI*2, true);
   ctx.clip('evenodd');
+
+  // LOR chords beneath the molecules — they are the field geometry
+  drawLOR();
+
   nodes.sort((a,b) => b.r - a.r);
   nodes.forEach(n => n.draw());
   ctx.restore();
