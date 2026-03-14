@@ -24,58 +24,33 @@ canvas {
   width: 100vw; height: 100vh;
 }
 
-/* π Pride title — lives in the field, not above it */
-#pi-pride-text {
+/* statements — static, no JS touching these */
+#date-tag {
   position: fixed;
-  top: 50%;
+  top: max(14px, env(safe-area-inset-top, 14px));
   left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  text-align: center;
-  z-index: 10;
-}
-
-#pi-pride-text .line1 {
-  display: block;
-  font-size: clamp(72px, 18vw, 160px);
-  font-weight: 400;
-  font-style: italic;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  background: linear-gradient(135deg,
-    #E40303 0%,
-    #FF8C00 18%,
-    #FFED00 34%,
-    #008026 50%,
-    #004DFF 68%,
-    #750787 84%,
-    #FF63A5 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: #ffffff;
-  filter: drop-shadow(0 0 18px rgba(255,255,255,0.12));
-  transition: filter 0.2s ease, transform 0.1s ease;
-  transform-origin: center;
-}
-
-#pi-pride-text .line2 {
-  display: block;
-  font-size: clamp(16px, 4vw, 32px);
-  font-weight: 400;
-  letter-spacing: 0.6em;
-  text-transform: uppercase;
-  background: linear-gradient(90deg,
-    #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: #ffffff;
-  margin-top: 0.15em;
+  transform: translateX(-50%);
   font-family: 'Courier New', monospace;
-  opacity: 0.75;
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: rgba(255,255,255,0.22);
+  pointer-events: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+#remainder {
+  position: fixed;
+  bottom: max(60px, env(safe-area-inset-bottom, 60px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.14);
+  pointer-events: none;
+  white-space: nowrap;
+  text-transform: uppercase;
 }
 
 #controls {
@@ -84,8 +59,6 @@ canvas {
   left: 0; right: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 10px;
   z-index: 20;
   padding: 0 12px;
 }
@@ -101,7 +74,7 @@ canvas {
   font-size: 10px;
   letter-spacing: 2px;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: border-color 0.25s, color 0.25s, box-shadow 0.25s;
   min-width: 140px;
   white-space: nowrap;
 }
@@ -110,36 +83,7 @@ canvas {
   color: #FF63A5;
   box-shadow: 0 0 18px rgba(255,99,165,0.35);
 }
-#mic-btn.peak {
-  transform: scale(1.08);
-  box-shadow: 0 0 28px rgba(255,140,0,0.55);
-}
 #mic-btn:active { transform: scale(0.94); }
-
-#date-tag {
-  position: fixed;
-  top: max(14px, env(safe-area-inset-top, 14px));
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Courier New', monospace;
-  font-size: 9px;
-  letter-spacing: 5px;
-  color: rgba(255,255,255,0.22);
-  pointer-events: none;
-  white-space: nowrap;
-  text-transform: uppercase;
-}
-
-#pi-pride-text .line3 {
-  display: block;
-  font-family: 'Courier New', monospace;
-  font-size: clamp(8px, 1.8vw, 13px);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.18);
-  margin-top: 0.7em;
-  pointer-events: none;
-}
 </style>
 </head>
 <body>
@@ -148,11 +92,7 @@ canvas {
 
 <canvas id="c"></canvas>
 
-<div id="pi-pride-text">
-  <span class="line1" id="pi-glyph">π</span>
-  <span class="line2">Pride</span>
-  <span class="line3" id="remainder-line">the remainder that will not resolve</span>
-</div>
+<div id="remainder">the remainder that will not resolve</div>
 
 <div id="controls">
   <button id="mic-btn" role="button" aria-label="Activate microphone" aria-pressed="false">activate mic</button>
@@ -305,9 +245,9 @@ class SerotoninNode {
     this.alpha    = 0;
     this.phase    = Math.random() * Math.PI * 2; // internal vibration phase
 
-    // Warmth trail — longer than before, molecules leave a thermal wake
+    // Short trail — enough for wake, not enough to tax the GPU
     this.trail    = [];
-    this.maxTrail = fromMic ? 110 : 80;
+    this.maxTrail = fromMic ? 38 : 24;
 
     // Entry wobble
     this.entryPhase = 0;
@@ -329,13 +269,13 @@ class SerotoninNode {
 
   update(dt) {
     if (this.absorbed) {
-      this.absorbT += dt * 0.003;
-      this.alpha    = Math.max(0, 1 - this.absorbT * 1.2);
-      this.size    *= 0.97;
+      this.absorbT += dt * 0.006;           // faster collapse
+      this.alpha    = Math.max(0, 1 - this.absorbT * 2.2);
+      this.size    *= 0.95;
       return;
     }
 
-    this.alpha = Math.min(1, this.alpha + dt * 0.002);
+    this.alpha = Math.min(1, this.alpha + dt * 0.004); // faster fade-in
     this.phase += dt * 0.004;
 
     // Entry S-wobble
@@ -379,7 +319,7 @@ class SerotoninNode {
     const tailAngle = this.angle + Math.PI * 0.3;
 
     // ── Warmth blooms — shared across all types ──
-    const step = Math.max(1, Math.floor(this.trail.length / 14));
+    const step = Math.max(1, Math.floor(this.trail.length / 8));
     for (let i = 0; i < this.trail.length; i += step) {
       const pt   = this.trail[i];
       const prog = i / this.trail.length;
@@ -501,40 +441,49 @@ class SerotoninNode {
   }
 }
 
-// ── TEXT BREATHING ─────────────────────────────────────────────────────────────
-let textPhase = 0;
-const piGlyph      = document.getElementById('pi-glyph');
-const remainderLine = document.getElementById('remainder-line');
-let peakCool   = 0;
 
-function updateText() {
-  textPhase += 0.018;
-  peakCool = Math.max(0, peakCool - 16);
+// ── SPINNING = SIGN — pure canvas, zero DOM jitter ───────────────────────────
+// Two bars. One field. Polarity readable in the rotation.
+// Spinning = is the NAND gate held open — neither 0 nor 1, the gap between.
+// LOR chords discharge into it like plasma arcing to a terminal.
+let signRot = 0;
 
-  if (listening) {
-    const scale = 1 + bassEnergy * 0.45 + midEnergy * 0.1;
-    const glow  = 12 + bassEnergy * 80 + midEnergy * 40;
-    const sat   = 100 + energy * 120;
-    piGlyph.style.transform = `scale(${scale})`;
-    piGlyph.style.filter    = `drop-shadow(0 0 ${glow}px rgba(255,255,255,${0.08 + energy*0.35})) saturate(${sat}%)`;
+function drawEqualSign() {
+  const r        = VOID_R * 0.52;          // bar half-length
+  const gap      = VOID_R * 0.13;          // half-gap between bars
+  const thick    = VOID_R * 0.10;          // bar thickness
+  const spinRate = 0.008 + energy * 0.025; // faster under energy
 
-    // Remainder line brightens with field energy
-    remainderLine.style.color = `rgba(255,255,255,${0.18 + energy * 0.55})`;
-    remainderLine.style.letterSpacing = `${0.3 + bassEnergy * 0.15}em`;
+  signRot += spinRate;
 
-    // Mic peak — button pulses
-    if (energy > 0.12 && peakCool === 0) {
-      micBtn.classList.add('peak');
-      setTimeout(() => micBtn.classList.remove('peak'), 180);
-      peakCool = 200;
-    }
-  } else {
-    const breath = 0.5 + 0.5 * Math.sin(textPhase * 0.5);
-    piGlyph.style.transform = `scale(${1 + breath * 0.03})`;
-    piGlyph.style.filter    = `drop-shadow(0 0 ${14 + breath*10}px rgba(255,255,255,${0.06 + breath*0.06})) saturate(${110 + breath*30}%)`;
-    remainderLine.style.color = `rgba(255,255,255,${0.12 + breath * 0.08})`;
-    remainderLine.style.letterSpacing = `0.3em`;
-  }
+  // Brightness: base glow + energy surge
+  const brightness = 0.55 + energy * 0.45;
+  const glowR      = thick * (3 + energy * 6);
+
+  ctx.save();
+  ctx.translate(CX, CY);
+  ctx.rotate(signRot);
+
+  // Draw two bars of the = sign
+  [-gap, gap].forEach(yOff => {
+    // Outer glow
+    const gg = ctx.createRadialGradient(0, yOff, 0, 0, yOff, glowR);
+    gg.addColorStop(0,   `rgba(255,255,255,${brightness * 0.35})`);
+    gg.addColorStop(0.4, `rgba(255,255,255,${brightness * 0.1})`);
+    gg.addColorStop(1,   'rgba(255,255,255,0)');
+    ctx.beginPath();
+    ctx.arc(0, yOff, glowR, 0, Math.PI*2);
+    ctx.fillStyle = gg;
+    ctx.fill();
+
+    // Bar body — rounded rect via arc
+    ctx.beginPath();
+    ctx.roundRect(-r, yOff - thick*0.5, r*2, thick, thick*0.5);
+    ctx.fillStyle = `rgba(255,255,255,${brightness})`;
+    ctx.fill();
+  });
+
+  ctx.restore();
 }
 
 // ── SUBTRACTIVE VOID ─────────────────────────────────────────────────────────
@@ -622,6 +571,9 @@ function drawVoid() {
   ctx.arc(CX, CY, voidR*1.32, 0, Math.PI*2);
   ctx.fillStyle = vg;
   ctx.fill();
+
+  // = sign lives here — inside the void, on canvas, zero DOM
+  drawEqualSign();
 }
 
 // ── FIELD GEOMETRY ────────────────────────────────────────────────────────────
@@ -663,7 +615,7 @@ function drawField() {
 let nodes = [];
 
 function spawnTriad(fromMic = false) {
-  if (nodes.length > 28) {
+  if (nodes.length > 18) {
     const oldest = nodes.findIndex(n => !n.absorbed);
     if (oldest !== -1) nodes[oldest].absorbed = true;
   }
@@ -785,11 +737,13 @@ function drawLOR() {
     const [r1,g1,b1] = f.rgb1;
     const [r2,g2,b2] = f.rgb2;
 
-    // The chord — gradient from one molecule's color to the other's
+    // The chord — gradient from molecule color → white midpoint → other color
+    // Extended inward: lines pass through the void toward the = sign
+    const mx = (f.x1 + f.x2) / 2; // true midpoint = center of field
     const lg = ctx.createLinearGradient(f.x1, f.y1, f.x2, f.y2);
     lg.addColorStop(0,    `rgba(${r1},${g1},${b1},${f.alpha})`);
     lg.addColorStop(0.35, `rgba(${r1},${g1},${b1},${f.alpha * 0.6})`);
-    lg.addColorStop(0.5,  `rgba(255,255,255,${f.alpha * 0.85})`); // annihilation midpoint
+    lg.addColorStop(0.5,  `rgba(255,255,255,${f.alpha * 0.9})`);
     lg.addColorStop(0.65, `rgba(${r2},${g2},${b2},${f.alpha * 0.6})`);
     lg.addColorStop(1,    `rgba(${r2},${g2},${b2},${f.alpha})`);
 
@@ -875,9 +829,6 @@ function loop(now) {
 
   // Void always last — absolute authority over the nucleus
   drawVoid();
-
-  // Text breathes with the field
-  updateText();
 
   nodes = nodes.filter(n => !(n.absorbed && n.alpha <= 0.01));
 
