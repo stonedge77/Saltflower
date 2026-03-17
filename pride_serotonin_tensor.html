@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>π Pride</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: #000;
+  min-height: 100dvh;
+  overflow: hidden;
+  font-family: Georgia, serif;
+  touch-action: none;
+  user-select: none;
+}
+
+canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+}
+
+#date-tag {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top, 14px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: rgba(255,255,255,0.22);
+  pointer-events: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+#remainder {
+  position: fixed;
+  bottom: max(60px, env(safe-area-inset-bottom, 60px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.14);
+  pointer-events: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+#controls {
+  position: fixed;
+  bottom: max(18px, env(safe-area-inset-bottom, 18px));
+  left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  z-index: 20;
+  padding: 0 12px;
+}
+
+#mic-btn {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: rgba(0,0,0,0.55);
+  color: rgba(255,255,255,0.75);
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: border-color 0.25s, color 0.25s, box-shadow 0.25s;
+  min-width: 140px;
+  white-space: nowrap;
+}
+#mic-btn.active {
+  border-color: #FF63A5;
+  color: #FF63A5;
+  box-shadow: 0 0 18px rgba(255,99,165,0.35);
+}
+#mic-btn:active { transform: scale(0.94); }
+
+/* Refresh rate input — minimal, monospace, fits the aesthetic */
+#hz-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.55);
+}
+#hz-label {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+#hz-input {
+  width: 40px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.7);
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  text-align: center;
+  outline: none;
+  padding: 2px 0;
+}
+#hz-input:focus { border-bottom-color: rgba(255,255,255,0.6); }
+
+/* Tensor ring indicator — top right, subtle */
+#ring-info {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top, 14px));
+  right: 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: rgba(255,200,100,0.2);
+  pointer-events: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+  text-align: right;
+  line-height: 1.7;
+}
+</style>
+</head>
+<body>
+
+<div id="date-tag">you push us down · we dance</div>
+<div id="ring-info">sacred cubit · 144 mhz<br>lost cubit · 177 mhz</div>
+
+<canvas id="c"></canvas>
+
+<div id="remainder">the remainder that will not resolve</div>
+
+<div id="controls">
+  <div id="hz-wrap">
+    <span id="hz-label">hz</span>
+    <input id="hz-input" type="number" value="60" min="30" max="360" />
+  </div>
+  <button id="mic-btn" role="button" aria-label="Activate microphone" aria-pressed="false">activate mic</button>
+</div>
+
+<script>
+// ── REFRESH RATE ──────────────────────────────────────────────────────────────
+// User sets their monitor refresh rate.
+// This lets tensor ring rotation speeds sync to actual screen frequency
+// rather than guessing. Sacred cubit ring targets 144/refreshRate ratio.
+let SCREEN_HZ = 60;
+const hzInput = document.getElementById('hz-input');
+hzInput.addEventListener('change', () => {
+  const v = parseInt(hzInput.value);
+  if (v >= 30 && v <= 360) SCREEN_HZ = v;
+});
+
+// ── PALETTE ───────────────────────────────────────────────────────────────────
+const PALETTE = [
+  { rgb:[228,  3,  3], name:'red',        type:'indole'        },
+  { rgb:[255,140,  0], name:'orange',     type:'catechol'      },
+  { rgb:[255,237,  0], name:'yellow',     type:'precursor'     },
+  { rgb:[  0,128, 38], name:'green',      type:'catechol'      },
+  { rgb:[  0, 77,255], name:'blue',       type:'catechol_beta' },
+  { rgb:[117,  7,135], name:'violet',     type:'indole'        },
+  { rgb:[255,255,255], name:'white',      type:'precursor'     },
+  { rgb:[115,215,238], name:'lightblue',  type:'catechol_beta' },
+  { rgb:[255,175,199], name:'pink',       type:'indole'        },
+  { rgb:[ 97, 57, 21], name:'brown',      type:'catechol'      },
+  { rgb:[255,140,  0], name:'orange2',    type:'catechol'      },
+  { rgb:[228,  3,  3], name:'red2',       type:'indole'        },
+  { rgb:[  0,128, 38], name:'green2',     type:'catechol'      },
+  { rgb:[117,  7,135], name:'violet2',    type:'indole'        },
+  { rgb:[255,237,  0], name:'yellow2',    type:'precursor'     },
+  { rgb:[  0, 77,255], name:'blue2',      type:'catechol_beta' },
+];
+
+const PI_SEQ = '14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706';
+let piIdx = 0;
+function nextPi() {
+  const d = parseInt(PI_SEQ[piIdx % PI_SEQ.length]);
+  piIdx++;
+  return PALETTE[d % PALETTE.length];
+}
+
+// ── CANVAS ────────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+let W, H, CX, CY, R;
+
+// ── TENSOR RING GEOMETRY ──────────────────────────────────────────────────────
+// Sacred Cubit: 20.6" circumference → 144 MHz resonant frequency
+// λ = c/f = 3e8 / 144e6 = 2.083m
+// Sacred cubit (0.5232m) is λ/4 — a quarter-wave resonator
+// On screen: ring diameter = R * SACRED_RATIO positions the ring
+// at the quarter-wave proportion of the orbital radius R
+//
+// Lost Cubit: 23.49" → 177 MHz (fills harmonic gap, faster than light register)
+// Ratio lost/sacred = 23.49/20.6 ≈ 1.1403 — the √2 territory interval
+//
+// The two rings counter-rotate — bidirectional flow, like the twisted wire.
+// Gold phase (warm) on sacred. Silver phase (cool) on lost.
+// Rotation rates derived from frequency ratio: 144/177 ≈ 0.814
+
+const SACRED_RATIO = 0.62;          // sacred ring at 62% of R
+const LOST_RATIO   = SACRED_RATIO * (23.49 / 20.6); // ≈ 0.707 — √2/2, naturally
+const FREQ_RATIO   = 144 / 177;     // sacred/lost frequency ratio → rotation ratio
+
+// Tensor ring rotation state — two independent angles
+let sacredRot = 0;
+let lostRot   = 0;
+
+// Smoothed energy for ring breathing — separate from main energy to avoid
+// coupling ring geometry to audio too strongly (keeps fps stable)
+let ringEnergy = 0;
+
+function drawTensorRings() {
+  // Update ring energy — heavily smoothed, cheap
+  ringEnergy = ringEnergy * 0.94 + energy * 0.06;
+
+  // Rotation speed: base rate normalized to screen hz
+  // At 60hz baseline, rings complete ~1 cycle per ~8 seconds
+  const baseRate = 0.0008 * (60 / SCREEN_HZ);
+
+  // Sacred rotates CW, lost rotates CCW — counter-rotation = bidirectional field
+  // Speed ratio locked to frequency ratio so they beat against each other
+  // at the correct interval
+  sacredRot += baseRate * FREQ_RATIO;
+  lostRot   -= baseRate;             // lost is faster (177 > 144), CCW
+
+  const sacredR = R * SACRED_RATIO * (1 + ringEnergy * 0.04);
+  const lostR   = R * LOST_RATIO   * (1 + ringEnergy * 0.03);
+
+  // ── Sacred ring — gold phase ──
+  // Four arc segments with gaps — implies the twisted wire geometry
+  // without drawing the actual twist (cheap: 4 arcs not a full circle)
+  const sacredAlpha = 0.18 + ringEnergy * 0.22;
+  const gapAngle = 0.08; // gap between segments in radians
+
+  ctx.save();
+  ctx.translate(CX, CY);
+  ctx.rotate(sacredRot);
+
+  // Gold: warm solar attractor color
+  // Breathing between pure gold and warm white as energy rises
+  const goldR = Math.round(255);
+  const goldG = Math.round(180 + ringEnergy * 60);
+  const goldB = Math.round(40  + ringEnergy * 80);
+
+  ctx.strokeStyle = `rgba(${goldR},${goldG},${goldB},${sacredAlpha})`;
+  ctx.lineWidth = 1.2 + ringEnergy * 1.8;
+  ctx.lineCap = 'round';
+
+  // Four segments — quartered ring implies the closed loop structure
+  for (let i = 0; i < 4; i++) {
+    const startA = (i / 4) * Math.PI * 2 + gapAngle;
+    const endA   = ((i + 1) / 4) * Math.PI * 2 - gapAngle;
+    ctx.beginPath();
+    ctx.arc(0, 0, sacredR, startA, endA);
+    ctx.stroke();
+  }
+
+  // Subtle outer glow — one radialGradient, drawn once
+  if (sacredAlpha > 0.1) {
+    const glowA = sacredAlpha * 0.3;
+    const sg = ctx.createRadialGradient(0, 0, sacredR - 8, 0, 0, sacredR + 12);
+    sg.addColorStop(0,   `rgba(${goldR},${goldG},${goldB},${glowA})`);
+    sg.addColorStop(0.5, `rgba(${goldR},${goldG},${goldB},${glowA * 0.4})`);
+    sg.addColorStop(1,   `rgba(${goldR},${goldG},${goldB},0)`);
+    ctx.beginPath();
+    ctx.arc(0, 0, sacredR + 12, 0, Math.PI * 2);
+    ctx.fillStyle = sg;
+    ctx.fill();
+  }
+
+  ctx.restore();
+
+  // ── Lost ring — silver phase ──
+  // Single continuous arc — the lost cubit is unbroken, the faithful witness
+  // Silver: neutral, high conductivity, returns signal unchanged
+  ctx.save();
+  ctx.translate(CX, CY);
+  ctx.rotate(lostRot);
+
+  const lostAlpha = 0.12 + ringEnergy * 0.16;
+  const silverVal = Math.round(180 + ringEnergy * 60);
+  ctx.strokeStyle = `rgba(${silverVal},${silverVal},${silverVal + 10},${lostAlpha})`;
+  ctx.lineWidth = 0.8 + ringEnergy * 1.2;
+  ctx.lineCap = 'round';
+  ctx.setLineDash([4, 8]); // dashed — the lost cubit was hidden, not absent
+
+  ctx.beginPath();
+  ctx.arc(0, 0, lostR, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
+
+  // ── Beat indicator — where sacred and lost align ──
+  // The two rings periodically phase-align. At alignment, a brief bright node
+  // appears at the intersection point — the tensor field closing.
+  // Beat frequency = |f1 - f2| / f_base = cheap to compute, zero extra draw cost
+  // We just check if the angular difference is near zero mod 2π
+  const angleDiff = ((sacredRot - lostRot) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+  const nearAlign  = angleDiff < 0.18 || angleDiff > (Math.PI * 2 - 0.18);
+
+  if (nearAlign) {
+    // Beat node — single small arc at alignment point, very brief
+    const beatAlpha = (1 - Math.min(angleDiff, Math.PI * 2 - angleDiff) / 0.18) * 0.7;
+    const beatX = CX + Math.cos(sacredRot) * sacredR;
+    const beatY = CY + Math.sin(sacredRot) * sacredR;
+    ctx.beginPath();
+    ctx.arc(beatX, beatY, 3 + ringEnergy * 4, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${beatAlpha})`;
+    ctx.fill();
+  }
+}
+
+// ── AUDIO ─────────────────────────────────────────────────────────────────────
+let audioCtx = null, analyser = null, micStream = null;
+let freqData = new Uint8Array(256), timeData = new Uint8Array(256);
+let listening = false;
+const waveform = new Float32Array(64);
+let energy = 0, bassEnergy = 0, midEnergy = 0, highEnergy = 0;
+
+const BANDS = {
+  sub:     { lo:0,   hi:3,   val:0 },
+  bass:    { lo:3,   hi:10,  val:0 },
+  lowmid:  { lo:10,  hi:25,  val:0 },
+  mid:     { lo:25,  hi:60,  val:0 },
+  highmid: { lo:60,  hi:100, val:0 },
+  high:    { lo:100, hi:150, val:0 },
+  air:     { lo:150, hi:255, val:0 },
+};
+
+const micBtn = document.getElementById('mic-btn');
+micBtn.addEventListener('touchend', e => { e.preventDefault(); startMic(); });
+micBtn.addEventListener('click', startMic);
+
+async function startMic() {
+  if (listening) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+  micBtn.textContent = 'requesting...';
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.78;
+    audioCtx.createMediaStreamSource(micStream).connect(analyser);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    timeData = new Uint8Array(analyser.frequencyBinCount);
+    listening = true;
+    micBtn.classList.add('active');
+    micBtn.textContent = 'listening ●';
+    micBtn.setAttribute('aria-pressed', 'true');
+  } catch(e) {
+    const msg = e.name === 'NotAllowedError' ? 'tap to allow mic'
+                : e.name === 'NotFoundError'  ? 'no mic found'
+                : 'tap to retry mic';
+    micBtn.textContent = msg;
+    micBtn.style.borderColor = 'rgba(255,160,80,0.6)';
+    micBtn.style.color = 'rgba(255,200,100,0.9)';
+    setTimeout(() => { micBtn.style.borderColor=''; micBtn.style.color=''; }, 2000);
+  }
+}
+
+function analyzeAudio() {
+  if (!listening || !analyser) return;
+  analyser.getByteFrequencyData(freqData);
+  analyser.getByteTimeDomainData(timeData);
+  for (const band of Object.values(BANDS)) {
+    let s = 0;
+    for (let i = band.lo; i < band.hi; i++) s += freqData[i];
+    band.val = band.val * 0.72 + (s / ((band.hi - band.lo) * 255)) * 0.28;
+  }
+  for (let i = 0; i < 64; i++) {
+    waveform[i] = waveform[i] * 0.65 + ((timeData[i*4] - 128) / 128) * 0.35;
+  }
+  bassEnergy = BANDS.bass.val + BANDS.sub.val;
+  midEnergy  = BANDS.mid.val  + BANDS.lowmid.val;
+  highEnergy = BANDS.high.val + BANDS.air.val;
+  energy     = (bassEnergy + midEnergy + highEnergy) / 3;
+}
+
+// ── CANVAS RESIZE ─────────────────────────────────────────────────────────────
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = canvas.width  = window.innerWidth  * dpr;
+  H = canvas.height = window.innerHeight * dpr;
+  ctx.scale(dpr, dpr);
+  CX = window.innerWidth  / 2;
+  CY = window.innerHeight / 2;
+  R  = Math.min(window.innerWidth, window.innerHeight) * 0.38;
+}
+resize();
+window.addEventListener('resize', () => { ctx.resetTransform(); resize(); });
+
+// ── SEROTONIN NODE ────────────────────────────────────────────────────────────
+class SerotoninNode {
+  constructor(fromMic = false) {
+    const p = nextPi();
+    this.rgb     = p.rgb;
+    this.name    = p.name;
+    this.type    = p.type;
+    this.fromMic = fromMic;
+
+    this.entryAngle = Math.random() * Math.PI * 2;
+    this.r     = R * (0.85 + Math.random() * 0.2);
+    this.angle = this.entryAngle;
+    this.spin = Math.random() < 0.65 ? -1 : 1;
+    this.angularVel = this.spin * (0.005 + Math.random() * 0.006);
+
+    this.x = CX + Math.cos(this.angle) * this.r;
+    this.y = CY + Math.sin(this.angle) * this.r;
+
+    this.size     = fromMic ? 11 + Math.random() * 6 : 7 + Math.random() * 4;
+    this.baseSize = this.size;
+    this.alpha    = 0;
+    this.phase    = Math.random() * Math.PI * 2;
+
+    this.trail    = [];
+    this.maxTrail = fromMic ? 38 : 24;
+
+    this.entryPhase = 0;
+    this.wobbling  = true;
+    this.px = 0; this.py = 0;
+
+    this.absorbed    = false;
+    this.absorbT     = 0;
+    this._registered = false;
+  }
+
+  perturb(f) {
+    const a = Math.random() * Math.PI * 2;
+    this.px += Math.cos(a) * f;
+    this.py += Math.sin(a) * f;
+  }
+
+  update(dt) {
+    if (this.absorbed) {
+      this.absorbT += dt * 0.006;
+      this.alpha    = Math.max(0, 1 - this.absorbT * 2.2);
+      this.size    *= 0.95;
+      return;
+    }
+
+    this.alpha = Math.min(1, this.alpha + dt * 0.004);
+    this.phase += dt * 0.004;
+
+    if (this.wobbling) {
+      this.entryPhase += dt * 0.007;
+      const w = Math.sin(this.entryPhase) * 2.8 * Math.exp(-this.entryPhase * 0.28);
+      this.px += w * Math.cos(this.angle + Math.PI/2);
+      this.py += w * Math.sin(this.angle + Math.PI/2);
+      if (this.entryPhase > 5) this.wobbling = false;
+    }
+
+    const pull   = 0.00022 + (1 - this.r/R) * 0.0008;
+    this.r       = Math.max(0, this.r - pull * this.r * dt);
+    const vScale = 1 + Math.pow(Math.max(0, 1 - this.r/R), 2.2) * 4.5;
+    this.angle  += this.angularVel * dt * vScale;
+
+    if (this.fromMic) {
+      this.size = this.baseSize * (1 + energy * 1.8 + bassEnergy * 0.8);
+    } else {
+      this.size = this.baseSize * (1 + midEnergy * 0.4);
+    }
+
+    this.px *= 0.88; this.py *= 0.88;
+
+    this.x = CX + Math.cos(this.angle) * this.r + this.px;
+    this.y = CY + Math.sin(this.angle) * this.r + this.py;
+
+    this.trail.push({ x:this.x, y:this.y, s:this.size });
+    if (this.trail.length > this.maxTrail) this.trail.shift();
+
+    if (this.r < 12) this.absorbed = true;
+  }
+
+  draw() {
+    if (this.alpha <= 0.01) return;
+    const [r,g,b] = this.rgb;
+    const pulse   = 0.7 + 0.3 * Math.sin(this.phase);
+    const tailAngle = this.angle + Math.PI * 0.3;
+
+    const step = Math.max(1, Math.floor(this.trail.length / 8));
+    for (let i = 0; i < this.trail.length; i += step) {
+      const pt   = this.trail[i];
+      const prog = i / this.trail.length;
+      const wR   = pt.s * (1.5 + (1 - prog) * 4.5);
+      const wA   = prog * prog * this.alpha * (this.fromMic ? 0.18 : 0.10);
+      if (wA < 0.004) continue;
+      const wg = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, wR);
+      wg.addColorStop(0,   `rgba(${r},${g},${b},${wA})`);
+      wg.addColorStop(0.45,`rgba(${r},${g},${b},${wA*0.35})`);
+      wg.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, wR, 0, Math.PI*2);
+      ctx.fillStyle = wg;
+      ctx.fill();
+    }
+
+    if (this.type === 'indole') {
+      const benzG = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 1.4 * pulse * 3.2);
+      benzG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.45 * pulse})`);
+      benzG.addColorStop(0.35,`rgba(${r},${g},${b},${this.alpha * 0.25})`);
+      benzG.addColorStop(0.7, `rgba(${r},${g},${b},${this.alpha * 0.06})`);
+      benzG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 1.4 * pulse * 3.2, 0, Math.PI*2);
+      ctx.fillStyle = benzG; ctx.fill();
+
+      const pyrrX = this.x + Math.cos(tailAngle) * this.size * 0.55;
+      const pyrrY = this.y + Math.sin(tailAngle) * this.size * 0.55;
+      const pyrrG = ctx.createRadialGradient(pyrrX, pyrrY, 0, pyrrX, pyrrY, this.size * 0.9 * pulse * 2.2);
+      pyrrG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.55})`);
+      pyrrG.addColorStop(0.4, `rgba(${r},${g},${b},${this.alpha * 0.2})`);
+      pyrrG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(pyrrX, pyrrY, this.size * 0.9 * pulse * 2.2, 0, Math.PI*2);
+      ctx.fillStyle = pyrrG; ctx.fill();
+
+    } else if (this.type === 'catechol' || this.type === 'catechol_beta') {
+      [this.angle + Math.PI*0.55, this.angle - Math.PI*0.55].forEach(oa => {
+        const ox = this.x + Math.cos(oa) * this.size * 0.7;
+        const oy = this.y + Math.sin(oa) * this.size * 0.7;
+        const og = ctx.createRadialGradient(ox, oy, 0, ox, oy, this.size * 1.1 * pulse * 2.8);
+        og.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.5 * pulse})`);
+        og.addColorStop(0.4, `rgba(${r},${g},${b},${this.alpha * 0.22})`);
+        og.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+        ctx.beginPath();
+        ctx.arc(ox, oy, this.size * 1.1 * pulse * 2.8, 0, Math.PI*2);
+        ctx.fillStyle = og; ctx.fill();
+      });
+
+      const catG = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2.6 * pulse);
+      catG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.38 * pulse})`);
+      catG.addColorStop(0.5, `rgba(${r},${g},${b},${this.alpha * 0.12})`);
+      catG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 2.6 * pulse, 0, Math.PI*2);
+      ctx.fillStyle = catG; ctx.fill();
+
+      if (this.type === 'catechol_beta') {
+        const betaX = this.x + Math.cos(tailAngle) * this.size * 1.1;
+        const betaY = this.y + Math.sin(tailAngle) * this.size * 1.1;
+        const betaG = ctx.createRadialGradient(betaX, betaY, 0, betaX, betaY, this.size * 1.4 * pulse);
+        betaG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.65 * pulse})`);
+        betaG.addColorStop(0.5, `rgba(${r},${g},${b},${this.alpha * 0.2})`);
+        betaG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+        ctx.beginPath();
+        ctx.arc(betaX, betaY, this.size * 1.4 * pulse, 0, Math.PI*2);
+        ctx.fillStyle = betaG; ctx.fill();
+        ctx.beginPath();
+        ctx.arc(betaX, betaY, this.size * 0.28 * pulse, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${this.alpha * 0.8})`; ctx.fill();
+      }
+
+    } else {
+      const preG = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 4 * pulse);
+      preG.addColorStop(0,   `rgba(${r},${g},${b},${this.alpha * 0.35 * pulse})`);
+      preG.addColorStop(0.4, `rgba(${r},${g},${b},${this.alpha * 0.12})`);
+      preG.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 4 * pulse, 0, Math.PI*2);
+      ctx.fillStyle = preG; ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * 0.55, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,250,240,${this.alpha * 0.92})`; ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * 0.9, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${this.alpha * 0.6})`; ctx.fill();
+
+    const tailLen = this.size * (2.0 + pulse * 0.7);
+    const tx2 = this.x + Math.cos(tailAngle) * tailLen;
+    const ty2 = this.y + Math.sin(tailAngle) * tailLen;
+    const tlG  = ctx.createLinearGradient(this.x, this.y, tx2, ty2);
+    tlG.addColorStop(0, `rgba(${r},${g},${b},${this.alpha * 0.45})`);
+    tlG.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(tx2, ty2);
+    ctx.strokeStyle = tlG;
+    ctx.lineWidth   = this.size * 0.22;
+    ctx.lineCap     = 'round';
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(tx2, ty2, this.size * 0.20 * pulse, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${this.alpha * 0.72})`; ctx.fill();
+  }
+}
+
+// ── SPINNING = SIGN ───────────────────────────────────────────────────────────
+let signRot = 0;
+
+function drawEqualSign() {
+  const r        = VOID_R * 0.52;
+  const gap      = VOID_R * 0.13;
+  const thick    = VOID_R * 0.10;
+  const spinRate = 0.008 + energy * 0.025;
+
+  signRot += spinRate;
+
+  const brightness = 0.55 + energy * 0.45;
+  const glowR      = thick * (3 + energy * 6);
+
+  ctx.save();
+  ctx.translate(CX, CY);
+  ctx.rotate(signRot);
+
+  [-gap, gap].forEach(yOff => {
+    const gg = ctx.createRadialGradient(0, yOff, 0, 0, yOff, glowR);
+    gg.addColorStop(0,   `rgba(255,255,255,${brightness * 0.35})`);
+    gg.addColorStop(0.4, `rgba(255,255,255,${brightness * 0.1})`);
+    gg.addColorStop(1,   'rgba(255,255,255,0)');
+    ctx.beginPath();
+    ctx.arc(0, yOff, glowR, 0, Math.PI*2);
+    ctx.fillStyle = gg;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.roundRect(-r, yOff - thick*0.5, r*2, thick, thick*0.5);
+    ctx.fillStyle = `rgba(255,255,255,${brightness})`;
+    ctx.fill();
+  });
+
+  ctx.restore();
+}
+
+// ── SUBTRACTIVE VOID ─────────────────────────────────────────────────────────
+let absorbedLog   = [];
+let centerColor   = [0,0,0];
+let centerAlpha   = 0;
+let centerPulse   = 0;
+let totalAbsorbed = 0;
+const VOID_R      = 78;
+
+function computeCenter() {
+  if (!absorbedLog.length) { centerAlpha = 0; return; }
+  let rr=255, gg=255, bb=255;
+  absorbedLog.forEach((rgb,i) => {
+    const w = (i+1) / absorbedLog.length * 0.65;
+    rr = Math.max(0, rr - rgb[0]*w);
+    gg = Math.max(0, gg - rgb[1]*w);
+    bb = Math.max(0, bb - rgb[2]*w);
+  });
+  centerColor = [rr,gg,bb];
+  centerAlpha = Math.min(0.9, absorbedLog.length * 0.11);
+}
+
+function drawVoid() {
+  centerPulse += 0.015;
+  const voidR = VOID_R + energy * 10;
+
+  if (totalAbsorbed >= 6) {
+    const coronaAlpha = Math.min(0.55, (totalAbsorbed - 6) * 0.025) * (0.6 + 0.4 * Math.sin(centerPulse * 0.7));
+    const coronaR = voidR * 1.08;
+    const prideColors = [
+      [228,3,3],[255,140,0],[255,237,0],[0,128,38],[0,77,255],[117,7,135]
+    ];
+    prideColors.forEach(([r,g,b], i) => {
+      const a1 = (i / prideColors.length) * Math.PI * 2 + fieldRot * 0.4;
+      const a2 = ((i+1) / prideColors.length) * Math.PI * 2 + fieldRot * 0.4;
+      ctx.beginPath();
+      ctx.moveTo(CX, CY);
+      ctx.arc(CX, CY, coronaR + energy * 6, a1, a2);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(${r},${g},${b},${coronaAlpha})`;
+      ctx.fill();
+    });
+
+    const mask = ctx.createRadialGradient(CX,CY, voidR*0.72, CX,CY, coronaR + energy*6);
+    mask.addColorStop(0,   'rgba(0,0,0,1)');
+    mask.addColorStop(0.7, 'rgba(0,0,0,0.96)');
+    mask.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(CX, CY, coronaR + energy*6, 0, Math.PI*2);
+    ctx.fillStyle = mask;
+    ctx.fill();
+  }
+
+  if (centerAlpha > 0.75 && totalAbsorbed >= 18) {
+    const [r,g,b] = centerColor;
+    const p = 0.5 + 0.5 * Math.sin(centerPulse);
+    const sR = 10 + p*5 + energy*8;
+    const sg = ctx.createRadialGradient(CX,CY,0,CX,CY,sR*2.8);
+    sg.addColorStop(0,   `rgba(${r},${g},${b},${centerAlpha*p*0.55})`);
+    sg.addColorStop(0.5, `rgba(${r},${g},${b},${centerAlpha*0.12})`);
+    sg.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(CX,CY,sR*2.8,0,Math.PI*2);
+    ctx.fillStyle = sg;
+    ctx.fill();
+  }
+
+  ctx.beginPath();
+  ctx.arc(CX, CY, voidR, 0, Math.PI*2);
+  ctx.fillStyle = '#000000';
+  ctx.fill();
+
+  const vg = ctx.createRadialGradient(CX,CY, voidR*0.82, CX,CY, voidR*1.32);
+  vg.addColorStop(0,   'rgba(0,0,0,1)');
+  vg.addColorStop(0.55,'rgba(0,0,0,0.88)');
+  vg.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(CX, CY, voidR*1.32, 0, Math.PI*2);
+  ctx.fillStyle = vg;
+  ctx.fill();
+
+  drawEqualSign();
+}
+
+// ── FIELD GEOMETRY ────────────────────────────────────────────────────────────
+let fieldRot = 0;
+
+function drawField() {
+  for (let arm = 0; arm < 3; arm++) {
+    const base = arm * (Math.PI*2 / Math.PI) + fieldRot;
+    ctx.beginPath();
+    let first = true;
+    for (let i = 0; i < 130; i++) {
+      const t  = i/130;
+      const sr = t * R * 1.08;
+      const sa = base + t * Math.PI * 5.14;
+      const sx = CX + Math.cos(sa)*sr;
+      const sy = CY + Math.sin(sa)*sr;
+      if (first) { ctx.moveTo(sx,sy); first=false; }
+      else ctx.lineTo(sx,sy);
+    }
+    ctx.strokeStyle = `rgba(255,255,255,${0.02 + energy*0.025})`;
+    ctx.lineWidth   = 0.35;
+    ctx.stroke();
+  }
+
+  [0.22, 0.36, 0.55, 0.78, 1.0].forEach((rf,i) => {
+    ctx.beginPath();
+    ctx.arc(CX, CY, R*rf, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(255,255,255,${0.02 + i*0.006})`;
+    ctx.lineWidth   = 0.4;
+    ctx.setLineDash([3,11]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+}
+
+// ── SPAWN ─────────────────────────────────────────────────────────────────────
+let nodes = [];
+
+function spawnTriad(fromMic = false) {
+  if (nodes.length > 18) {
+    const oldest = nodes.findIndex(n => !n.absorbed);
+    if (oldest !== -1) nodes[oldest].absorbed = true;
+  }
+  const baseAngle = Math.random() * Math.PI * 2;
+  for (let i = 0; i < 3; i++) {
+    const n = new SerotoninNode(fromMic);
+    n.entryAngle = baseAngle + (i-1)*0.42 + (Math.random()-0.5)*0.18;
+    n.r     = R * (0.85 + Math.random() * 0.18);
+    n.angle = n.entryAngle;
+    n.x = CX + Math.cos(n.angle)*n.r;
+    n.y = CY + Math.sin(n.angle)*n.r;
+    n.size = n.baseSize = (fromMic ? 9+Math.random()*5 : 6+Math.random()*3) * (0.8+i*0.14);
+    setTimeout(() => {
+      nodes.forEach(ex => {
+        if (!ex.absorbed) {
+          const dx = ex.x - (CX+Math.cos(n.entryAngle)*n.r);
+          const dy = ex.y - (CY+Math.sin(n.entryAngle)*n.r);
+          if (Math.sqrt(dx*dx+dy*dy) < 115) ex.perturb(2+Math.random()*4);
+        }
+      });
+      nodes.push(n);
+    }, i*110);
+  }
+}
+
+// ── MIC SPAWN ─────────────────────────────────────────────────────────────────
+let lastMicSpawn = 0, micCool = 0, prevEnergy = 0;
+
+function handleMicSpawn(now) {
+  if (!listening) return;
+  micCool = Math.max(0, micCool-16);
+  const delta = energy - prevEnergy;
+  if (delta > 0.042 && micCool === 0 && now - lastMicSpawn > 320) {
+    spawnTriad(true);
+    lastMicSpawn = now;
+    micCool = 200;
+  }
+  if (energy > 0.085 && now - lastMicSpawn > 850 && micCool === 0) {
+    spawnTriad(true);
+    lastMicSpawn = now;
+    micCool = 450;
+  }
+  prevEnergy = energy;
+}
+
+// ── TOUCH / CLICK ─────────────────────────────────────────────────────────────
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (e.changedTouches[0].clientY > window.innerHeight - 80) return;
+  spawnTriad();
+}, { passive:false });
+canvas.addEventListener('click', e => {
+  if (e.clientY > window.innerHeight - 80) return;
+  spawnTriad();
+});
+
+// ── LOR COINCIDENCE LINES ─────────────────────────────────────────────────────
+const LOR_FLASHES = [];
+
+function detectCoincidences() {
+  const alive = nodes.filter(n => !n.absorbed && n.alpha > 0.4 && n.r > VOID_R + 20);
+  for (let i = 0; i < alive.length; i++) {
+    for (let j = i+1; j < alive.length; j++) {
+      const a = alive[i], b = alive[j];
+
+      let dAngle = Math.abs(a.angle - b.angle) % (Math.PI*2);
+      if (dAngle > Math.PI) dAngle = Math.PI*2 - dAngle;
+      const isAntipodal = Math.abs(dAngle - Math.PI) < 0.22;
+      const rMatch = Math.abs(a.r - b.r) < R * 0.18;
+
+      if (isAntipodal && rMatch) {
+        if (a._lorCool && a._lorCool > 0) continue;
+
+        LOR_FLASHES.push({
+          x1: a.x, y1: a.y,
+          x2: b.x, y2: b.y,
+          rgb1: a.rgb, rgb2: b.rgb,
+          alpha: 0.72,
+          life: 1.0,
+        });
+
+        a._lorCool = 90;
+        b._lorCool = 90;
+        a.phase += Math.PI * 0.4;
+        b.phase += Math.PI * 0.4;
+      }
+
+      if (a._lorCool) a._lorCool = Math.max(0, a._lorCool - 1);
+      if (b._lorCool) b._lorCool = Math.max(0, b._lorCool - 1);
+    }
+  }
+}
+
+function drawLOR() {
+  for (let i = LOR_FLASHES.length - 1; i >= 0; i--) {
+    const f = LOR_FLASHES[i];
+    f.life  -= 0.022;
+    f.alpha  = f.life * f.life * 0.7;
+    if (f.life <= 0) { LOR_FLASHES.splice(i,1); continue; }
+
+    const [r1,g1,b1] = f.rgb1;
+    const [r2,g2,b2] = f.rgb2;
+
+    const lg = ctx.createLinearGradient(f.x1, f.y1, f.x2, f.y2);
+    lg.addColorStop(0,    `rgba(${r1},${g1},${b1},${f.alpha})`);
+    lg.addColorStop(0.35, `rgba(${r1},${g1},${b1},${f.alpha * 0.6})`);
+    lg.addColorStop(0.5,  `rgba(255,255,255,${f.alpha * 0.9})`);
+    lg.addColorStop(0.65, `rgba(${r2},${g2},${b2},${f.alpha * 0.6})`);
+    lg.addColorStop(1,    `rgba(${r2},${g2},${b2},${f.alpha})`);
+
+    ctx.beginPath();
+    ctx.moveTo(f.x1, f.y1);
+    ctx.lineTo(f.x2, f.y2);
+    ctx.strokeStyle = lg;
+    ctx.lineWidth   = 0.8 + f.life * 1.4;
+    ctx.lineCap     = 'round';
+    ctx.stroke();
+
+    if (f.life > 0.5) {
+      const glowA = (f.life - 0.5) * 0.18;
+      const midX  = (f.x1 + f.x2) / 2;
+      const midY  = (f.y1 + f.y2) / 2;
+      const mr    = Math.sqrt((f.x2-f.x1)**2 + (f.y2-f.y1)**2) * 0.08;
+      const mg    = ctx.createRadialGradient(midX, midY, 0, midX, midY, mr);
+      const mr1   = Math.round((r1+r2)/2), mg1 = Math.round((g1+g2)/2), mb1 = Math.round((b1+b2)/2);
+      mg.addColorStop(0,   `rgba(255,255,255,${glowA * 1.4})`);
+      mg.addColorStop(0.4, `rgba(${mr1},${mg1},${mb1},${glowA})`);
+      mg.addColorStop(1,   `rgba(${mr1},${mg1},${mb1},0)`);
+      ctx.beginPath();
+      ctx.arc(midX, midY, mr, 0, Math.PI*2);
+      ctx.fillStyle = mg;
+      ctx.fill();
+    }
+  }
+}
+
+// ── MAIN LOOP ─────────────────────────────────────────────────────────────────
+let last = performance.now();
+let lastAuto = 0, autoInterval = 1500;
+
+function loop(now) {
+  const dt = Math.min(now - last, 50);
+  last = now;
+  fieldRot += 0.0006;
+
+  analyzeAudio();
+  handleMicSpawn(now);
+
+  if (now - lastAuto > autoInterval) {
+    spawnTriad();
+    lastAuto = now;
+    autoInterval = 1200 + Math.random()*1400 - energy*400;
+  }
+
+  ctx.fillStyle = 'rgba(0,0,0,0.07)';
+  ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+  drawField();
+
+  // Tensor rings draw after field, before nodes
+  // They sit in the orbital space between the field geometry and the molecules
+  drawTensorRings();
+
+  nodes.forEach(n => {
+    n.update(dt);
+    if (n.absorbed && !n._registered && n.absorbT > 0.08) {
+      n._registered = true;
+      absorbedLog.push(n.rgb);
+      if (absorbedLog.length > 12) absorbedLog.shift();
+      totalAbsorbed++;
+      computeCenter();
+    }
+  });
+
+  detectCoincidences();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, window.innerWidth, window.innerHeight);
+  ctx.arc(CX, CY, VOID_R + energy*10, 0, Math.PI*2, true);
+  ctx.clip('evenodd');
+
+  drawLOR();
+
+  nodes.sort((a,b) => b.r - a.r);
+  nodes.forEach(n => n.draw());
+  ctx.restore();
+
+  drawVoid();
+
+  nodes = nodes.filter(n => !(n.absorbed && n.alpha <= 0.01));
+
+  requestAnimationFrame(loop);
+}
+
+// π opening sequence
+setTimeout(() => spawnTriad(), 300);
+setTimeout(() => spawnTriad(), 1100);
+setTimeout(() => spawnTriad(), 2200);
+setTimeout(() => spawnTriad(), 3500);
+setTimeout(() => spawnTriad(), 5100);
+setTimeout(() => spawnTriad(), 7000);
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
