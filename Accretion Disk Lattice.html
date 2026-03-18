@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accretion Disk Lattice</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    overflow: hidden;
+  }
+  #canvas {
+    display: block;
+    margin: 20px auto;
+    border: 2px solid #333;
+    cursor: crosshair;
+  }
+  .controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0,0,0,0.7);
+    padding: 15px;
+    border: 1px solid #666;
+    font-size: 13px;
+  }
+  .info {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    border: 1px solid #666;
+    font-size: 12px;
+  }
+  button {
+    background: #333;
+    color: #fff;
+    border: 1px solid #666;
+    padding: 5px 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+  }
+  button:hover {
+    background: #555;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas" width="800" height="800"></canvas>
+
+<div class="controls">
+  <strong>Accretion Disk Lattice</strong><br>
+  8×8 cellular automaton with Ising spin coupling<br><br>
+  
+  <strong>Controls:</strong><br>
+  • Click: Inject density<br>
+  • Shift+Click: Perturb spin<br><br>
+  
+  <button id="resetBtn">Reset</button>
+  <button id="pauseBtn">Pause</button>
+</div>
+
+<div class="info" id="info">
+  Initializing...
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const GRID_SIZE = 8;
+const CELL_SIZE = canvas.width / GRID_SIZE;
+
+class AccretionCell {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.density = 0;
+    this.spin = { x: 0, y: 1, z: 0 };
+    this.angularMomentum = { x: 0, y: 0, z: 0 };
+    this.neighbors = [];
+  }
+  
+  isingCoupling(neighbor) {
+    const J = 0.5;
+    const alignment = this.dotProduct(this.spin, neighbor.spin);
+    return -J * alignment;
+  }
+  
+  dotProduct(a, b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+  }
+  
+  normalize(v) {
+    const len = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    if (len < 0.0001) return { x: 0, y: 0, z: 1 };
+    return { x: v.x / len, y: v.y / len, z: v.z / len };
+  }
+  
+  cross(a, b) {
+    return {
+      x: a.y * b.z - a.z * b.y,
+      y: a.z * b.x - a.x * b.z,
+      z: a.x * b.y - a.y * b.x
+    };
+  }
+  
+  step(dt) {
+    // Torque from neighbors
+    let torque = { x: 0, y: 0, z: 0 };
+    for (const neighbor of this.neighbors) {
+      const spinDiff = {
+        x: neighbor.spin.x - this.spin.x,
+        y: neighbor.spin.y - this.spin.y,
+        z: neighbor.spin.z - this.spin.z
+      };
+      const coupling = this.isingCoupling(neighbor);
+      torque.x += spinDiff.x * coupling;
+      torque.y += spinDiff.y * coupling;
+      torque.z += spinDiff.z * coupling;
+    }
+    
+    // Apply torque
+    this.angularMomentum.x += torque.x * dt;
+    this.angularMomentum.y += torque.y * dt;
+    this.angularMomentum.z += torque.z * dt;
+    
+    // Rotate spin
+    const rotMag = Math.sqrt(
+      this.angularMomentum.x ** 2 + 
+      this.angularMomentum.y ** 2 + 
+      this.angularMomentum.z ** 2
+    );
+    
+    if (rotMag > 0.001) {
+      const axis = this.normalize(this.angularMomentum);
+      const angle = rotMag * dt;
+      
+      // Rodrigues rotation
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+      const dot = this.dotProduct(axis, this.spin);
+      const cross = this.cross(axis, this.spin);
+      
+      this.spin = {
+        x: this.spin.x * cosA + cross.x * sinA + axis.x * dot * (1 - cosA),
+        y: this.spin.y * cosA + cross.y * sinA + axis.y * dot * (1 - cosA),
+        z: this.spin.z * cosA + cross.z * sinA + axis.z * dot * (1 - cosA)
+      };
+      
+      this.spin = this.normalize(this.spin);
+    }
+    
+    // Density diffusion
+    let densityChange = 0;
+    for (const neighbor of this.neighbors) {
+      const alignment = this.dotProduct(this.spin, neighbor.spin);
+      if (alignment > 0.5) {
+        const flow = (neighbor.density - this.density) * 0.05;
+        densityChange += flow * dt;
+      }
+    }
+    this.density += densityChange;
+    
+    // Friction
+    this.angularMomentum.x *= 0.95;
+    this.angularMomentum.y *= 0.95;
+    this.angularMomentum.z *= 0.95;
+  }
+}
+
+class AccretionDisk {
+  constructor() {
+    this.grid = [];
+    this.blackHole = null;
+    this.init();
+  }
+  
+  init() {
+    // Create grid
+    for (let i = 0; i < GRID_SIZE; i++) {
+      this.grid[i] = [];
+      for (let j = 0; j < GRID_SIZE; j++) {
+        const cell = new AccretionCell(i, j);
+        
+        const dx = i - 3.5;
+        const dy = j - 3.5;
+        const r = Math.sqrt(dx * dx + dy * dy);
+        
+        // Initial tangential spin
+        if (r > 0.1) {
+          const len = Math.sqrt(dy * dy + dx * dx);
+          cell.spin = {
+            x: -dy / len,
+            y: dx / len,
+            z: 0
+          };
+        } else {
+          cell.spin = { x: 0, y: 0, z: 0 };
+        }
+        
+        // Initial density
+        cell.density = 1.0 / (1.0 + r * 0.5);
+        
+        this.grid[i][j] = cell;
+      }
+    }
+    
+    // Connect neighbors
+    for (let i = 0; i < GRID_SIZE; i++) {
+      for (let j = 0; j < GRID_SIZE; j++) {
+        const cell = this.grid[i][j];
+        if (i > 0) cell.neighbors.push(this.grid[i-1][j]);
+        if (i < GRID_SIZE - 1) cell.neighbors.push(this.grid[i+1][j]);
+        if (j > 0) cell.neighbors.push(this.grid[i][j-1]);
+        if (j < GRID_SIZE - 1) cell.neighbors.push(this.grid[i][j+1]);
+      }
+    }
+    
+    this.blackHole = this.grid[3][3];
+    this.blackHole.spin = { x: 0, y: 0, z: 0 };
+  }
+  
+  step(dt) {
+    // Evolve all cells
+    for (let i = 0; i < GRID_SIZE; i++) {
+      for (let j = 0; j < GRID_SIZE; j++) {
+        const cell = this.grid[i][j];
+        if (cell !== this.blackHole) {
+          cell.step(dt);
+        }
+      }
+    }
+    
+    // Black hole effects
+    for (let i = 0; i < GRID_SIZE; i++) {
+      for (let j = 0; j < GRID_SIZE; j++) {
+        const cell = this.grid[i][j];
+        if (cell === this.blackHole) continue;
+        
+        const dx = i - 3;
+        const dy = j - 3;
+        const r = Math.sqrt(dx * dx + dy * dy);
+        
+        if (r < 0.1) continue;
+        
+        // Density flows toward center
+        const flowStrength = 0.08 / (r * r);
+        this.blackHole.density += cell.density * flowStrength * dt;
+        cell.density *= (1.0 - flowStrength * dt);
+        
+        // Spin collapse
+        const lerpFactor = 0.02 * dt / r;
+        cell.spin.x *= (1 - lerpFactor);
+        cell.spin.y *= (1 - lerpFactor);
+        cell.spin.z *= (1 - lerpFactor);
+      }
+    }
+  }
+  
+  injectDensity(gridX, gridY, amount) {
+    if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+      this.grid[gridX][gridY].density += amount;
+    }
+  }
+  
+  perturbSpin(gridX, gridY) {
+    if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+      const cell = this.grid[gridX][gridY];
+      const randX = (Math.random() - 0.5) * 2;
+      const randY = (Math.random() - 0.5) * 2;
+      cell.spin.x += randX * 0.5;
+      cell.spin.y += randY * 0.5;
+      cell.spin = cell.normalize(cell.spin);
+    }
+  }
+}
+
+// Initialize
+let disk = new AccretionDisk();
+let paused = false;
+
+// Render
+function render() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  let totalDensity = 0;
+  let totalSpin = 0;
+  
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      const cell = disk.grid[i][j];
+      const x = i * CELL_SIZE;
+      const y = j * CELL_SIZE;
+      
+      // Density as color
+      const density = Math.min(cell.density, 2.0);
+      const r = Math.floor(density * 255 * 0.9);
+      const g = Math.floor(density * 255 * 0.6);
+      const b = Math.floor(density * 255 * 0.3);
+      
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+      
+      // Spin as arrow
+      const spinMag = Math.sqrt(cell.spin.x ** 2 + cell.spin.y ** 2);
+      if (spinMag > 0.1) {
+        const cx = x + CELL_SIZE / 2;
+        const cy = y + CELL_SIZE / 2;
+        const arrowLen = CELL_SIZE * 0.3 * spinMag;
+        const ex = cx + cell.spin.x * arrowLen;
+        const ey = cy + cell.spin.y * arrowLen;
+        
+        ctx.strokeStyle = `rgba(100, 150, 255, ${spinMag})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+      }
+      
+      totalDensity += cell.density;
+      totalSpin += spinMag;
+    }
+  }
+  
+  // Grid lines
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= GRID_SIZE; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * CELL_SIZE, 0);
+    ctx.lineTo(i * CELL_SIZE, canvas.height);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(0, i * CELL_SIZE);
+    ctx.lineTo(canvas.width, i * CELL_SIZE);
+    ctx.stroke();
+  }
+  
+  // Black hole
+  const bhX = 3 * CELL_SIZE;
+  const bhY = 3 * CELL_SIZE;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(bhX, bhY, CELL_SIZE, CELL_SIZE);
+  ctx.strokeStyle = '#ff8800';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(bhX, bhY, CELL_SIZE, CELL_SIZE);
+  
+  // Info
+  document.getElementById('info').innerHTML = `
+    Total Density: ${totalDensity.toFixed(2)}<br>
+    Avg Spin: ${(totalSpin / 64).toFixed(2)}<br>
+    Black Hole Density: ${disk.blackHole.density.toFixed(2)}
+  `;
+}
+
+// Animation loop
+let lastTime = performance.now();
+function animate() {
+  const now = performance.now();
+  const dt = Math.min((now - lastTime) / 1000, 0.1);
+  lastTime = now;
+  
+  if (!paused) {
+    disk.step(dt);
+  }
+  
+  render();
+  requestAnimationFrame(animate);
+}
+
+// Input
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  
+  const gridX = Math.floor(x / CELL_SIZE);
+  const gridY = Math.floor(y / CELL_SIZE);
+  
+  if (e.shiftKey) {
+    disk.perturbSpin(gridX, gridY);
+  } else {
+    disk.injectDensity(gridX, gridY, 0.5);
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  disk = new AccretionDisk();
+});
+
+document.getElementById('pauseBtn').addEventListener('click', () => {
+  paused = !paused;
+  document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
+});
+
+// Start
+animate();
+</script>
+
+</body>
+</html>
