@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Whirlpool Ensemble</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { background:#000; overflow:hidden; font-family:'Courier New',monospace; touch-action:none; }
+canvas { position:fixed; top:0; left:0; filter:contrast(1.12) saturate(1.25); }
+#label {
+  position:fixed; top:max(12px,env(safe-area-inset-top,12px));
+  left:50%; transform:translateX(-50%);
+  font-size:8px; letter-spacing:5px; color:rgba(180,220,255,0.18);
+  text-shadow:0 0 10px rgba(100,200,255,0.25);
+  pointer-events:none; white-space:nowrap; text-transform:uppercase;
+}
+#ui {
+  position:fixed; bottom:max(16px,env(safe-area-inset-bottom,16px));
+  left:50%; transform:translateX(-50%);
+  display:flex; gap:10px; z-index:10;
+}
+.btn {
+  height:38px; padding:0 18px; border-radius:19px;
+  border:1px solid rgba(120,180,255,0.3); background:rgba(8,12,24,0.8);
+  color:rgba(180,220,255,0.7); font-family:'Courier New',monospace;
+  font-size:10px; letter-spacing:2px; cursor:pointer;
+  box-shadow:0 0 12px rgba(80,140,255,0.15); transition:all 0.3s ease;
+}
+.btn.active { border-color:#88ccff; color:#bbddff; box-shadow:0 0 22px rgba(100,200,255,0.45); }
+</style>
+</head>
+<body>
+<div id="label">whirlpool ensemble</div>
+<canvas id="c"></canvas>
+<div id="ui">
+  <button class="btn" id="mic-btn">activate mic</button>
+</div>
+<script>
+// ── CANVAS ────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+let W,H,CX,CY,R;
+function resize(){
+  W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight;
+  CX=W/2; CY=H/2; R=Math.min(W,H)*0.40;
+}
+resize(); window.addEventListener('resize',resize);
+
+// ── AUDIO ─────────────────────────────────────────────────
+let audioCtx=null, analyser=null, freqData=new Uint8Array(256);
+let listening=false, energy=0;
+const BANDS={
+  sub:{lo:0,hi:3,v:0},bass:{lo:3,hi:10,v:0},
+  lowmid:{lo:10,hi:25,v:0},mid:{lo:25,hi:60,v:0},
+  highmid:{lo:60,hi:100,v:0},high:{lo:100,hi:150,v:0},air:{lo:150,hi:220,v:0}
+};
+document.getElementById('mic-btn').addEventListener('click',startMic);
+async function startMic(){
+  if(listening) return;
+  const btn=document.getElementById('mic-btn');
+  btn.textContent='requesting...';
+  try {
+    if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') await audioCtx.resume();
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    analyser=audioCtx.createAnalyser();
+    analyser.fftSize=512; analyser.smoothingTimeConstant=0.75;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    freqData=new Uint8Array(analyser.frequencyBinCount);
+    listening=true;
+    btn.textContent='listening ●'; btn.classList.add('active');
+  } catch(e){ btn.textContent='tap to retry'; setTimeout(()=>{btn.textContent='activate mic';},2000); }
+}
+function ensureAudio(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+}
+function analyzeAudio(){
+  if(!listening||!analyser) return;
+  analyser.getByteFrequencyData(freqData);
+  Object.values(BANDS).forEach(b=>{
+    let s=0; for(let i=b.lo;i<b.hi;i++) s+=freqData[i];
+    b.v=b.v*0.72+(s/((b.hi-b.lo)*255))*0.28;
+  });
+  energy=(BANDS.bass.v+BANDS.mid.v+BANDS.high.v)/3;
+}
+
+// ── NOTE SYSTEM ───────────────────────────────────────────
+const NOTE_NAMES=['A','B','C','D','E','F','G'];
+const NOTE_COLOR={A:'#19b7a8',B:'#c8102e',C:'#f4731c',D:'#f4d03f',E:'#3a9d23',F:'#1a56db',G:'#7b2fbe'};
+const NOTE_COUNT=7;
+const SPOKE_ANGLES=NOTE_NAMES.map((_,i)=>(i/NOTE_COUNT)*Math.PI*2+Math.PI*0.13);
+// Each spoke's frequency — the discrete scale the other voices snap to
+const SPOKE_FREQ={A:220,B:261.63,C:293.66,D:329.63,E:391.99,F:440,G:523.25};
+
+// ── THEREMIN: CONTINUOUS PITCH FIELD ─────────────────────
+// The full circle maps to a continuous chromatic+ range.
+// Angle → frequency is a smooth exponential curve from 110 Hz to 880 Hz.
+// The theremin never snaps. It lives in the remainder between the spokes.
+// When it passes near a spoke, that spoke FEELS it (brief activation)
+// but the theremin does not belong to the spoke.
+
+const THEREMIN_FREQ_MIN = 110;   // A2 — bottom of the field
+const THEREMIN_FREQ_MAX = 880;   // A5 — top of the field
+// Angle 0 = right side of circle. Maps smoothly around.
+
+function angleToThereminFreq(angle) {
+  // Normalize to 0..1 going clockwise from top
+  const norm = (((angle + Math.PI/2) % (Math.PI*2)) + Math.PI*2) % (Math.PI*2) / (Math.PI*2);
+  // Exponential mapping — like real theremin hand distance
+  return THEREMIN_FREQ_MIN * Math.pow(THEREMIN_FREQ_MAX/THEREMIN_FREQ_MIN, norm);
+}
+
+// Theremin voice state — one persistent oscillator
+let thereminOsc=null, thereminGain=null, thereminVib=null, thereminVibGain=null;
+let thereminActive=false, thereminTargetFreq=220, thereminCurrentFreq=220;
+
+function startTheremin(freq, velocity) {
+  if(!audioCtx) return;
+  const now=audioCtx.currentTime;
+  const vol=0.11+velocity*0.10;
+
+  if(thereminOsc) {
+    // Already singing — glide to new frequency
+    thereminOsc.frequency.cancelScheduledValues(now);
+    thereminOsc.frequency.setValueAtTime(thereminCurrentFreq, now);
+    thereminOsc.frequency.exponentialRampToValueAtTime(freq, now+0.25);
+    thereminGain.gain.cancelScheduledValues(now);
+    thereminGain.gain.setValueAtTime(thereminGain.gain.value, now);
+    thereminGain.gain.linearRampToValueAtTime(vol, now+0.3);
+    // Re-schedule fade
+    thereminGain.gain.setValueAtTime(vol, now+5.5);
+    thereminGain.gain.exponentialRampToValueAtTime(0.0001, now+8.0);
+    thereminTargetFreq=freq;
+    return;
+  }
+
+  thereminTargetFreq=freq; thereminCurrentFreq=freq;
+  // Primary sine — theremin is pure
+  thereminOsc=audioCtx.createOscillator();
+  thereminOsc.type='sine';
+  thereminOsc.frequency.setValueAtTime(freq*0.85, now);
+  thereminOsc.frequency.exponentialRampToValueAtTime(freq, now+0.4);
+
+  // Vibrato LFO — ramps in like a bowed string, not immediate
+  thereminVib=audioCtx.createOscillator();
+  thereminVib.type='sine'; thereminVib.frequency.value=5.5;
+  thereminVibGain=audioCtx.createGain();
+  thereminVibGain.gain.setValueAtTime(0, now);
+  thereminVibGain.gain.linearRampToValueAtTime(0, now+0.6);       // silence during attack
+  thereminVibGain.gain.linearRampToValueAtTime(4+velocity*5, now+1.4); // ramp in
+  thereminVib.connect(thereminVibGain);
+  thereminVibGain.connect(thereminOsc.frequency);
+
+  // Faint second partial — slightly flat, like a glass body resonance
+  const o2=audioCtx.createOscillator(), g2=audioCtx.createGain();
+  o2.type='sine'; o2.frequency.value=freq*1.98; // slightly flat octave
+  g2.gain.setValueAtTime(0,now); g2.gain.linearRampToValueAtTime(vol*0.07,now+0.5);
+  g2.gain.exponentialRampToValueAtTime(0.0001,now+6.0);
+  o2.connect(g2); g2.connect(audioCtx.destination); o2.start(now); o2.stop(now+6.5);
+
+  // Master gain — slow ethereal bow attack
+  thereminGain=audioCtx.createGain();
+  thereminGain.gain.setValueAtTime(0, now);
+  thereminGain.gain.linearRampToValueAtTime(vol, now+0.5);
+  thereminGain.gain.setValueAtTime(vol, now+5.5);
+  thereminGain.gain.exponentialRampToValueAtTime(0.0001, now+8.0);
+
+  thereminOsc.connect(thereminGain);
+  thereminGain.connect(audioCtx.destination);
+  thereminOsc.start(now); thereminVib.start(now);
+  thereminOsc.stop(now+8.2); thereminVib.stop(now+8.2);
+  thereminActive=true;
+  setTimeout(()=>{ thereminOsc=null; thereminGain=null; thereminVib=null; thereminActive=false; },8400);
+}
+
+// Check if a theremin stone's angle is near a spoke — returns spoke idx or -1
+// "Near" means within ~half the inter-spoke gap, not snapping, just sensing
+function thereminNearSpoke(angle) {
+  const halfGap=(Math.PI*2/NOTE_COUNT)*0.38;
+  for(let i=0;i<NOTE_COUNT;i++){
+    let diff=((angle-SPOKE_ANGLES[i]+Math.PI*3)%(Math.PI*2));
+    if(diff>Math.PI) diff=Math.PI*2-diff;
+    if(diff<halfGap) return i;
+  }
+  return -1;
+}
+
+// ── BONGO ─────────────────────────────────────────────────
+function playBongo(velocity){
+  if(!audioCtx) return;
+  const now=audioCtx.currentTime, vol=0.12+velocity*0.18, pitch=180+velocity*220;
+  const o1=audioCtx.createOscillator(), g1=audioCtx.createGain();
+  o1.type='sine'; o1.frequency.setValueAtTime(pitch,now);
+  o1.frequency.exponentialRampToValueAtTime(pitch*0.5,now+0.08);
+  g1.gain.setValueAtTime(vol,now); g1.gain.exponentialRampToValueAtTime(0.0001,now+0.22);
+  o1.connect(g1); g1.connect(audioCtx.destination); o1.start(now); o1.stop(now+0.25);
+  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.06,audioCtx.sampleRate);
+  const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  const src=audioCtx.createBufferSource(); src.buffer=buf;
+  const bp=audioCtx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=pitch*1.4; bp.Q.value=3;
+  const gn=audioCtx.createGain(); gn.gain.setValueAtTime(vol*0.4,now); gn.gain.exponentialRampToValueAtTime(0.0001,now+0.06);
+  src.connect(bp); bp.connect(gn); gn.connect(audioCtx.destination); src.start(now); src.stop(now+0.07);
+}
+
+// ── BULLROARER ────────────────────────────────────────────
+let bullNodes=null, bullGain=null;
+function startBullroarer(velocity){
+  if(!audioCtx) return;
+  stopBullroarer(0.3);
+  const now=audioCtx.currentTime, baseFreq=70+velocity*40, vol=0.13+velocity*0.11;
+  const o1=audioCtx.createOscillator(), o2=audioCtx.createOscillator();
+  o1.type='sawtooth'; o1.frequency.value=baseFreq;
+  o2.type='sawtooth'; o2.frequency.value=baseFreq*1.008;
+  const amOsc=audioCtx.createOscillator(), amGain=audioCtx.createGain();
+  amOsc.type='sine'; amOsc.frequency.value=2.2+velocity*1.8; amGain.gain.value=0.45;
+  amOsc.connect(amGain);
+  const carrier=audioCtx.createGain(); carrier.gain.value=0.55;
+  amGain.connect(carrier.gain); o1.connect(carrier); o2.connect(carrier);
+  const lp=audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=320+velocity*180; lp.Q.value=1.8;
+  carrier.connect(lp);
+  bullGain=audioCtx.createGain(); bullGain.gain.setValueAtTime(0,now); bullGain.gain.linearRampToValueAtTime(vol,now+0.6);
+  lp.connect(bullGain); bullGain.connect(audioCtx.destination);
+  o1.start(now); o2.start(now); amOsc.start(now); bullNodes=[o1,o2,amOsc];
+  bullGain.gain.setValueAtTime(vol,now+4.0); bullGain.gain.linearRampToValueAtTime(0.0001,now+6.5);
+  setTimeout(()=>{ try{bullNodes.forEach(n=>n.stop());}catch(e){} },7000);
+}
+function stopBullroarer(ft){
+  if(!bullGain) return;
+  const now=audioCtx.currentTime;
+  try{ bullGain.gain.cancelScheduledValues(now); bullGain.gain.setValueAtTime(bullGain.gain.value,now); bullGain.gain.linearRampToValueAtTime(0.0001,now+(ft||1.5)); }catch(e){}
+  if(bullNodes) setTimeout(()=>{ try{bullNodes.forEach(n=>n.stop());}catch(e){} },(ft||1.5)*1000+100);
+}
+
+// ── GAMELAN ───────────────────────────────────────────────
+const GAMELAN_SCALES=[[261.63,294.33,327.03,392.44,436.04],[329.63,347.65,391.99,415.30,493.88],[523.25,587.33,659.25,783.99,880.00]];
+let gamelanIdx=0;
+function playGamelan(velocity){
+  if(!audioCtx) return;
+  const now=audioCtx.currentTime, scale=GAMELAN_SCALES[gamelanIdx++%3];
+  const pitches=[scale[0],scale[2],scale[3],scale[4]].slice(0,3+Math.floor(velocity*1.5));
+  pitches.forEach(fund=>{
+    const vol=(0.08+velocity*0.10)/pitches.length;
+    [{r:1.0,v:1.0,d:2.8},{r:2.756,v:0.5,d:1.4},{r:5.404,v:0.25,d:0.8},{r:8.933,v:0.12,d:0.4}].forEach(p=>{
+      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+      o.type='sine'; o.frequency.value=fund*p.r;
+      g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(vol*p.v,now+0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001,now+p.d*(0.8+velocity*0.6));
+      o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now+p.d+0.1);
+    });
+  });
+}
+
+// ── FLUTE ─────────────────────────────────────────────────
+// Warm mid-register: 220–523 Hz (not shrilly high)
+// Sine-dominant with gentle low-pass, soft breath, slow attack
+const FLUTE_FREQS=[220.00,246.94,261.63,293.66,329.63,369.99,392.00,440.00,493.88,523.25];
+function playFlute(velocity){
+  if(!audioCtx) return;
+  const now=audioCtx.currentTime;
+  const freq=FLUTE_FREQS[Math.floor(velocity*FLUTE_FREQS.length*0.99)];
+  const vol=0.07+velocity*0.07, dur=0.8+velocity*1.6;
+
+  // Breath — very quiet, narrow bandpass, gentle onset (not a burst)
+  const buf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.18),audioCtx.sampleRate);
+  const dd=buf.getChannelData(0);
+  for(let i=0;i<dd.length;i++) dd[i]=(Math.random()*2-1)*Math.pow(1-i/dd.length,0.4);
+  const src=audioCtx.createBufferSource(); src.buffer=buf;
+  const bp=audioCtx.createBiquadFilter(); bp.type='bandpass';
+  bp.frequency.value=freq*1.05; bp.Q.value=18; // tight, stays near fundamental
+  const bg=audioCtx.createGain();
+  bg.gain.setValueAtTime(0,now);
+  bg.gain.linearRampToValueAtTime(vol*0.12,now+0.06); // much quieter breath
+  bg.gain.exponentialRampToValueAtTime(0.0001,now+0.22);
+  src.connect(bp); bp.connect(bg); bg.connect(audioCtx.destination);
+  src.start(now); src.stop(now+0.25);
+
+  // Tone — sine (not triangle) through a low-pass to round off any edge
+  const o1=audioCtx.createOscillator(); o1.type='sine'; o1.frequency.value=freq;
+  const lp=audioCtx.createBiquadFilter(); lp.type='lowpass';
+  lp.frequency.value=freq*3.2; lp.Q.value=0.5; // gentle shelf
+  const g1=audioCtx.createGain();
+  g1.gain.setValueAtTime(0,now);
+  g1.gain.linearRampToValueAtTime(vol,now+0.12); // slower, breath-like attack
+  g1.gain.setValueAtTime(vol,now+dur-0.5);
+  g1.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+
+  // Very subtle vibrato — delayed onset, small depth
+  const lfo=audioCtx.createOscillator(); lfo.type='sine'; lfo.frequency.value=4.5;
+  const lfoG=audioCtx.createGain();
+  lfoG.gain.setValueAtTime(0,now);
+  lfoG.gain.linearRampToValueAtTime(0,now+0.7);         // silence at start
+  lfoG.gain.linearRampToValueAtTime(2+velocity*2,now+1.4); // barely perceptible swell
+  lfo.connect(lfoG); lfoG.connect(o1.frequency);
+
+  o1.connect(lp); lp.connect(g1); g1.connect(audioCtx.destination);
+  o1.start(now); lfo.start(now); o1.stop(now+dur+0.1); lfo.stop(now+dur+0.1);
+}
+
+// ═══════════════════════════════════════════════════════
+// STONE + GATE
+// ═══════════════════════════════════════════════════════
+const GATE_RADIUS=0.45, GATE_TOL=0.04, GATE_COOLDOWN=800;
+let lastChordTime=-9999;
+
+// Radial zone voices (clockwise from top)
+const VOICES=['bongo','bullroarer','gamelan','armonica','flute'];
+const VOICE_COLOR={
+  bongo:'#c8a060',bullroarer:'#5080a0',gamelan:'#a0c880',
+  armonica:'#c080c8',flute:'#80c8c0'
+};
+const ZONE_ANGLES=VOICES.map((_,i)=>(i/VOICES.length)*Math.PI*2-Math.PI/2);
+
+function voiceFromAngle(angle){
+  const a=((angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+  const slice=Math.PI*2/VOICES.length;
+  const offset=-Math.PI/2+slice/2;
+  const idx=Math.floor(((a-offset+Math.PI*2)%(Math.PI*2))/slice);
+  return VOICES[Math.min(idx,VOICES.length-1)];
+}
+
+class Stone {
+  constructor(angle,voice){
+    this.angle=angle+(Math.random()-0.5)*0.18;
+    this.r=R*(0.88+Math.random()*0.10);
+    this.voice=voice;
+    this.infall=voice==='bongo'?0.0022+Math.random()*0.0016
+               :voice==='bullroarer'?0.0010+Math.random()*0.0008
+               :voice==='flute'?0.0016+Math.random()*0.0012
+               :voice==='armonica'?0.0008+Math.random()*0.0007
+               :0.0014+Math.random()*0.0012;
+    this.spin=(Math.random()<0.55?-1:1)*(0.010+Math.random()*0.009);
+    this.size=voice==='bongo'?2+Math.random()*1.2
+             :voice==='bullroarer'?4+Math.random()*2
+             :voice==='armonica'?3.5+Math.random()*1.5
+             :voice==='flute'?2.5+Math.random()*1.2
+             :2.8+Math.random()*1.4;
+    this.alive=true; this.alpha=0;
+    this.trail=[]; this.maxTrail=voice==='bullroarer'?26:voice==='armonica'?36:voice==='flute'?20:14;
+    this.phase='SPIRAL';
+    this.holdR=R*GATE_RADIUS;
+    // Non-theremin: snap to spoke
+    this.targetSpoke=null; this.noteIdx=-1;
+    this.color=VOICE_COLOR[voice];
+    this.velocity=0.5;
+    // Theremin-specific: continuous angle memory
+    this.thereminFreq=220;
+  }
+
+  _snapToSpoke(){
+    // Theremin NEVER snaps — it holds at its exact angle
+    if(this.voice==='armonica'){
+      this.thereminFreq=angleToThereminFreq(this.angle);
+      // Find nearby spoke for visual sympathy only
+      const near=thereminNearSpoke(this.angle);
+      if(near>=0) this.noteIdx=near; // visual only, no audio snap
+      return;
+    }
+    let best=-1,bestDiff=Infinity;
+    SPOKE_ANGLES.forEach((a,i)=>{
+      let diff=((this.angle-a+Math.PI*3)%(Math.PI*2)); if(diff>Math.PI) diff=Math.PI*2-diff;
+      if(diff<bestDiff){bestDiff=diff;best=i;}
+    });
+    this.noteIdx=best; this.targetSpoke=SPOKE_ANGLES[best];
+    if(this.voice==='gamelan') this.color=NOTE_COLOR[NOTE_NAMES[best]];
+  }
+
+  update(dt){
+    if(!this.alive) return;
+    this.alpha=Math.min(1,this.alpha+dt*0.005);
+    if(this.phase==='SPIRAL'){
+      const pull=this.infall*(1+Math.pow(Math.max(0,1-this.r/R),1.8)*2.5);
+      this.r-=pull*this.r*dt;
+      this.angle+=this.spin*dt*(1+Math.pow(Math.max(0,1-this.r/R),1.5)*2.8);
+      if(this.r<=this.holdR*(1+GATE_TOL)){
+        this.r=this.holdR; this.phase='HOLD'; this._snapToSpoke();
+        // Theremin begins singing as soon as it enters hold
+        if(this.voice==='armonica'){
+          this.thereminFreq=angleToThereminFreq(this.angle);
+          startTheremin(this.thereminFreq, 0.4);
+        }
+      }
+      if(this.r<10) this.alive=false;
+    } else if(this.phase==='HOLD'){
+      this.r=this.holdR*(1+Math.sin(Date.now()*0.001+this.angle)*0.012);
+      if(this.voice==='armonica'){
+        // Theremin drifts slowly while holding — continuous pitch update
+        this.angle+=this.spin*dt*0.15; // very slow continued drift in hold
+        const newFreq=angleToThereminFreq(this.angle);
+        if(Math.abs(newFreq-this.thereminFreq)>1.5){
+          this.thereminFreq=newFreq;
+          // Update live pitch
+          if(thereminOsc && audioCtx){
+            try{
+              const now=audioCtx.currentTime;
+              thereminOsc.frequency.setValueAtTime(thereminOsc.frequency.value,now);
+              thereminOsc.frequency.linearRampToValueAtTime(newFreq,now+0.12);
+            }catch(e){}
+          }
+        }
+        // Paint nearby spokes with theremin proximity
+        const near=thereminNearSpoke(this.angle);
+        if(near>=0) spokeActivity[near]=Math.min(0.35, spokeActivity[near]+0.018);
+      } else {
+        let diff=this.targetSpoke-this.angle;
+        while(diff>Math.PI) diff-=Math.PI*2; while(diff<-Math.PI) diff+=Math.PI*2;
+        this.angle+=diff*0.008*dt;
+      }
+    } else if(this.phase==='RELEASED'){
+      this.r-=0.008*this.r*dt+0.5*dt;
+      if(this.voice==='armonica'){
+        // Theremin: continue drifting in release, pitch keeps changing
+        this.angle+=this.spin*dt*0.4;
+        const newFreq=angleToThereminFreq(this.angle);
+        if(thereminOsc && audioCtx && Math.abs(newFreq-this.thereminFreq)>2){
+          this.thereminFreq=newFreq;
+          try{
+            const now=audioCtx.currentTime;
+            thereminOsc.frequency.setValueAtTime(thereminOsc.frequency.value,now);
+            thereminOsc.frequency.linearRampToValueAtTime(newFreq,now+0.08);
+          }catch(e){}
+        }
+      }
+      if(this.r<10) this.alive=false;
+    }
+    const x=CX+Math.cos(this.angle)*this.r, y=CY+Math.sin(this.angle)*this.r;
+    this.trail.push({x,y}); if(this.trail.length>this.maxTrail) this.trail.shift();
+  }
+
+  release(vel){
+    if(this.phase!=='HOLD') return;
+    this.velocity=vel||0.6; this.phase='RELEASED';
+    // Theremin: does NOT snap to spoke on release — continues its arc
+    if(this.voice!=='armonica') this.angle=this.targetSpoke;
+    spawnPlink(this);
+  }
+
+  draw(){
+    if(this.alpha<=0.01||!this.trail.length) return;
+    const isEthereal=this.voice==='armonica'||this.voice==='flute';
+    // Theremin trail: colored by its continuous pitch position
+    for(let i=1;i<this.trail.length;i++){
+      const t=this.trail[i],p=this.trail[i-1],prog=i/this.trail.length;
+      ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(t.x,t.y);
+      const a=prog*prog*this.alpha*(this.phase==='RELEASED'?0.35:isEthereal?0.20:0.12);
+      if(this.voice==='armonica'){
+        // Trail takes the hue of its current pitch — not any spoke color
+        ctx.strokeStyle=`${this.color}${Math.round(a*255).toString(16).padStart(2,'0')}`;
+      } else {
+        ctx.strokeStyle=isEthereal?`${this.color}${Math.round(a*255).toString(16).padStart(2,'0')}`:`rgba(255,255,255,${a})`;
+      }
+      ctx.lineWidth=this.size*prog*(this.voice==='armonica'?0.8:isEthereal?0.7:0.5);
+      ctx.lineCap='round'; ctx.stroke();
+    }
+    const {x,y}=this.trail[this.trail.length-1];
+    if(this.phase==='HOLD'){
+      if(this.voice==='armonica'){
+        // Theremin halo — shows how far it is from nearest spoke
+        // Wide when between notes, narrow when near a spoke
+        const near=thereminNearSpoke(this.angle);
+        const proximity=near>=0?0.4:1.0; // 1 = in open space, 0.4 = near spoke
+        const haloR=this.size*(3.5+proximity*4.0);
+        ctx.beginPath(); ctx.arc(x,y,haloR,0,Math.PI*2);
+        ctx.strokeStyle=`${this.color}${Math.round(0.15*proximity*255+10).toString(16).padStart(2,'0')}`;
+        ctx.lineWidth=1.2; ctx.stroke();
+        ctx.beginPath(); ctx.arc(x,y,haloR*1.7,0,Math.PI*2);
+        ctx.strokeStyle=`${this.color}08`; ctx.lineWidth=0.8; ctx.stroke();
+        // Show current frequency as a tiny label
+        ctx.save();
+        ctx.font='7px Courier New';
+        ctx.fillStyle=`${this.color}60`;
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillText(Math.round(this.thereminFreq)+'hz', x, y-haloR-3);
+        ctx.restore();
+      } else if(this.voice==='flute'){
+        ctx.beginPath(); ctx.arc(x,y,this.size*3,0,Math.PI*2);
+        ctx.fillStyle=this.color+'15'; ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(x,y,this.size*2.4,0,Math.PI*2);
+      ctx.fillStyle=this.color+'1a'; ctx.fill();
+    }
+    if(isEthereal && this.alpha>0.3){
+      ctx.save(); ctx.shadowBlur=18; ctx.shadowColor=this.color;
+      ctx.globalAlpha=this.alpha*0.35;
+      ctx.beginPath(); ctx.arc(x,y,this.size*2.2,0,Math.PI*2);
+      ctx.fillStyle=this.color+'33'; ctx.fill(); ctx.restore();
+    }
+    ctx.beginPath(); ctx.arc(x,y,this.size,0,Math.PI*2);
+    ctx.fillStyle=this.phase==='HOLD'
+      ?`${this.color}${Math.round(this.alpha*200).toString(16).padStart(2,'0')}`
+      :`rgba(255,255,255,${this.alpha*0.8})`;
+    ctx.fill();
+  }
+}
+
+// ── PLINK VISUALS ─────────────────────────────────────────
+const plinks=[];
+const spokeActivity=NOTE_NAMES.map(()=>0);
+function spawnPlink(stone){
+  const vel=stone.velocity;
+  // Theremin plink: radiates from its exact angle position, not a spoke
+  const pAngle=stone.voice==='armonica'?stone.angle:(stone.noteIdx>=0?SPOKE_ANGLES[stone.noteIdx]:stone.angle);
+  const pr=R*GATE_RADIUS;
+  plinks.push({
+    x:CX+Math.cos(pAngle)*pr, y:CY+Math.sin(pAngle)*pr,
+    vel, alpha:1, life:1.0, color:stone.color,
+    r:stone.voice==='bullroarer'?8+vel*16:stone.voice==='armonica'?6+vel*14:stone.voice==='flute'?5+vel*10:stone.voice==='bongo'?3+vel*6:5+vel*10,
+    voice:stone.voice,
+    decay:stone.voice==='armonica'?0.004:stone.voice==='flute'?0.012:stone.voice==='bullroarer'?0.007:0.035
+  });
+  if(stone.voice!=='armonica' && stone.noteIdx>=0)
+    spokeActivity[stone.noteIdx]=Math.min(1,spokeActivity[stone.noteIdx]+vel*0.8);
+}
+
+// ── BONGO CLOCK ───────────────────────────────────────────
+// Bongo runs its own rate — independent of the gate.
+// Tension (0–1) derived from holding stones + energy drives BPM.
+// At rest: ~60 BPM. At full tension: ~240 BPM.
+// Bongo stones still spiral and hold visually, but audio is clock-driven.
+let bongoClock = 0;       // ms accumulator
+let bongoLastHit = -9999;
+
+function getBongoInterval() {
+  // Count holding bongo stones as tension source
+  const bongoHolders = stones.filter(s=>s.phase==='HOLD'&&s.voice==='bongo').length;
+  const tension = Math.min(1, bongoHolders*0.25 + energy*0.6);
+  // Map tension 0→1 to interval 1000ms→250ms (60→240 BPM)
+  return 1000 - tension*750;
+}
+
+function tickBongo(now) {
+  const interval = getBongoInterval();
+  if(now - bongoLastHit < interval) return;
+  // Only fires if there's at least one bongo stone in play (spiral or hold)
+  const hasBongo = stones.some(s=>s.voice==='bongo'&&s.alive);
+  if(!hasBongo) return;
+  const tension = Math.min(1, stones.filter(s=>s.phase==='HOLD'&&s.voice==='bongo').length*0.25 + energy*0.6);
+  playBongo(0.3 + tension*0.65);
+  // Visual: activate a random bongo stone's nearest spoke briefly
+  const bongoStones = stones.filter(s=>s.voice==='bongo'&&s.alive);
+  if(bongoStones.length) {
+    const s = bongoStones[Math.floor(Math.random()*bongoStones.length)];
+    if(s.noteIdx>=0) spokeActivity[s.noteIdx]=Math.min(0.9,spokeActivity[s.noteIdx]+0.5);
+  }
+  bongoLastHit = now;
+}
+
+// ── GATE ──────────────────────────────────────────────────
+function tryFireGate(force,vel){
+  const now=performance.now();
+  if(!force&&now-lastChordTime<GATE_COOLDOWN) return;
+  const holders=stones.filter(s=>s.phase==='HOLD');
+  if(!holders.length) return;
+  const v=vel||0.6;
+  const by={bongo:[],bullroarer:[],gamelan:[],armonica:[],flute:[]};
+  holders.forEach(s=>by[s.voice].push(s));
+  // Bongo stones are released visually by the gate but audio is clock-driven
+  if(by.bongo.length)      { by.bongo.forEach(s=>s.release(v)); }
+  if(by.bullroarer.length) { startBullroarer(v); by.bullroarer.forEach(s=>s.release(v)); }
+  if(by.gamelan.length)    { playGamelan(v);     by.gamelan.forEach(s=>s.release(v)); }
+  if(by.flute.length)      { playFlute(v);       by.flute.forEach(s=>s.release(v)); }
+  if(by.armonica.length){
+    by.armonica.forEach(s=>{ startTheremin(s.thereminFreq, v); s.release(v); });
+  }
+  lastChordTime=now;
+}
+
+// ── FIELD ─────────────────────────────────────────────────
+let fieldRot=0;
+function drawField(){
+  fieldRot+=0.0004;
+  // Zone wedges
+  const slice=Math.PI*2/VOICES.length;
+  VOICES.forEach((v,i)=>{
+    const startA=ZONE_ANGLES[i]-slice/2, endA=ZONE_ANGLES[i]+slice/2;
+    ctx.beginPath(); ctx.moveTo(CX,CY); ctx.arc(CX,CY,R*1.08,startA,endA); ctx.closePath();
+    ctx.fillStyle=VOICE_COLOR[v]+'06'; ctx.fill();
+    const lx=CX+Math.cos(ZONE_ANGLES[i])*R*1.14, ly=CY+Math.sin(ZONE_ANGLES[i])*R*1.14;
+    ctx.save(); ctx.font='7px Courier New'; ctx.fillStyle=VOICE_COLOR[v]+'50';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(v.toUpperCase(),lx,ly); ctx.restore();
+  });
+  // Spiral arms
+  for(let arm=0;arm<3;arm++){
+    const base=arm*(Math.PI*2/3)+fieldRot;
+    ctx.beginPath(); let first=true;
+    for(let i=0;i<80;i++){
+      const t=i/80,sr=t*R*1.05,sa=base+t*Math.PI*4.8;
+      first?(ctx.moveTo(CX+Math.cos(sa)*sr,CY+Math.sin(sa)*sr),first=false)
+           :ctx.lineTo(CX+Math.cos(sa)*sr,CY+Math.sin(sa)*sr);
+    }
+    ctx.strokeStyle=`rgba(140,200,255,${0.022+energy*0.04})`;
+    ctx.lineWidth=0.4+energy*0.8; ctx.stroke();
+  }
+  // Gate ring
+  const holdersExist=stones.some(s=>s.phase==='HOLD');
+  ctx.beginPath(); ctx.arc(CX,CY,R*GATE_RADIUS,0,Math.PI*2);
+  ctx.strokeStyle=holdersExist?`rgba(180,220,255,${0.14+energy*0.22})`:'rgba(180,220,255,0.04)';
+  ctx.lineWidth=holdersExist?1.8+energy*2:0.5;
+  ctx.setLineDash([4,12]); ctx.stroke(); ctx.setLineDash([]);
+}
+
+function drawSpokes(){
+  NOTE_NAMES.forEach((n,i)=>{
+    const a=SPOKE_ANGLES[i],act=spokeActivity[i],col=NOTE_COLOR[n];
+    ctx.beginPath();
+    ctx.moveTo(CX+Math.cos(a)*22,CY+Math.sin(a)*22);
+    ctx.lineTo(CX+Math.cos(a)*R*0.90,CY+Math.sin(a)*R*0.90);
+    ctx.strokeStyle=`${col}${Math.round((0.06+act*0.45)*255).toString(16).padStart(2,'0')}`;
+    ctx.lineWidth=act>0.1?1.2+act*1.8:0.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX+Math.cos(a)*R*0.90,CY+Math.sin(a)*R*0.90,2+act*3,0,Math.PI*2);
+    ctx.fillStyle=col+Math.round((0.3+act*0.7)*255).toString(16).padStart(2,'0'); ctx.fill();
+    const lx=CX+Math.cos(a)*(R*0.90+15),ly=CY+Math.sin(a)*(R*0.90+15);
+    ctx.save(); ctx.font=`${9+act*4}px Courier New`;
+    ctx.fillStyle=col+Math.round((0.2+act*0.75)*255).toString(16).padStart(2,'0');
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(n,lx,ly); ctx.restore();
+    spokeActivity[i]=Math.max(0,act-0.018);
+  });
+}
+
+// Draw the theremin's continuous pitch arc — shows the full field it inhabits
+function drawThereminField(){
+  const thereminStones=stones.filter(s=>s.voice==='armonica'&&s.phase==='HOLD'&&s.alpha>0.1);
+  if(!thereminStones.length) return;
+  // Draw the full circle as a faint continuous pitch gradient arc
+  // Color shifts through violet as frequency changes
+  const segments=72;
+  for(let i=0;i<segments;i++){
+    const a1=(i/segments)*Math.PI*2, a2=((i+1)/segments)*Math.PI*2;
+    const freq=angleToThereminFreq(a1);
+    // Map frequency to hue: low=deep violet, high=bright cyan
+    const t=(freq-THEREMIN_FREQ_MIN)/(THEREMIN_FREQ_MAX-THEREMIN_FREQ_MIN);
+    const hue=270-t*150; // violet (270) → cyan (120)
+    const nearSpoke=thereminNearSpoke(a1);
+    // Fade out near spokes — the theremin is most itself BETWEEN them
+    const spokeFade=nearSpoke>=0?0.3:1.0;
+    ctx.beginPath();
+    ctx.arc(CX,CY,R*GATE_RADIUS,a1,a2);
+    ctx.strokeStyle=`hsla(${hue},70%,65%,${0.06*spokeFade})`;
+    ctx.lineWidth=1.5; ctx.stroke();
+  }
+}
+
+function drawVoid(){
+  const vr=20+energy*6;
+  ctx.beginPath(); ctx.arc(CX,CY,vr,0,Math.PI*2); ctx.fillStyle='#000'; ctx.fill();
+  if(energy>0.02){
+    ctx.beginPath(); ctx.arc(CX,CY,vr*0.7,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(80,160,255,${energy*0.28})`; ctx.lineWidth=3+energy*7; ctx.stroke();
+  }
+  const vg=ctx.createRadialGradient(CX,CY,vr*0.7,CX,CY,vr*2.2);
+  vg.addColorStop(0,'rgba(0,0,0,0.95)'); vg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(CX,CY,vr*2.2,0,Math.PI*2); ctx.fillStyle=vg; ctx.fill();
+}
+
+function drawPlinks(){
+  for(let i=plinks.length-1;i>=0;i--){
+    const p=plinks[i];
+    p.life-=p.decay; p.alpha=p.life*p.life;
+    if(p.life<=0){plinks.splice(i,1);continue;}
+    if(p.voice==='armonica'){
+      for(let ring=0;ring<3;ring++){
+        const roff=ring*0.22;
+        ctx.beginPath(); ctx.arc(p.x,p.y,(1-Math.max(0,p.life-roff))*p.r*3,0,Math.PI*2);
+        ctx.strokeStyle=p.color+Math.round(p.alpha*(0.6-ring*0.18)*255).toString(16).padStart(2,'0');
+        ctx.lineWidth=1.5*p.alpha; ctx.stroke();
+      }
+    } else {
+      ctx.beginPath(); ctx.arc(p.x,p.y,(1-p.life)*p.r*2.5,0,Math.PI*2);
+      ctx.strokeStyle=p.color+Math.round(p.alpha*160).toString(16).padStart(2,'0');
+      ctx.lineWidth=(p.voice==='bullroarer'?3:p.voice==='flute'?1.5:2)*p.alpha; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r*0.4*p.life,0,Math.PI*2);
+    ctx.fillStyle=p.color+Math.round(p.alpha*255).toString(16).padStart(2,'0'); ctx.fill();
+  }
+}
+
+// ── SPAWN ─────────────────────────────────────────────────
+let stones=[];
+let lastAutoSpawn=0,autoInterval=2600;
+let lastMicSpawn=0,prevEnergy=0,micCool=0,autoGateCheck=0;
+
+function spawnStone(angle,voice){
+  if(stones.length>60){ const o=stones.findIndex(s=>s.phase==='SPIRAL'); if(o>=0) stones[o].alive=false; }
+  stones.push(new Stone(angle,voice));
+}
+
+function handleSpawn(now){
+  if(now-lastAutoSpawn>autoInterval){
+    VOICES.forEach((v,i)=>{
+      const za=ZONE_ANGLES[i]+(Math.random()-0.5)*(Math.PI*2/VOICES.length)*0.7;
+      spawnStone(za,v);
+    });
+    lastAutoSpawn=now; autoInterval=2200+Math.random()*1400-energy*600;
+  }
+  autoGateCheck++;
+  if(autoGateCheck%60===0){
+    const holders=stones.filter(s=>s.phase==='HOLD');
+    if(holders.length>=3||now-lastChordTime>GATE_COOLDOWN*1.8) tryFireGate(false,0.45+energy*0.55);
+  }
+  if(listening){
+    micCool=Math.max(0,micCool-16);
+    const delta=energy-prevEnergy;
+    if(delta>0.045&&micCool===0&&now-lastMicSpawn>320){
+      const active=Object.entries(BANDS).filter(([,b])=>b.v>0.055);
+      if(active.length>=2){
+        VOICES.forEach((v,i)=>spawnStone(ZONE_ANGLES[i]+(Math.random()-0.5)*0.4,v));
+        if(active.length>=3) tryFireGate(false,0.4+energy*0.6);
+      }
+      lastMicSpawn=now; micCool=280;
+    }
+    prevEnergy=energy;
+  }
+}
+
+// ── INPUT ─────────────────────────────────────────────────
+function handleInput(x,y){
+  if(y>window.innerHeight-70) return;
+  ensureAudio();
+  const angle=Math.atan2(y-CY,x-CX);
+  const voice=voiceFromAngle(angle);
+  const holders=stones.filter(s=>s.phase==='HOLD');
+  if(holders.length>0){ tryFireGate(true,0.55+Math.random()*0.35); }
+  const entry=angle+Math.PI;
+  spawnStone(entry,voice);
+  spawnStone(entry+(Math.random()-0.5)*0.5,voice);
+}
+canvas.addEventListener('click',e=>handleInput(e.clientX,e.clientY));
+canvas.addEventListener('touchend',e=>{
+  e.preventDefault(); handleInput(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
+},{passive:false});
+
+// ── LOOP ──────────────────────────────────────────────────
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(now-last,50); last=now;
+  analyzeAudio(); handleSpawn(now); tickBongo(now);
+  ctx.fillStyle='rgba(0,0,0,0.10)'; ctx.fillRect(0,0,W,H);
+  drawField();
+  drawThereminField();
+  drawSpokes();
+  ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,H);
+  ctx.arc(CX,CY,18,0,Math.PI*2,true); ctx.clip('evenodd');
+  stones.forEach(s=>{s.update(dt);s.draw();});
+  ctx.restore();
+  drawPlinks(); drawVoid();
+  stones=stones.filter(s=>s.alive);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
