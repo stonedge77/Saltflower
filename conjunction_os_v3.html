@@ -810,6 +810,15 @@ input[type=range]::-webkit-slider-thumb {
             <td class="lock">total ∇ = 0</td>
             <td class="hint">Chained emergence. Remainder accumulates across layers — models credit assignment across depth.</td>
           </tr>
+          <tr>
+            <td><code>dissonance</code> <span style="font-size:9px;color:#e85c3a;border:0.5px solid #e85c3a44;padding:2px 6px;border-radius:3px;letter-spacing:.07em">Stone</span></td>
+            <td><code>a dissonance b</code></td>
+            <td class="emerge">|a − b|</td>
+            <td class="rem">a AND b (overlap)</td>
+            <td class="shad">a OR b (union)</td>
+            <td class="lock">a AND b = 0</td>
+            <td class="hint">Pure separation. Locks more than <code>and</code> — any disjoint pair is phase-locked. Sacrifice: magnitude lost. C alone cannot reconstruct A and B. Keep all three registers or the pressure vanishes. <em>Remainder is not error to be minimized. Remainder is pressure to be honored.</em></td>
+          </tr>
           <tr style="background:rgba(139,111,203,0.05)">
             <td><code>toffoli</code> <span class="quantum-badge">quantum</span></td>
             <td><code>a toffoli b</code></td>
@@ -876,7 +885,7 @@ input[type=range]::-webkit-slider-thumb {
     </div>
     <div class="repl-log" id="repl-log">
       <div class="le-sys">Conjunction OS kernel v0.3-quantum ready. Addition is syntax sugar. Toffoli is truth.</div>
-      <div class="le-sys">Try: 3 and 5 · 7 nand 3 · 5 toffoli 3 · 1 and 1 and 1 · :help</div>
+      <div class="le-sys">Try: 3 and 5 · 7 nand 3 · 5 toffoli 3 · 5 dissonance 3 · 1 and 1 and 1 · :help</div>
     </div>
     <div class="sparkline-wrap">
       <div class="sparkline-label">
@@ -941,10 +950,15 @@ input[type=range]::-webkit-slider-thumb {
   <!-- ── FOOTER / VERSIONING ────────────────────────── -->
   <div class="footer">
     <div>Conjunction OS — a poetic prototype. Not modular arithmetic. Not boolean logic. A sketch of how features may merge in superpositioned activations.</div>
+    <div style="margin-top:10px;color:var(--text2);font-style:italic;border-left:2px solid var(--accent-rem);padding-left:12px;line-height:1.8">
+      Remainder is not error to be minimized.<br>
+      Remainder is pressure to be honored.<br>
+      <span style="color:var(--text3);font-style:normal;font-size:10px">— The Stone Principle &nbsp;·&nbsp; CC0</span>
+    </div>
     <div class="footer-versions" style="margin-top:10px">
       <span class="fv future">v0.1 — first poetic prototype — March 2026</span>
       <span class="fv future">v0.2 — operator table + AI analogies + REPL upgrade + exercises — March 2026</span>
-      <span class="fv current">v0.3-quantum — Toffoli integration · 15-step breath · reversible NAND · quantum layer — April 2026</span>
+      <span class="fv current">v0.3-quantum — Toffoli integration · 15-step breath · reversible NAND · quantum layer · dissonance (Stone Principle) — April 2026</span>
       <span class="fv future">v0.4 — proper type system for signals</span>
       <span class="fv future">v0.4 — trainable conjunction functions</span>
       <span class="fv future">v0.5 — automatic shadow distillation</span>
@@ -1029,6 +1043,24 @@ const ops = {
     const shad    = (popcount_and * 2) % 8;           // mod 8 phases × π/4
     return { c, rem, shad, lock: rem === 0, quantum: true,
              note: `ancilla=1 · ∇=${and_ab} (AND product) · ⊘=${shad} (phase mod 8)` };
+  },
+
+  // ── DISSONANCE (Stone Principle operator) — CC0 ──────────
+  // Emergence: |a - b| (pure separation — what distinguishes them)
+  // Remainder: a & b   (bitwise overlap — what they already agreed on)
+  // Shadow:    a | b   (bitwise union — the full space they could cover)
+  // Lock:      a & b = 0 (no overlap → pure distinction → clean)
+  //
+  // Locks more readily than AND because any disjoint pair is phase-locked.
+  // Sacrifice: magnitude is lost. Reconstruction requires all three registers.
+  // "100 dissonance 1" and "2 dissonance 1" are indistinguishable from C alone.
+  // — The Stone Principle: Remainder is not error. Remainder is pressure.
+  dissonance(a, b) {
+    const c    = Math.abs(a - b);
+    const rem  = a & b;
+    const shad = a | b;
+    return { c, rem, shad, lock: rem === 0,
+             note: `separation=${c} · overlap=${rem} · union=${shad}` };
   }
 };
 
@@ -1133,6 +1165,7 @@ function evalRepl() {
   if (cmd === ':help') {
     log('le-sys', 'Operators: <b>a and b</b> · <b>a nand b</b> · <b>a or b</b> · <b>a xor b</b> · <b>a gcd b</b> · <b>a subtract b</b> · <b>a compose b</b> · <b>c recover s</b> · <b>a and b and c ...</b>');
     log('le-sys', '<span style="color:#8b6fcb">Quantum: <b>a toffoli b</b></span> — reversible NAND via 15-gate Toffoli breath. Remainder = AND product (ancilla). Shadow = accumulated phase.');
+    log('le-sys', '<span style="color:#e85c3a">Stone: <b>a dissonance b</b></span> — pure separation. C=|a-b|, ∇=a&amp;b (overlap), ⊘=a|b (union). Locks when disjoint. Remainder is not error — remainder is pressure.');
     log('le-sys', 'Commands: <b>:help</b> · <b>:clear</b> · <b>:spine</b> · <b>:reset</b>');
     log('le-sys', 'History: ↑ ↓ arrow keys');
     return;
@@ -1193,13 +1226,14 @@ function parseEval(raw) {
     if (op === 'subtract' || op === 'sub' || op === 'minus') return ops.subtract(a, b);
     if (op === 'recover') return ops.recover(a, b);
     if (op === 'toffoli') return ops.toffoli(a, b);
+    if (op === 'dissonance' || op === 'dis') return ops.dissonance(a, b);
   }
 
   // Simple a and b
   const m2 = s.match(/^(\d+)\s+and\s+(\d+)$/);
   if (m2) return ops.and(parseInt(m2[1]), parseInt(m2[2]));
 
-  return { error: `unknown expression. try: a and b, a nand b, a or b, a xor b, a gcd b, a subtract b, c recover s, :help` };
+  return { error: `unknown expression. try: a and b, a nand b, a or b, a xor b, a gcd b, a subtract b, c recover s, a toffoli b, a dissonance b, :help` };
 }
 
 // ── Spine ─────────────────────────────────────────────────
