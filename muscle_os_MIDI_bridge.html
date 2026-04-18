@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muscle OS — Somatic Synthesizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Libre+Baskerville:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07070c;
+  --s1:#0e0e16;
+  --s2:#15151f;
+  --s3:#1e1e2a;
+  --b1:rgba(255,255,255,0.05);
+  --b2:rgba(255,255,255,0.10);
+  --b3:rgba(255,255,255,0.18);
+  --t1:#dedad2;
+  --t2:#7a786f;
+  --t3:#3e3d38;
+  --blu:#4a7fff;
+  --amb:#e8a030;
+  --pur:#7a5fc0;
+  --tel:#38d8bc;
+  --grn:#4deba8;
+  --red:#e04040;
+  --mono:'IBM Plex Mono',monospace;
+  --serif:'Libre Baskerville',serif;
+}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--t1);font-family:var(--mono);overflow-x:hidden}
+
+/* HEADER */
+.header{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:28px 32px 20px;
+  border-bottom:1px solid var(--b1);
+}
+.header-left h1{
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  letter-spacing:0.22em;text-transform:uppercase;color:var(--t1);margin-bottom:6px;
+}
+.header-left .sub{
+  font-family:var(--serif);font-style:italic;font-size:13px;
+  color:var(--t2);letter-spacing:0.01em;
+}
+.cc0{
+  font-size:9px;letter-spacing:0.1em;color:var(--t3);
+  border:1px solid var(--b1);padding:4px 10px;border-radius:2px;
+}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:1fr 320px;min-height:calc(100vh - 80px)}
+
+/* CANVAS ZONE */
+.canvas-zone{
+  padding:28px;display:flex;flex-direction:column;gap:20px;
+  border-right:1px solid var(--b1);
+}
+canvas#vis{
+  width:100%;height:360px;display:block;
+  border:1px solid var(--b1);border-radius:4px;
+  background:var(--bg);
+}
+
+/* WORD INPUT AREA */
+.input-zone{display:flex;gap:0;border:1px solid var(--b2);border-radius:3px;overflow:hidden}
+.word-input{
+  flex:1;background:var(--s1);border:none;outline:none;
+  color:var(--t1);font-family:var(--mono);font-size:14px;font-weight:300;
+  padding:12px 16px;letter-spacing:0.05em;
+}
+.word-input::placeholder{color:var(--t3)}
+.play-btn{
+  background:var(--s2);border:none;border-left:1px solid var(--b2);
+  color:var(--t2);font-family:var(--mono);font-size:11px;
+  letter-spacing:0.12em;padding:0 20px;cursor:pointer;
+  text-transform:uppercase;transition:all 0.12s;
+}
+.play-btn:hover{background:rgba(77,235,168,0.08);color:var(--grn)}
+
+/* WORD PAIR COMPARISON */
+.compare-zone{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:0;
+  border:1px solid var(--b1);border-radius:3px;overflow:hidden;
+  background:var(--s1);
+}
+.pair-input{
+  background:transparent;border:none;outline:none;
+  color:var(--t1);font-family:var(--mono);font-size:12px;
+  padding:10px 14px;letter-spacing:0.04em;width:100%;
+}
+.pair-input::placeholder{color:var(--t3)}
+.pair-div{
+  display:flex;align-items:center;padding:0 12px;
+  border-left:1px solid var(--b1);border-right:1px solid var(--b1);
+  color:var(--t3);font-size:11px;
+}
+.compare-btn{
+  grid-column:1/-1;border:none;border-top:1px solid var(--b1);
+  background:var(--s2);color:var(--t3);font-family:var(--mono);
+  font-size:10px;letter-spacing:0.12em;padding:7px;cursor:pointer;
+  text-transform:uppercase;transition:all 0.12s;text-align:center;
+}
+.compare-btn:hover{color:var(--amb);background:rgba(232,160,48,0.06)}
+
+/* DISSONANCE DISPLAY */
+.dissonance-bar{
+  height:3px;background:var(--s3);border-radius:2px;overflow:hidden;
+  position:relative;
+}
+.dissonance-fill{
+  height:100%;border-radius:2px;transition:width 0.3s ease;
+  background:linear-gradient(90deg,var(--tel),var(--amb),var(--red));
+}
+.diss-label{
+  display:flex;justify-content:space-between;align-items:baseline;
+  margin-top:5px;
+}
+.diss-word{font-size:10px;color:var(--t3)}
+.diss-score{font-size:11px;color:var(--t1)}
+
+/* QUICK WORDS */
+.quick-words{display:flex;gap:6px;flex-wrap:wrap}
+.qw{
+  font-size:10px;padding:4px 9px;border-radius:2px;
+  border:1px solid var(--b1);color:var(--t3);
+  cursor:pointer;transition:all 0.12s;letter-spacing:0.04em;
+  background:var(--s1);
+}
+.qw:hover{border-color:var(--pur);color:var(--pur)}
+.qw.lit{border-color:var(--grn);color:var(--grn);background:rgba(77,235,168,0.06)}
+
+/* SIDEBAR */
+.sidebar{padding:24px 20px;display:flex;flex-direction:column;gap:18px;overflow-y:auto}
+
+.panel{
+  background:var(--s1);border:1px solid var(--b1);border-radius:4px;
+  padding:14px 16px;
+}
+.panel-label{
+  font-size:9px;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--t3);margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid var(--b1);
+}
+
+/* REGISTER TRIO */
+.reg-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.reg{
+  background:var(--s2);border:1px solid var(--b1);border-radius:3px;
+  padding:8px 6px;text-align:center;
+}
+.reg-sym{font-size:15px;font-weight:500;margin-bottom:2px}
+.reg-sym.c{color:var(--blu)}
+.reg-sym.d{color:var(--amb)}
+.reg-sym.s{color:var(--pur)}
+.reg-val{font-size:16px;font-weight:500;color:var(--t1)}
+.reg-lbl{font-size:8px;color:var(--t3);letter-spacing:0.08em;margin-top:1px}
+.lock-line{
+  font-size:10px;letter-spacing:0.06em;text-align:center;
+  padding:5px;border-radius:2px;background:var(--s2);
+}
+.lock-line.locked{color:var(--amb)}
+.lock-line.open{color:var(--t3)}
+
+/* GESTURE METERS */
+.gesture-rows{display:flex;flex-direction:column;gap:8px}
+.g-row{display:flex;align-items:center;gap:10px}
+.g-name{font-size:10px;color:var(--t2);min-width:64px;letter-spacing:0.06em}
+.g-bar-wrap{flex:1;height:3px;background:var(--s3);border-radius:2px;overflow:hidden}
+.g-bar{height:100%;border-radius:2px;transition:width 0.08s}
+.g-bar.cont{background:var(--blu)}
+.g-bar.twst{background:var(--amb)}
+.g-bar.forc{background:var(--grn)}
+.g-val{font-size:11px;color:var(--t1);min-width:38px;text-align:right}
+
+/* BREATH CYCLE */
+.breath-nodes{display:flex;gap:4px;margin-bottom:6px}
+.bnode{
+  flex:1;text-align:center;padding:6px 2px;border-radius:3px;
+  font-size:9px;letter-spacing:0.05em;text-transform:uppercase;
+  border:1px solid var(--b1);color:var(--t3);background:var(--s2);
+  transition:all 0.2s;
+}
+.bnode.active{border-color:var(--tel);color:var(--tel);background:rgba(56,216,188,0.1)}
+
+/* CONTROLS */
+.ctrl-row{display:flex;gap:5px;flex-wrap:wrap}
+.ctrl-btn{
+  font-size:10px;padding:5px 10px;border-radius:2px;
+  border:1px solid var(--b1);color:var(--t3);
+  cursor:pointer;background:var(--s2);letter-spacing:0.06em;
+  transition:all 0.12s;
+}
+.ctrl-btn:hover{border-color:var(--b2);color:var(--t2)}
+.ctrl-btn.active{border-color:var(--tel);color:var(--tel);background:rgba(56,216,188,0.08)}
+.ctrl-btn.active-grn{border-color:var(--grn);color:var(--grn);background:rgba(77,235,168,0.08)}
+
+/* NOTE DISPLAY */
+.note-out{
+  font-size:22px;font-weight:500;color:var(--t1);letter-spacing:0.04em;
+  margin-bottom:2px;
+}
+.freq-out{font-size:10px;color:var(--t3);letter-spacing:0.08em}
+
+/* BREATH PHASE DISPLAY */
+.phase-word{
+  font-family:var(--serif);font-style:italic;
+  font-size:13px;color:var(--t2);letter-spacing:0.02em;
+}
+
+/* FORMULA DISPLAY */
+.formula{
+  font-size:10px;color:var(--t3);letter-spacing:0.04em;line-height:1.8;
+  border-left:2px solid var(--b2);padding-left:10px;
+}
+
+/* STATUS */
+.status-row{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 32px;border-top:1px solid var(--b1);
+  font-size:10px;color:var(--t3);letter-spacing:0.08em;
+}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--t3)}
+.dot.on{background:var(--grn)}
+
+/* ABOUT */
+.about{
+  font-family:var(--serif);font-size:12px;color:var(--t3);
+  line-height:1.8;font-style:italic;
+}
+
+@media(max-width:700px){
+  .main{grid-template-columns:1fr}
+  .sidebar{border-top:1px solid var(--b1)}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Muscle OS — Somatic Synthesizer</h1>
+    <div class="sub">words breathe. fascia sings. remainder routes.</div>
+  </div>
+  <div class="cc0">CC0 · Stone · 2025</div>
+</div>
+
+<div class="main">
+
+  <!-- CANVAS ZONE -->
+  <div class="canvas-zone">
+    <canvas id="vis"></canvas>
+
+    <div class="input-zone">
+      <input class="word-input" id="word-in" placeholder="feed a word to the fascia…" maxlength="64" autocomplete="off" spellcheck="false"/>
+      <button class="play-btn" id="play-btn">▶ sound</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:9px;letter-spacing:0.12em;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Dissonance — word pair interference</div>
+      <div class="compare-zone">
+        <input class="pair-input" id="pair-a" placeholder="word A" autocomplete="off" spellcheck="false"/>
+        <div class="pair-div">⊗</div>
+        <input class="pair-input" id="pair-b" placeholder="word B" autocomplete="off" spellcheck="false"/>
+        <button class="compare-btn" id="compare-btn">compute interference</button>
+      </div>
+      <div class="dissonance-bar"><div class="dissonance-fill" id="diss-fill" style="width:0%"></div></div>
+      <div class="diss-label">
+        <span class="diss-word" id="diss-words">—</span>
+        <span class="diss-score" id="diss-score"></span>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:9px;letter-spacing:0.12em;color:var(--t3);text-transform:uppercase;margin-bottom:8px">Vocabulary seeds</div>
+      <div class="quick-words" id="quick-words"></div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="panel">
+      <div class="panel-label">Signal output</div>
+      <div class="note-out" id="note-out">—</div>
+      <div class="freq-out" id="freq-out">await input</div>
+      <div style="margin-top:10px" class="phase-word" id="phase-word">inhale</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Emergence · Remainder · Shadow</div>
+      <div class="reg-trio">
+        <div class="reg">
+          <div class="reg-sym c">∧</div>
+          <div class="reg-val" id="reg-c">—</div>
+          <div class="reg-lbl">emerge</div>
+        </div>
+        <div class="reg">
+          <div class="reg-sym d">∇</div>
+          <div class="reg-val" id="reg-d">—</div>
+          <div class="reg-lbl">remain</div>
+        </div>
+        <div class="reg">
+          <div class="reg-sym s">⊘</div>
+          <div class="reg-val" id="reg-s">—</div>
+          <div class="reg-lbl">shadow</div>
+        </div>
+      </div>
+      <div class="lock-line open" id="lock-line">∇ ≠ 0 — open</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Gesture field</div>
+      <div class="gesture-rows">
+        <div class="g-row">
+          <span class="g-name">contract</span>
+          <div class="g-bar-wrap"><div class="g-bar cont" id="b-cont" style="width:50%"></div></div>
+          <span class="g-val" id="v-cont">—</span>
+        </div>
+        <div class="g-row">
+          <span class="g-name">twist</span>
+          <div class="g-bar-wrap"><div class="g-bar twst" id="b-twst" style="width:50%"></div></div>
+          <span class="g-val" id="v-twst">—</span>
+        </div>
+        <div class="g-row">
+          <span class="g-name">force</span>
+          <div class="g-bar-wrap"><div class="g-bar forc" id="b-forc" style="width:50%"></div></div>
+          <span class="g-val" id="v-forc">—</span>
+        </div>
+      </div>
+      <div style="margin-top:10px" class="formula">
+        contract → pitch + cutoff<br>
+        twist → stereo pan<br>
+        force → velocity + octave
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Breath phase</div>
+      <div class="breath-nodes" id="breath-nodes">
+        <div class="bnode active" data-ph="inhale">inhale</div>
+        <div class="bnode" data-ph="hold">hold</div>
+        <div class="bnode" data-ph="exhale">exhale</div>
+        <div class="bnode" data-ph="flip8">flip8</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Voice</div>
+      <div class="ctrl-row" id="voice-btns">
+        <button class="ctrl-btn active" data-v="sine">sine</button>
+        <button class="ctrl-btn" data-v="triangle">triangle</button>
+        <button class="ctrl-btn" data-v="sawtooth">sawtooth</button>
+        <button class="ctrl-btn" data-v="square">square</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Scale</div>
+      <div class="ctrl-row" id="scale-btns">
+        <button class="ctrl-btn active" data-s="pentatonic">penta</button>
+        <button class="ctrl-btn" data-s="minor">minor</button>
+        <button class="ctrl-btn" data-s="whole">whole</button>
+        <button class="ctrl-btn" data-s="chromatic">chroma</button>
+        <button class="ctrl-btn" data-s="overtone">overtone</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Sequence</div>
+      <div class="ctrl-row">
+        <button class="ctrl-btn" id="loop-btn">⟳ loop word</button>
+        <button class="ctrl-btn" id="drift-btn">~ drift phases</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">About</div>
+      <div class="about">
+        Each word is hashed through a four-phase breath cycle — inhale, hold, exhale, flip8 — producing three registers: Emergence (∧), Remainder (∇), Shadow (⊘).<br><br>
+        Remainder routes forward. Nothing is erased.
+        The gesture field — Contract, Twist, Force — drives synthesis directly. The instrument has no memory between words. It only knows now.<br><br>
+        Stone's Law: 0 ≠ 1. The boundary holds.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="status-row">
+  <div class="dot" id="audio-dot"></div>
+  <span id="audio-status">click to initialize audio</span>
+  <span style="margin-left:auto;font-size:9px">Muscle OS · OhAI~ · CC0 Public Domain</span>
+</div>
+
+<script>
+const canvas = document.getElementById('vis');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const W = () => canvas.getBoundingClientRect().width;
+const H = () => canvas.getBoundingClientRect().height;
+
+// ─── CORE ENGINE ────────────────────────────────────────────────────
+
+function ste(word) {
+  if (!word) return {c:0,d:0,s:0};
+  // Multi-pass hash for better differentiation of short words
+  let h1 = 0x811c9dc5, h2 = 0x1000193, h3 = 0xcbf29ce4;
+  for (let i = 0; i < word.length; i++) {
+    const ch = word.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 0x01000193) >>> 0;
+    h2 = Math.imul((h2 << 5) ^ ch, 0x27d4eb2f) >>> 0;
+    h3 = Math.imul(h3 ^ (ch * 0x9e3779b9), 0x85ebca6b) >>> 0;
+    // positional weighting
+    h1 = (h1 ^ (i * 0x1b873593)) >>> 0;
+  }
+  // Length-aware mixing
+  h1 = (h1 ^ word.length * 0x5bd1e995) >>> 0;
+  h2 = (h2 ^ (h1 >>> 16)) >>> 0;
+  h3 = (h3 ^ (h2 >>> 8)) >>> 0;
+  return {
+    c: h1 & 0xFF,
+    d: h2 & 0xFF,
+    s: h3 & 0xFF
+  };
+}
+
+function gcd(a,b){while(b){const t=b;b=a%b;a=t;}return a||1;}
+
+function runOp(op, a, b) {
+  switch(op) {
+    case 'inhale':  return {c:(a|b)&0xFF, d:(a&b)&0xFF, s:((a^b).toString(2).match(/1/g)||[]).length};
+    case 'hold':    return {c:a&0xFF,      d:Math.abs(a-b)&0xFF, s:gcd(a,b||1)};
+    case 'exhale':  return {c:Math.abs(a-b)&0xFF, d:Math.min(a,b), s:(a+b)&0xFF};
+    case 'flip8':   return {c:(~a)&0xFF,   d:b&0xFF, s:(a^b)&0xFF};
+    default:        return {c:a,d:b,s:0};
+  }
+}
+
+function processWord(word) {
+  const hash = ste(word);
+  let a = hash.c, b = hash.d;
+  const ops = ['inhale','hold','exhale','flip8'];
+  const trail = [];
+  for (let i = 0; i < 4; i++) {
+    const r = runOp(ops[i], a, b);
+    trail.push({op:ops[i], c:r.c, d:r.d, s:r.s});
+    a = r.c; b = r.d;
+  }
+  // Phase derivation — use all three registers for richer differentiation
+  const base = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
+  const phases = base.map((p,i) => {
+    const offset = ((i===0?a : i===1?b : i===2?hash.s : a^b) / 255) * Math.PI * 2;
+    return (p + offset) % (Math.PI*2);
+  });
+  const contract = (Math.sin(phases[0])+Math.sin(phases[1])+Math.sin(phases[2])+Math.sin(phases[3]))/4;
+  const twist    = (Math.sin(phases[0]+phases[1])-Math.sin(phases[2]+phases[3]))/2;
+  const force    = (Math.sin(phases[0]*phases[2]/Math.PI)+Math.sin(phases[1]*phases[3]/Math.PI))/2;
+  return {contract, twist, force, regC:a, regD:b, regS:hash.c^hash.d, phases, trail, hash};
+}
+
+function dissonance(wA, wB) {
+  const A = processWord(wA), B = processWord(wB);
+  // Interference: XOR of hash + gesture delta
+  const hashDiff = (A.hash.c ^ B.hash.c) + (A.hash.d ^ B.hash.d) + (A.hash.s ^ B.hash.s);
+  const gestDiff = Math.abs(A.contract-B.contract) + Math.abs(A.twist-B.twist) + Math.abs(A.force-B.force);
+  const raw = (hashDiff / (255*3) * 0.6) + (gestDiff / 6 * 0.4);
+  return Math.min(1, raw);
+}
+
+// ─── AUDIO ENGINE ───────────────────────────────────────────────────
+
+let audioCtx=null, masterGain=null, filterNode=null, pannerNode=null;
+let looping=false, drifting=false, loopTimer=null, driftTimer=null;
+let currentVoice='sine', currentScale='pentatonic';
+
+const SCALES = {
+  pentatonic: [0,2,4,7,9,12,14,16,19,21,24],
+  minor:      [0,2,3,5,7,8,10,12,14,15,17],
+  whole:      [0,2,4,6,8,10,12,14,16,18],
+  chromatic:  [0,1,2,3,4,5,6,7,8,9,10,11,12],
+  overtone:   [0,2,4,6,7,9,10,12,14]
+};
+
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function midiToName(m){return NOTE_NAMES[m%12]+Math.floor(m/12-1);}
+function midiToFreq(m){return 440*Math.pow(2,(m-69)/12);}
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.35;
+  filterNode = audioCtx.createBiquadFilter();
+  filterNode.type = 'lowpass';
+  filterNode.frequency.value = 1800;
+  filterNode.Q.value = 1.8;
+  pannerNode = audioCtx.createStereoPanner();
+  filterNode.connect(pannerNode);
+  pannerNode.connect(masterGain);
+  masterGain.connect(audioCtx.destination);
+  document.getElementById('audio-dot').classList.add('on');
+  document.getElementById('audio-status').textContent = 'audio active';
+}
+
+function playGestures(g, word) {
+  if (!audioCtx) return;
+  const scale = SCALES[currentScale];
+  // Map contract (−1…1) → scale index
+  const idx = Math.floor(((g.contract+1)/2) * (scale.length-1));
+  const semitone = scale[Math.max(0, Math.min(scale.length-1, idx))];
+  // Force pushes up an octave when strong
+  const octave = (g.force > 0.35) ? 12 : (g.force < -0.35) ? -12 : 0;
+  const root = 48 + octave;
+  const midi = root + semitone;
+  const freq = midiToFreq(midi);
+
+  // Smooth filter + pan
+  filterNode.frequency.setTargetAtTime(400 + ((g.contract+1)/2)*4000, audioCtx.currentTime, 0.04);
+  pannerNode.pan.setTargetAtTime(Math.max(-1,Math.min(1, g.twist)), audioCtx.currentTime, 0.04);
+
+  const vel = 0.25 + Math.abs(g.force)*0.55;
+  const dur = 0.35 + Math.abs(g.contract)*0.7;
+  const atk = 0.015 + Math.abs(g.twist)*0.04;
+
+  const osc = audioCtx.createOscillator();
+  const env = audioCtx.createGain();
+  osc.type = currentVoice;
+  osc.frequency.value = freq;
+
+  // Slight detune from shadow register
+  osc.detune.value = ((g.regS || 0) - 128) * 0.3;
+
+  env.gain.setValueAtTime(0, audioCtx.currentTime);
+  env.gain.linearRampToValueAtTime(vel, audioCtx.currentTime + atk);
+  env.gain.exponentialRampToValueAtTime(vel * 0.5, audioCtx.currentTime + dur * 0.4);
+  env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+
+  osc.connect(env);
+  env.connect(filterNode);
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + dur + 0.05);
+
+  document.getElementById('note-out').textContent = midiToName(midi);
+  document.getElementById('freq-out').textContent = freq.toFixed(2) + ' hz  ·  vel ' + vel.toFixed(2);
+
+  return {midi, freq, dur};
+}
+
+// ─── VISUAL ENGINE ───────────────────────────────────────────────────
+
+let vis = {
+  word:'', contract:0, twist:0, force:0,
+  phases:[0,1.57,3.14,4.71], regC:0, regD:0, regS:0,
+  t:0, targets:{contract:0,twist:0,force:0,phases:[0,1.57,3.14,4.71]},
+  driftOffset:[0,0,0,0]
+};
+
+const COLORS = ['#4a7fff','#38d8bc','#e8a030','#7a5fc0'];
+
+function lerp(a,b,t){return a+(b-a)*t}
+
+function drawFrame() {
+  const w = W(), h = H();
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#07070c';
+  ctx.fillRect(0,0,w,h);
+
+  // Smooth approach to targets
+  const spd = 0.06;
+  vis.contract = lerp(vis.contract, vis.targets.contract, spd);
+  vis.twist    = lerp(vis.twist,    vis.targets.twist,    spd);
+  vis.force    = lerp(vis.force,    vis.targets.force,    spd);
+  for(let i=0;i<4;i++) vis.phases[i] = lerp(vis.phases[i], vis.targets.phases[i] + vis.driftOffset[i], spd);
+
+  vis.t++;
+
+  const cx = w/2, cy = h/2;
+  const maxR = Math.min(w,h)*0.42;
+  const rr = [1, 0.78, 0.58, 0.4].map(f=>maxR*f);
+
+  // Grid lines — subtle
+  ctx.strokeStyle = 'rgba(255,255,255,0.015)';
+  ctx.lineWidth = 1;
+  for(let i=1;i<=4;i++){
+    ctx.beginPath();
+    ctx.arc(cx,cy,maxR*(i/4),0,Math.PI*2);
+    ctx.stroke();
+  }
+  // Cross hairs
+  ctx.beginPath();ctx.moveTo(cx-maxR,cy);ctx.lineTo(cx+maxR,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,cy-maxR);ctx.lineTo(cx,cy+maxR);ctx.stroke();
+
+  // Phase rings + points + spokes
+  for(let i=3;i>=0;i--){
+    const r = rr[i];
+    const ph = vis.phases[i];
+    const px = cx + Math.cos(ph)*r*0.92;
+    const py = cy + Math.sin(ph)*r*0.92;
+    const col = COLORS[i];
+
+    // Ring
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle = col+'28';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Spoke
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.lineTo(px,py);
+    ctx.strokeStyle = col+'55';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Point
+    const pr = i===0?9:7;
+    ctx.beginPath();
+    ctx.arc(px,py,pr,0,Math.PI*2);
+    ctx.fillStyle = col+'33';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px,py,pr*0.5,0,Math.PI*2);
+    ctx.fillStyle = col;
+    ctx.fill();
+
+    // L label
+    ctx.font = '9px IBM Plex Mono';
+    ctx.fillStyle = col+'88';
+    ctx.textAlign = 'center';
+    ctx.fillText('L'+(i+1), cx, cy-r-6);
+  }
+
+  // Gesture output node
+  const ox = cx + vis.twist * maxR * 0.55;
+  const oy = cy + vis.contract * maxR * 0.55;
+  const mag = Math.abs(vis.force);
+
+  // Pulse ring
+  const pulse = (Math.sin(vis.t * 0.05) + 1) / 2;
+  ctx.beginPath();
+  ctx.arc(ox,oy, 14 + mag*24 + pulse*6, 0, Math.PI*2);
+  ctx.fillStyle = `rgba(77,235,168,${0.04 + mag*0.08})`;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(ox,oy, 8 + mag*12, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(77,235,168,0.12)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(ox,oy, 5, 0, Math.PI*2);
+  ctx.fillStyle = '#4deba8';
+  ctx.fill();
+
+  // Connection lines from each phase point to gesture node
+  for(let i=0;i<4;i++){
+    const r = rr[i];
+    const ph = vis.phases[i];
+    const px = cx + Math.cos(ph)*r*0.92;
+    const py = cy + Math.sin(ph)*r*0.92;
+    ctx.beginPath();
+    ctx.moveTo(px,py);
+    ctx.lineTo(ox,oy);
+    ctx.strokeStyle = COLORS[i]+'18';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
+
+  // Word label
+  if (vis.word) {
+    ctx.font = '12px IBM Plex Mono';
+    ctx.fillStyle = '#3e3d38';
+    ctx.textAlign = 'center';
+    ctx.fillText(vis.word, cx, h-18);
+    // hash signature
+    ctx.font = '9px IBM Plex Mono';
+    ctx.fillStyle = '#2a2928';
+    ctx.fillText(`∧${vis.regC} ∇${vis.regD} ⊘${vis.regS}`, cx, h-6);
+  }
+
+  // Drift
+  if(drifting){
+    for(let i=0;i<4;i++) vis.driftOffset[i] += 0.004*(i%2===0?1:-1);
+  }
+
+  requestAnimationFrame(drawFrame);
+}
+
+// ─── UI UPDATES ─────────────────────────────────────────────────────
+
+const BREATH_LABELS = {inhale:'inhale — gather',hold:'hold — crystallize',exhale:'exhale — release',flip8:'flip8 — invert'};
+
+function updateUI(g, word) {
+  vis.targets = {contract:g.contract, twist:g.twist, force:g.force, phases:[...g.phases]};
+  vis.word = word;
+  vis.regC = g.regC; vis.regD = g.regD; vis.regS = g.regS;
+
+  document.getElementById('reg-c').textContent = g.regC;
+  document.getElementById('reg-d').textContent = g.regD;
+  document.getElementById('reg-s').textContent = g.regS;
+
+  const ll = document.getElementById('lock-line');
+  if(g.regD === 0){ll.textContent='∇ = 0 — locked';ll.className='lock-line locked';}
+  else{ll.textContent='∇ ≠ 0 — open';ll.className='lock-line open';}
+
+  document.getElementById('v-cont').textContent = g.contract.toFixed(3);
+  document.getElementById('v-twst').textContent = g.twist.toFixed(3);
+  document.getElementById('v-forc').textContent = g.force.toFixed(3);
+  document.getElementById('b-cont').style.width = ((g.contract+1)/2*100)+'%';
+  document.getElementById('b-twst').style.width = ((g.twist+1)/2*100)+'%';
+  document.getElementById('b-forc').style.width = ((g.force+1)/2*100)+'%';
+
+  // Breath cycle animation through trail
+  const ops = g.trail.map(t=>t.op);
+  let bi = 0;
+  const breathStep = () => {
+    document.querySelectorAll('.bnode').forEach(n=>{
+      n.classList.toggle('active', n.dataset.ph===ops[bi]);
+    });
+    const pw = document.getElementById('phase-word');
+    pw.textContent = BREATH_LABELS[ops[bi]] || ops[bi];
+    bi++;
+    if(bi<ops.length) setTimeout(breathStep, 180);
+    else {
+      setTimeout(()=>{
+        document.querySelectorAll('.bnode').forEach((n,i)=>n.classList.toggle('active',i===0));
+        document.getElementById('phase-word').textContent='inhale';
+      },600);
+    }
+  };
+  breathStep();
+}
+
+function playWord(word) {
+  if(!word) return;
+  initAudio();
+  const g = processWord(word);
+  updateUI(g, word);
+  playGestures(g, word);
+  // Light quick words that have been played
+  document.querySelectorAll('.qw').forEach(q=>{q.classList.toggle('lit', q.textContent===word);});
+}
+
+// ─── EVENT WIRING ───────────────────────────────────────────────────
+
+document.getElementById('play-btn').addEventListener('click',()=>{
+  const w = document.getElementById('word-in').value.trim();
+  if(w) playWord(w);
+});
+document.getElementById('word-in').addEventListener('keypress',e=>{
+  if(e.key==='Enter') document.getElementById('play-btn').click();
+});
+
+// Compare
+document.getElementById('compare-btn').addEventListener('click',()=>{
+  const a = document.getElementById('pair-a').value.trim();
+  const b = document.getElementById('pair-b').value.trim();
+  if(!a||!b) return;
+  const d = dissonance(a,b);
+  document.getElementById('diss-fill').style.width = (d*100)+'%';
+  document.getElementById('diss-words').textContent = a + ' ⊗ ' + b;
+  const label = d < 0.2 ? 'resonant' : d < 0.45 ? 'adjacent' : d < 0.7 ? 'dissonant' : 'orthogonal';
+  document.getElementById('diss-score').textContent = d.toFixed(3) + ' — ' + label;
+  initAudio();
+  // Play both with offset
+  const gA = processWord(a), gB = processWord(b);
+  updateUI(gA, a+' ⊗ '+b);
+  playGestures(gA, a);
+  setTimeout(()=>playGestures(gB, b), 400);
+});
+
+// Voice
+document.getElementById('voice-btns').addEventListener('click',e=>{
+  const btn = e.target.closest('.ctrl-btn');
+  if(!btn) return;
+  document.querySelectorAll('#voice-btns .ctrl-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentVoice = btn.dataset.v;
+});
+
+// Scale
+document.getElementById('scale-btns').addEventListener('click',e=>{
+  const btn = e.target.closest('.ctrl-btn');
+  if(!btn) return;
+  document.querySelectorAll('#scale-btns .ctrl-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentScale = btn.dataset.s;
+});
+
+// Loop
+const loopBtn = document.getElementById('loop-btn');
+loopBtn.addEventListener('click',()=>{
+  looping=!looping;
+  loopBtn.classList.toggle('active-grn',looping);
+  loopBtn.textContent=looping?'◼ stop':'⟳ loop word';
+  if(looping){
+    const go=()=>{
+      const w=document.getElementById('word-in').value.trim();
+      if(w&&looping){playWord(w);loopTimer=setTimeout(go,700+Math.random()*800);}
+      else{looping=false;loopBtn.classList.remove('active-grn');loopBtn.textContent='⟳ loop word';}
+    };go();
+  }else clearTimeout(loopTimer);
+});
+
+// Drift
+const driftBtn = document.getElementById('drift-btn');
+driftBtn.addEventListener('click',()=>{
+  drifting=!drifting;
+  driftBtn.classList.toggle('active-grn',drifting);
+  if(!drifting) vis.driftOffset=[0,0,0,0];
+});
+
+// Quick words
+const SEEDS = ['stone','breath','NAND','remainder','fascia','exhale','force','signal',
+               'void','twist','lock','carry','zero','one','inhale','shadow','water','fire',
+               'gate','spine','spore','edge','flip'];
+const qwEl = document.getElementById('quick-words');
+SEEDS.forEach(w=>{
+  const el=document.createElement('div');
+  el.className='qw';el.textContent=w;
+  el.addEventListener('click',()=>{
+    document.getElementById('word-in').value=w;
+    playWord(w);
+  });
+  qwEl.appendChild(el);
+});
+
+// Init draw loop
+drawFrame();
+</script>
+</body>
+</html>
