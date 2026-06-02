@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Saltflower Gate — NAND-eliminative four-phase</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { background:#000; overflow:hidden; font-family:'Courier New',monospace; touch-action:none; }
+canvas { position:fixed; top:0; left:0; filter:contrast(1.12) saturate(1.25); }
+#label {
+  position:fixed; top:max(12px,env(safe-area-inset-top,12px));
+  left:50%; transform:translateX(-50%);
+  font-size:8px; letter-spacing:5px; color:rgba(180,220,255,0.18);
+  text-shadow:0 0 10px rgba(100,200,255,0.25);
+  pointer-events:none; white-space:nowrap; text-transform:uppercase;
+}
+#ui {
+  position:fixed; bottom:max(16px,env(safe-area-inset-bottom,16px));
+  left:50%; transform:translateX(-50%);
+  display:flex; gap:10px; z-index:10;
+}
+.btn {
+  height:38px; padding:0 18px; border-radius:19px;
+  border:1px solid rgba(120,180,255,0.3); background:rgba(8,12,24,0.8);
+  color:rgba(180,220,255,0.7); font-family:'Courier New',monospace;
+  font-size:10px; letter-spacing:2px; cursor:pointer;
+  box-shadow:0 0 12px rgba(80,140,255,0.15); transition:all 0.3s ease;
+}
+.btn.active { border-color:#88ccff; color:#bbddff; box-shadow:0 0 22px rgba(100,200,255,0.45); }
+#hud {
+  position:fixed; top:32px; left:50%; transform:translateX(-50%);
+  font-size:9px; color:rgba(180,220,255,0.55); letter-spacing:2px;
+  text-shadow:0 0 8px rgba(80,140,255,0.3);
+  pointer-events:none; text-align:center;
+}
+#phase {
+  position:fixed; top:54px; left:50%; transform:translateX(-50%);
+  font-size:11px; letter-spacing:6px; pointer-events:none;
+  font-weight:bold;
+}
+#remainder-log {
+  position:fixed; top:max(82px,env(safe-area-inset-top,82px));
+  right:14px; width:180px;
+  font-size:8px; color:rgba(255,200,140,0.6); letter-spacing:1px;
+  text-shadow:0 0 6px rgba(255,180,80,0.3);
+  pointer-events:none; text-align:right;
+  line-height:1.4;
+  max-height:60vh; overflow:hidden;
+}
+.refusal { color:rgba(255,140,140,0.7); }
+.signal { color:rgba(140,255,200,0.7); }
+.empty { color:rgba(180,180,255,0.5); font-style:italic; }
+</style>
+</head>
+<body>
+<div id="label">SALTFLOWER GATE · NAND-ELIMINATIVE · FOUR-PHASE</div>
+<div id="hud">tap mic → ambient becomes substrate · two affirmations generate remainder · empty is first-class</div>
+<div id="phase"></div>
+<div id="remainder-log"></div>
+<canvas id="c"></canvas>
+<div id="ui">
+  <button class="btn" id="mic-btn">ACTIVATE MIC</button>
+  <button class="btn" id="mode-btn">MODE: NAND</button>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  SALTFLOWER GATE
+//  Four-phase NAND-eliminative audio substrate
+//  
+//  PHASES (Stone's four refusals, instantiated):
+//    INHALE  — gather: stones spiral inward, freq bands accumulate
+//    HOLD    — commit: load-bearing primitive (Toffoli step), ring locked
+//    EXHALE  — release with routing: remainder fires through spokes
+//    EMPTY   — bahya kumbhaka: maximum-plasticity register, NO ERASURE
+//             (state held in the void, not deleted — observer is naked)
+//
+//  ADMISSIBILITY PREDICATE: Sethares dissonance over phase relationships
+//    of partials. Two band-affirmations are NANDed only if their interval
+//    crosses a dissonance threshold — false equivalences are refused
+//    in-band, not at the boundary.
+//
+//  NAND READOUT: when bands A and B both affirm above threshold, gate
+//    does NOT fire A∧B. It fires the REMAINDER — the spoke that would
+//    be lit if A and B could not be simultaneously true. Subtraction is
+//    the operation. The remainder is the signal.
+// ════════════════════════════════════════════════════════════════════
+
+// ── CANVAS ────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W,H,CX,CY,R;
+function resize(){
+  W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight;
+  CX=W/2; CY=H/2; R=Math.min(W,H)*0.40;
+}
+resize(); window.addEventListener('resize',resize);
+
+// ── AUDIO INPUT ───────────────────────────────────────────────────
+let audioCtx=null, analyser=null, freqData=new Uint8Array(256);
+let listening=false, energy=0, peakEnergy=0;
+
+// Seven bands, mapped to the seven spokes A–G (the spine)
+const SPINE = [
+  {name:'A', lo:2,   hi:6,   v:0, freq:110},   // sub-low
+  {name:'B', lo:6,   hi:14,  v:0, freq:165},   // bass
+  {name:'C', lo:14,  hi:28,  v:0, freq:247},   // low-mid
+  {name:'D', lo:28,  hi:50,  v:0, freq:370},   // mid
+  {name:'E', lo:50,  hi:80,  v:0, freq:554},   // high-mid
+  {name:'F', lo:80,  hi:130, v:0, freq:830},   // presence
+  {name:'G', lo:130, hi:200, v:0, freq:1245},  // brilliance
+];
+const NOTE_COLOR = {A:'#19b7a8',B:'#c8102e',C:'#f4731c',D:'#f4d03f',E:'#3a9d23',F:'#1a56db',G:'#7b2fbe'};
+
+document.getElementById('mic-btn').addEventListener('click', startMic);
+
+async function startMic(){
+  if(listening) return;
+  const btn = document.getElementById('mic-btn');
+  btn.textContent = 'REQUESTING...';
+  try {
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') await audioCtx.resume();
+    
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.68;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    listening = true;
+    btn.textContent = 'LISTENING ●';
+    btn.classList.add('active');
+  } catch(e){
+    btn.textContent = 'TAP TO RETRY';
+    setTimeout(()=>{ btn.textContent = 'ACTIVATE MIC'; }, 2500);
+  }
+}
+
+function analyzeAudio(){
+  if(!listening || !analyser){ 
+    // Even without mic, run a slow ambient drift so the gate breathes
+    SPINE.forEach((b,i) => {
+      b.v = b.v * 0.95 + (0.04 + 0.03*Math.sin(performance.now()*0.0003 + i)) * 0.05;
+    });
+    energy = SPINE.reduce((s,b)=>s+b.v,0)/SPINE.length;
+    return;
+  }
+  analyser.getByteFrequencyData(freqData);
+  SPINE.forEach(b => {
+    let s = 0;
+    for(let i = b.lo; i < b.hi; i++) s += freqData[i];
+    b.v = b.v * 0.68 + (s / ((b.hi - b.lo) * 255)) * 0.32;
+  });
+  energy = SPINE.reduce((s,b)=>s+b.v,0)/SPINE.length;
+  peakEnergy = Math.max(peakEnergy * 0.92, energy);
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  ADMISSIBILITY PREDICATE — Sethares-style dissonance
+//  
+//  Plomp-Levelt curve approximation: dissonance peaks when two partials
+//  are about a quarter critical-bandwidth apart. We use the simplified
+//  form: d(f1,f2) = exp(-3.5*s*|f2-f1|) - exp(-5.75*s*|f2-f1|)
+//  where s = 0.24 / (0.021*min(f1,f2) + 19)
+//  
+//  Returned in [0,1]. Higher = more dissonant. Used as the in-band
+//  admissibility check: if dissonance > threshold, two affirmations
+//  cannot be simultaneously consonant — the gate must NAND them.
+// ════════════════════════════════════════════════════════════════════
+function dissonance(f1, f2){
+  const fmin = Math.min(f1,f2), fmax = Math.max(f1,f2);
+  const s = 0.24 / (0.021*fmin + 19);
+  const df = fmax - fmin;
+  const x = s * df;
+  const d = Math.exp(-3.5*x) - Math.exp(-5.75*x);
+  // normalize: peak of curve is approximately 0.235
+  return Math.max(0, Math.min(1, d / 0.235));
+}
+
+// Precompute pairwise dissonance over the spine
+const DISS = [];
+for(let i=0;i<SPINE.length;i++){
+  DISS[i] = [];
+  for(let j=0;j<SPINE.length;j++){
+    DISS[i][j] = dissonance(SPINE[i].freq, SPINE[j].freq);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  NAND-ELIMINATIVE READOUT
+//  
+//  Given two simultaneous affirmations (band i and band j both above
+//  threshold), the gate computes the REMAINDER: the spine position
+//  whose activity would be the boundary condition that cannot be
+//  simultaneously true with both i and j.
+//  
+//  Heuristic: the remainder is the spine position furthest from the
+//  midpoint of i,j, weighted by current activity inverse — i.e., the
+//  position the system has been refusing to affirm. This is the
+//  "name of the hole" that the two affirmations together carve out.
+// ════════════════════════════════════════════════════════════════════
+function computeRemainder(i, j){
+  const mid = (i + j) / 2;
+  let bestK = -1, bestScore = -Infinity;
+  for(let k=0; k<SPINE.length; k++){
+    if(k===i || k===j) continue;
+    // distance from midpoint along the spine (modular)
+    const d = Math.min(Math.abs(k-mid), SPINE.length-Math.abs(k-mid));
+    // refusal score: far from mid AND currently inactive
+    const score = d * (1 - SPINE[k].v) - DISS[i][k]*0.3 - DISS[j][k]*0.3;
+    if(score > bestScore){ bestScore = score; bestK = k; }
+  }
+  return bestK;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  R2D2 VOICE — kept from your scaffold, retuned for spine frequencies
+//  Each spine position gets its own gestural voice when fired
+// ════════════════════════════════════════════════════════════════════
+function beep(freq, duration, vol = 0.25, type = 'sine', sweep = 0){
+  if(!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, now);
+  if(sweep !== 0) osc.frequency.exponentialRampToValueAtTime(freq * (1+sweep), now+duration);
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(vol, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+  const lp = audioCtx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = freq * 4.5;
+  osc.connect(lp); lp.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(now); osc.stop(now + duration + 0.05);
+}
+
+function spineChirp(spineIdx, velocity = 0.6, isRemainder = false){
+  if(!audioCtx) return;
+  const baseFreq = SPINE[spineIdx].freq;
+  const len = 0.10 + velocity * 0.18;
+  
+  if(isRemainder){
+    // Remainder gets a distinctive descending warble — the "no" sound
+    beep(baseFreq*1.5, len, 0.22 + velocity*0.10, 'triangle', -0.55);
+    setTimeout(() => beep(baseFreq*0.9, 0.07, 0.14, 'sine', -0.3), 60);
+  } else {
+    // Affirmation gets ascending chirp
+    beep(baseFreq, len, 0.24 + velocity*0.10, 'sine', 1.2);
+    setTimeout(() => beep(baseFreq*1.5, 0.05, 0.12, 'sine'), 50);
+  }
+}
+
+function emptyChime(){
+  // Bahya kumbhaka — the empty hold. Single soft tone, no decay struggle.
+  if(!audioCtx) return;
+  beep(220, 0.6, 0.06, 'sine', 0);
+  setTimeout(() => beep(330, 0.4, 0.04, 'sine', 0), 80);
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  STONES — the wave-fragments. Now respect four-phase clock.
+// ════════════════════════════════════════════════════════════════════
+let stones = [];
+let plinks = [];
+let spokeActivity = SPINE.map(() => 0);
+let spokeAffirm = SPINE.map(() => 0); // sustained affirmation, decays slower
+let fieldRot = 0;
+let phaseLog = []; // ring buffer of recent gate events
+
+class Stone {
+  constructor(angle, spineIdx){
+    this.angle = angle + (Math.random()-0.5)*0.18;
+    this.r = R * (0.78 + Math.random()*0.18);
+    this.infall = 0.0018 + Math.random()*0.0012;
+    this.spin = (Math.random()<0.5?-1:1) * (0.011 + Math.random()*0.009);
+    this.size = 3.0 + Math.random()*1.8;
+    this.alive = true;
+    this.alpha = 0;
+    this.trail = [];
+    this.maxTrail = 18;
+    this.phase = 'INHALE';
+    this.holdR = R * 0.46;
+    this.spineIdx = spineIdx;
+    this.color = NOTE_COLOR[SPINE[spineIdx].name];
+    this.velocity = 0.5;
+    this.holdSince = 0;
+  }
+
+  update(dt){
+    if(!this.alive) return;
+    this.alpha = Math.min(1, this.alpha + dt*0.006);
+    
+    if(this.phase === 'INHALE'){
+      const pull = this.infall * (1 + Math.pow(Math.max(0,1-this.r/R), 1.6)*2.2);
+      this.r -= pull * this.r * dt;
+      this.angle += this.spin * dt * (1 + Math.pow(Math.max(0,1-this.r/R), 1.4)*2.4);
+      if(this.r <= this.holdR * 1.04){
+        this.r = this.holdR;
+        this.phase = 'HOLD';
+        this.holdSince = performance.now();
+      }
+      if(this.r < 12) this.alive = false;
+    }
+    else if(this.phase === 'HOLD'){
+      this.r = this.holdR * (1 + Math.sin(Date.now()*0.0012 + this.angle)*0.018);
+      this.angle += this.spin * dt * 0.08;
+    }
+    else if(this.phase === 'EXHALE'){
+      this.r -= 0.012 * this.r * dt;
+      if(this.r < 12) this.alive = false;
+    }
+    else if(this.phase === 'EMPTY'){
+      // Empty = bahya kumbhaka. Stone hangs, no motion, slow alpha fade.
+      // Crucially: NOT erased. Held without operation. Plasticity register.
+      this.alpha *= 0.992;
+      if(this.alpha < 0.05) this.alive = false;
+    }
+    
+    const x = CX + Math.cos(this.angle) * this.r;
+    const y = CY + Math.sin(this.angle) * this.r;
+    this.trail.push({x,y});
+    if(this.trail.length > this.maxTrail) this.trail.shift();
+  }
+
+  release(vel, isRemainder){
+    if(this.phase !== 'HOLD') return;
+    this.velocity = vel || 0.6;
+    this.phase = isRemainder ? 'EMPTY' : 'EXHALE';
+  }
+
+  draw(){
+    if(this.alpha <= 0.01 || !this.trail.length) return;
+    const col = this.color;
+    
+    for(let i=1; i<this.trail.length; i++){
+      const t = this.trail[i], p = this.trail[i-1];
+      const prog = i / this.trail.length;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(t.x, t.y);
+      const a = prog*prog * this.alpha * 0.30;
+      ctx.strokeStyle = hexAlpha(col, a);
+      ctx.lineWidth = this.size * prog * 0.65;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+    
+    const last = this.trail[this.trail.length-1];
+    if(this.phase === 'HOLD'){
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, this.size*3.4, 0, Math.PI*2);
+      ctx.fillStyle = hexAlpha(col, 0.10);
+      ctx.fill();
+    }
+    if(this.phase === 'EMPTY'){
+      // Soft halo, no hard center — the void-hold
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, this.size*5.0, 0, Math.PI*2);
+      ctx.fillStyle = hexAlpha('#ffffff', this.alpha*0.05);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, this.size*1.5, 0, Math.PI*2);
+      ctx.strokeStyle = hexAlpha('#ffffff', this.alpha*0.4);
+      ctx.lineWidth = 0.6;
+      ctx.setLineDash([2,3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      return;
+    }
+    
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, this.size, 0, Math.PI*2);
+    ctx.fillStyle = this.phase==='HOLD'
+      ? hexAlpha(col, this.alpha*0.85)
+      : hexAlpha('#ffffff', this.alpha*0.75);
+    ctx.fill();
+  }
+}
+
+function hexAlpha(hex, a){
+  // accepts #rrggbb returns rgba string
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function spawnStone(angle, spineIdx){
+  if(stones.length > 45){
+    const old = stones.findIndex(s => s.phase === 'INHALE');
+    if(old >= 0) stones[old].alive = false;
+  }
+  if(spineIdx === undefined){
+    // pick spine position closest to angle
+    const norm = ((angle + Math.PI/2) / (Math.PI*2) + 1) % 1;
+    spineIdx = Math.floor(norm * SPINE.length) % SPINE.length;
+  }
+  // align angle to spoke direction with small jitter
+  const spokeAngle = (spineIdx/SPINE.length)*Math.PI*2 - Math.PI/2 + 0.12;
+  stones.push(new Stone(spokeAngle + (Math.random()-0.5)*0.3, spineIdx));
+}
+
+function spawnPlink(angle, vel, color){
+  const pr = R * 0.46;
+  plinks.push({
+    x: CX + Math.cos(angle) * pr,
+    y: CY + Math.sin(angle) * pr,
+    vel, alpha: 1, life: 1.0,
+    r: 6 + vel*18, decay: 0.022,
+    color: color || '#a0fff0'
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  GATE LOGIC — four phases, NAND-eliminative
+// ════════════════════════════════════════════════════════════════════
+let mode = 'NAND'; // 'NAND' or 'AND' (toggle for comparison)
+document.getElementById('mode-btn').addEventListener('click', () => {
+  mode = (mode === 'NAND') ? 'AND' : 'NAND';
+  document.getElementById('mode-btn').textContent = 'MODE: ' + mode;
+});
+
+let gateCooldown = 0;
+let lastEmptyTime = 0;
+let inEmptyPhase = false;
+let emptyEnteredAt = 0;
+const EMPTY_DURATION = 850; // bahya kumbhaka duration (ms)
+
+function logEvent(text, cls){
+  phaseLog.unshift({text, cls, t: performance.now()});
+  if(phaseLog.length > 14) phaseLog.pop();
+  renderLog();
+}
+
+function renderLog(){
+  const el = document.getElementById('remainder-log');
+  el.innerHTML = phaseLog.map(e => 
+    `<div class="${e.cls}">${e.text}</div>`
+  ).join('');
+}
+
+function tryFireGate(){
+  const now = performance.now();
+  if(now - gateCooldown < 480) return;
+  if(inEmptyPhase) return; // empty phase refuses to fire
+  
+  const holders = stones.filter(s => s.phase === 'HOLD');
+  if(holders.length < 2) return;
+  
+  // Find the two MOST AFFIRMED spine positions among holders
+  const affirmTotals = SPINE.map(() => 0);
+  holders.forEach(s => { affirmTotals[s.spineIdx] += 1 + s.alpha; });
+  
+  const ranked = SPINE.map((b,i) => ({i, score: affirmTotals[i] + b.v*2}))
+    .sort((a,b) => b.score - a.score);
+  
+  if(ranked[0].score < 0.8 || ranked[1].score < 0.5) return;
+  
+  const i = ranked[0].i, j = ranked[1].i;
+  
+  // ADMISSIBILITY CHECK — Sethares dissonance
+  const diss = DISS[i][j];
+  
+  if(mode === 'NAND'){
+    // The NAND-eliminative branch: TWO affirmations generate a REMAINDER
+    if(diss < 0.15){
+      // Highly consonant — they CAN be simultaneously true
+      // No remainder generated — refuse to fire (refuse false NAND)
+      logEvent(`${SPINE[i].name}∧${SPINE[j].name} consonant · no remainder`, 'empty');
+      // Enter EMPTY phase: holders dissolve into bahya kumbhaka
+      holders.forEach(s => s.release(0.4, true));
+      inEmptyPhase = true;
+      emptyEnteredAt = now;
+      emptyChime();
+      gateCooldown = now;
+      return;
+    }
+    
+    // Compute remainder
+    const k = computeRemainder(i, j);
+    if(k < 0){
+      logEvent(`${SPINE[i].name}∧${SPINE[j].name} → no admissible remainder`, 'refusal');
+      gateCooldown = now;
+      return;
+    }
+    
+    // Fire the remainder, NOT the affirmations
+    const vel = 0.5 + Math.min(1, ranked[0].score) * 0.5;
+    const remainderAngle = (k/SPINE.length)*Math.PI*2 - Math.PI/2 + 0.12;
+    
+    // The two affirming holders go to EMPTY (held, not erased)
+    holders.filter(s => s.spineIdx === i || s.spineIdx === j)
+      .forEach(s => s.release(vel*0.3, true));
+    
+    // The remainder spoke fires
+    spokeActivity[k] = 1.0;
+    spokeAffirm[k] = Math.max(spokeAffirm[k], 0.8);
+    spawnPlink(remainderAngle, vel, NOTE_COLOR[SPINE[k].name]);
+    spineChirp(k, vel, true); // remainder voice
+    
+    // Release any non-(i,j) holders normally
+    holders.filter(s => s.spineIdx !== i && s.spineIdx !== j)
+      .forEach(s => s.release(vel, false));
+    
+    logEvent(
+      `${SPINE[i].name}∧${SPINE[j].name} (d=${diss.toFixed(2)}) ⊢ ${SPINE[k].name}`,
+      'signal'
+    );
+  } else {
+    // AND mode: classical accumulator. Fires both affirmations.
+    const vel = 0.5 + Math.min(1, ranked[0].score) * 0.5;
+    const ai = (i/SPINE.length)*Math.PI*2 - Math.PI/2 + 0.12;
+    const aj = (j/SPINE.length)*Math.PI*2 - Math.PI/2 + 0.12;
+    holders.forEach(s => s.release(vel, false));
+    spokeActivity[i] = 1.0; spokeActivity[j] = 1.0;
+    spawnPlink(ai, vel, NOTE_COLOR[SPINE[i].name]);
+    spawnPlink(aj, vel, NOTE_COLOR[SPINE[j].name]);
+    spineChirp(i, vel, false);
+    setTimeout(() => spineChirp(j, vel, false), 80);
+    logEvent(`${SPINE[i].name}∧${SPINE[j].name} affirmed (additive)`, 'signal');
+  }
+  
+  gateCooldown = now;
+}
+
+function updatePhases(now){
+  // Empty phase auto-exits after duration. State is held, not erased.
+  if(inEmptyPhase && now - emptyEnteredAt > EMPTY_DURATION){
+    inEmptyPhase = false;
+    logEvent('— empty released —', 'empty');
+  }
+}
+
+let lastAutoSpawn = 0;
+function handleSpawn(now){
+  // Spawn rate scales with energy and with the most-active band
+  const interval = inEmptyPhase ? 9999 : (1800 - energy*900);
+  if(now - lastAutoSpawn > interval){
+    // Probabilistic spawn weighted by band activity
+    const weights = SPINE.map(b => 0.05 + b.v*2);
+    const total = weights.reduce((a,b)=>a+b,0);
+    let r = Math.random()*total, idx = 0;
+    for(let i=0;i<weights.length;i++){
+      r -= weights[i];
+      if(r <= 0){ idx = i; break; }
+    }
+    spawnStone(0, idx);
+    lastAutoSpawn = now;
+  }
+  
+  // Gate fires when enough HOLD tension
+  const holders = stones.filter(s => s.phase === 'HOLD').length;
+  if(holders >= 2 && Math.random() < 0.04 + energy*0.06){
+    tryFireGate();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════════════════════════
+function drawField(){
+  fieldRot += 0.00045 * (inEmptyPhase ? 0.2 : 1);
+  ctx.strokeStyle = `rgba(100,200,255,${0.03 + energy*0.07})`;
+  ctx.lineWidth = 0.8 + energy*1.2;
+  
+  for(let arm=0; arm<3; arm++){
+    const base = arm*(Math.PI*2/3) + fieldRot;
+    ctx.beginPath();
+    for(let i=0; i<68; i++){
+      const t = i/68;
+      const sr = t * R * 1.07;
+      const sa = base + t * Math.PI * 5.2;
+      const px = CX + Math.cos(sa) * sr;
+      const py = CY + Math.sin(sa) * sr;
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+  
+  const holders = stones.some(s => s.phase === 'HOLD');
+  ctx.beginPath();
+  ctx.arc(CX, CY, R*0.46, 0, Math.PI*2);
+  if(inEmptyPhase){
+    ctx.strokeStyle = `rgba(200,200,255,${0.20 + Math.sin(performance.now()*0.003)*0.06})`;
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([1,3]);
+  } else {
+    ctx.strokeStyle = holders ? `rgba(140,240,255,${0.18+energy*0.28})` : 'rgba(140,240,255,0.06)';
+    ctx.lineWidth = holders ? 2.2 + energy*2.4 : 0.8;
+    ctx.setLineDash([3,14]);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawSpokes(){
+  SPINE.forEach((b,i) => {
+    const a = (i/SPINE.length)*Math.PI*2 - Math.PI/2 + 0.12;
+    const act = spokeActivity[i];
+    const aff = spokeAffirm[i];
+    const live = b.v;
+    const col = NOTE_COLOR[b.name];
+    
+    // base spoke
+    ctx.beginPath();
+    ctx.moveTo(CX + Math.cos(a)*26, CY + Math.sin(a)*26);
+    ctx.lineTo(CX + Math.cos(a)*R*0.88, CY + Math.sin(a)*R*0.88);
+    const totalAct = Math.max(act, aff*0.7, live*0.6);
+    ctx.strokeStyle = hexAlpha(col, 0.08 + totalAct*0.55);
+    ctx.lineWidth = 0.7 + totalAct*2.4;
+    ctx.stroke();
+    
+    // active band glow
+    if(live > 0.15){
+      ctx.beginPath();
+      ctx.moveTo(CX + Math.cos(a)*26, CY + Math.sin(a)*26);
+      ctx.lineTo(CX + Math.cos(a)*R*(0.46 + live*0.42), CY + Math.sin(a)*R*(0.46 + live*0.42));
+      ctx.strokeStyle = hexAlpha(col, live*0.6);
+      ctx.lineWidth = 2 + live*3;
+      ctx.stroke();
+    }
+    
+    // label
+    const lx = CX + Math.cos(a)*(R*0.88 + 22);
+    const ly = CY + Math.sin(a)*(R*0.88 + 22);
+    ctx.save();
+    ctx.font = `${10 + totalAct*5}px Courier New`;
+    ctx.fillStyle = hexAlpha(col, 0.3 + totalAct*0.7);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(b.name, lx, ly);
+    ctx.restore();
+    
+    spokeActivity[i] = Math.max(0, act - 0.022);
+    spokeAffirm[i] = Math.max(0, aff - 0.008);
+  });
+}
+
+function drawPlinks(){
+  for(let i = plinks.length-1; i >= 0; i--){
+    const p = plinks[i];
+    p.life -= p.decay;
+    p.alpha = p.life * p.life;
+    if(p.life <= 0){ plinks.splice(i,1); continue; }
+    
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, (1-p.life)*p.r*2.8, 0, Math.PI*2);
+    ctx.strokeStyle = hexAlpha(p.color, p.alpha*0.75);
+    ctx.lineWidth = 1.8 * p.alpha;
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * 0.45 * p.life, 0, Math.PI*2);
+    ctx.fillStyle = hexAlpha(p.color, p.alpha);
+    ctx.fill();
+  }
+}
+
+function drawVoid(){
+  const vr = 24 + energy*9;
+  ctx.beginPath();
+  ctx.arc(CX, CY, vr, 0, Math.PI*2);
+  ctx.fillStyle = '#000';
+  ctx.fill();
+  
+  if(inEmptyPhase){
+    // The empty phase: void breathes outward, no erasure
+    const t = (performance.now() - emptyEnteredAt) / EMPTY_DURATION;
+    const ring = vr + t * 18;
+    ctx.beginPath();
+    ctx.arc(CX, CY, ring, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(200,200,255,${(1-t)*0.4})`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  } else if(energy > 0.03){
+    ctx.beginPath();
+    ctx.arc(CX, CY, vr*0.65, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(120,220,255,${energy*0.35})`;
+    ctx.lineWidth = 4 + energy*6;
+    ctx.stroke();
+  }
+}
+
+function updatePhaseDisplay(){
+  const el = document.getElementById('phase');
+  const holders = stones.filter(s => s.phase === 'HOLD').length;
+  const inhalers = stones.filter(s => s.phase === 'INHALE').length;
+  const exhalers = stones.filter(s => s.phase === 'EXHALE').length;
+  const empties = stones.filter(s => s.phase === 'EMPTY').length;
+  
+  let label = '', col = 'rgba(180,220,255,0.4)';
+  if(inEmptyPhase){
+    label = '· · ·  E M P T Y  · · ·';
+    col = 'rgba(200,200,255,0.7)';
+  } else if(holders >= 2){
+    label = 'H O L D';
+    col = 'rgba(140,240,255,0.7)';
+  } else if(exhalers > 0){
+    label = 'E X H A L E';
+    col = 'rgba(140,255,200,0.6)';
+  } else if(inhalers > 0){
+    label = 'I N H A L E';
+    col = 'rgba(180,200,255,0.5)';
+  }
+  el.textContent = label;
+  el.style.color = col;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  INPUT
+// ════════════════════════════════════════════════════════════════════
+function handleInput(x, y){
+  if(y > window.innerHeight - 80) return;
+  ensureAudio();
+  if(inEmptyPhase) return; // can't seed during empty
+  
+  const angle = Math.atan2(y - CY, x - CX);
+  // Map tap angle to nearest spine position
+  const norm = ((angle + Math.PI/2) / (Math.PI*2) + 1) % 1;
+  const spineIdx = Math.floor(norm * SPINE.length) % SPINE.length;
+  spawnStone(0, spineIdx);
+  spawnStone(0, spineIdx);
+  
+  if(stones.filter(s => s.phase === 'HOLD').length >= 2){
+    tryFireGate();
+  } else {
+    spineChirp(spineIdx, 0.6, false);
+  }
+}
+
+function ensureAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+canvas.addEventListener('click', e => handleInput(e.clientX, e.clientY));
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  handleInput(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+}, {passive: false});
+
+// ════════════════════════════════════════════════════════════════════
+//  MAIN LOOP
+// ════════════════════════════════════════════════════════════════════
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(now - last, 50);
+  last = now;
+  
+  analyzeAudio();
+  updatePhases(now);
+  handleSpawn(now);
+  
+  ctx.fillStyle = inEmptyPhase ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.11)';
+  ctx.fillRect(0,0,W,H);
+  
+  drawField();
+  drawSpokes();
+  
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0,0,W,H);
+  ctx.arc(CX,CY,22,0,Math.PI*2,true);
+  ctx.clip('evenodd');
+  stones.forEach(s => { s.update(dt); s.draw(); });
+  ctx.restore();
+  
+  drawPlinks();
+  drawVoid();
+  updatePhaseDisplay();
+  
+  stones = stones.filter(s => s.alive);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+logEvent('— gate initialized —', 'empty');
+</script>
+</body>
+</html>
