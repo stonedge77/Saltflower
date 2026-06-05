@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cymatic Signal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ── UI overlay — fades on inactivity ── */
+#ui {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 10px; align-items: center; z-index: 10;
+  opacity: 1; transition: opacity 2s ease;
+}
+#ui.hidden { opacity: 0; pointer-events: none; }
+
+.btn {
+  background: rgba(4,6,14,0.75);
+  border: 1px solid rgba(120,170,200,0.18);
+  color: rgba(150,195,225,0.5);
+  padding: 7px 18px; font-size: 9px;
+  letter-spacing: 0.38em; text-transform: uppercase; cursor: pointer;
+  font-family: 'Orbitron', 'Courier New', monospace;
+  transition: all 0.2s; backdrop-filter: blur(6px);
+}
+.btn:hover, .btn.active {
+  background: rgba(10,25,55,0.75);
+  border-color: rgba(120,200,255,0.45);
+  color: rgba(200,230,255,0.92);
+}
+.btn.mic-live {
+  border-color: rgba(80,220,150,0.5);
+  color: rgba(120,240,180,0.9);
+}
+.sep { width: 1px; height: 18px; background: rgba(120,170,200,0.12); }
+
+#mode-label {
+  position: fixed; top: 24px; right: 28px;
+  font-family: 'Orbitron', monospace;
+  font-size: 9px; letter-spacing: 0.4em; text-transform: uppercase;
+  color: rgba(150,190,220,0.22);
+  transition: opacity 2s ease;
+}
+#mode-label.hidden { opacity: 0; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="mode-label" id="lbl">BIO — LIVING SIGNAL</div>
+<div id="ui">
+  <button class="btn" id="mic-btn" onclick="toggleMic()">⊙ mic</button>
+  <div class="sep"></div>
+  <button class="btn active" onclick="setFilter('bio',this)">bio</button>
+  <button class="btn" onclick="setFilter('forge',this)">forge</button>
+  <button class="btn" onclick="setFilter('void',this)">void</button>
+  <button class="btn" onclick="setFilter('plasma',this)">plasma</button>
+  <button class="btn" onclick="setFilter('raw',this)">raw</button>
+</div>
+<script>
+'use strict';
+const TAU = Math.PI * 2;
+
+// ── Canvas ────────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d', { alpha: false });
+let W = 0, H = 0;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = canvas.width  = window.innerWidth  * dpr;
+  H = canvas.height = window.innerHeight * dpr;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Audio ─────────────────────────────────────────────────────────────────────
+let audioCtx, analyser, freqData, timeData;
+let listening = false;
+
+const BANDS = {
+  sub:     { lo: 0,   hi: 4,   val: 0, smooth: 0 },
+  bass:    { lo: 4,   hi: 12,  val: 0, smooth: 0 },
+  lowmid:  { lo: 12,  hi: 30,  val: 0, smooth: 0 },
+  mid:     { lo: 30,  hi: 70,  val: 0, smooth: 0 },
+  highmid: { lo: 70,  hi: 110, val: 0, smooth: 0 },
+  high:    { lo: 110, hi: 160, val: 0, smooth: 0 },
+  air:     { lo: 160, hi: 255, val: 0, smooth: 0 },
+};
+
+const BAND_KEYS = ['sub','bass','lowmid','mid','highmid','high','air'];
+const waveform  = new Float32Array(64);
+let energy = 0, prevEnergy = 0, kickFlash = 0;
+const ripples = [];
+
+async function toggleMic() {
+  if (listening) return;
+  const btn = document.getElementById('mic-btn');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.78;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    timeData = new Uint8Array(analyser.frequencyBinCount);
+    listening = true;
+    btn.textContent = '● live';
+    btn.classList.add('mic-live');
+  } catch(e) {
+    btn.textContent = 'mic blocked';
+  }
+}
+
+function analyzeAudio() {
+  if (!listening || !analyser) return;
+  analyser.getByteFrequencyData(freqData);
+  analyser.getByteTimeDomainData(timeData);
+
+  for (const bk of BAND_KEYS) {
+    const b = BANDS[bk];
+    let s = 0;
+    for (let i = b.lo; i < b.hi; i++) s += freqData[i];
+    const raw = s / ((b.hi - b.lo) * 255);
+    b.val    = b.val    * 0.70 + raw * 0.30;
+    b.smooth = b.smooth * 0.92 + raw * 0.08;
+  }
+
+  for (let i = 0; i < 64; i++)
+    waveform[i] = waveform[i] * 0.55 + ((timeData[i * 4] - 128) / 128) * 0.45;
+
+  energy = (BANDS.bass.val + BANDS.mid.val + BANDS.high.val) / 3;
+
+  // Kick detection — sharp bass transient
+  const bassNow = (BANDS.bass.val + BANDS.sub.val) * 0.5;
+  if (bassNow > prevEnergy * 1.75 && bassNow > 0.18) {
+    kickFlash = Math.min(1, kickFlash + bassNow);
+    addRipple();
+  }
+  prevEnergy = prevEnergy * 0.88 + bassNow * 0.12;
+  kickFlash *= 0.88;
+}
+
+function addRipple() {
+  const F = FILTERS[currentFilter];
+  ripples.push({ r: 0.03, alpha: 0.6 + kickFlash * 0.4, color: F.nodal });
+}
+
+function updateRipples() {
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    ripples[i].r     += 0.012;
+    ripples[i].alpha -= 0.018;
+    if (ripples[i].alpha <= 0 || ripples[i].r >= 1.05) ripples.splice(i, 1);
+  }
+}
+
+// ── Filter Presets ────────────────────────────────────────────────────────────
+//
+// Subtractive coloration: cells start near-white, then MULTIPLY passes
+// remove complementary hues, leaving only the filter's color in the field.
+// Silence → minimal subtraction → whiter/purer.
+// Sound → stronger multiply → more saturated, deeper.
+// The remainder IS the signal.
+//
+const FILTERS = {
+  bio: {
+    name:    'BIO — LIVING SIGNAL',
+    bg:      '#010b07',
+    cellHue: 168, cellSat: 78,             // teal-green cells
+    nodal:   'rgba(100, 240, 190,',
+    glow:    [20, 220, 130],
+    mul:     'rgba(0, 80, 60,',            // subtracts warm from field
+    rimHue:  160,
+  },
+  forge: {
+    name:    'FORGE — HEAT TREATED',
+    bg:      '#090400',
+    cellHue: 28, cellSat: 88,             // amber-orange cells
+    nodal:   'rgba(255, 175, 55,',
+    glow:    [255, 100, 15],
+    mul:     'rgba(60, 20, 0,',           // subtracts cool from field
+    rimHue:  25,
+  },
+  void: {
+    name:    'VOID — COLD COMPRESSION',
+    bg:      '#000308',
+    cellHue: 210, cellSat: 72,            // steel-blue cells
+    nodal:   'rgba(100, 185, 255,',
+    glow:    [40, 120, 255],
+    mul:     'rgba(0, 10, 50,',           // subtracts warm from field
+    rimHue:  215,
+  },
+  plasma: {
+    name:    'PLASMA — EXCITED STATE',
+    bg:      '#060010',
+    cellHue: 275, cellSat: 90,            // violet-electric cells
+    nodal:   'rgba(200, 100, 255,',
+    glow:    [180, 30, 255],
+    mul:     'rgba(30, 0, 60,',           // subtracts green/yellow
+    rimHue:  285,
+  },
+  raw: {
+    name:    'RAW — UNFILTERED',
+    bg:      '#030303',
+    cellHue: 185, cellSat: 30,            // near-white cells
+    nodal:   'rgba(220, 238, 245,',
+    glow:    [200, 230, 255],
+    mul:     'rgba(5, 5, 10,',            // minimal subtraction
+    rimHue:  0,
+  },
+};
+
+let currentFilter = 'bio';
+function setFilter(name, el) {
+  currentFilter = name;
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('mode-label').textContent = FILTERS[name].name;
+  showUI();
+}
+
+// ── Smooth cymatic state (audio-driven) ───────────────────────────────────────
+const cym = {
+  m:         6,     // fold count (float, snapped when drawing)
+  rings:     3,     // ring count
+  ar:        0.10,  // petal A/R ratio
+  h2:        0.22,  // second harmonic fraction
+  cellFrac:  0.78,  // sector fill fraction
+  rot:       0,     // current rotation angle
+  rotSpeed:  0.00012,
+  scale:     1.0,   // breathing
+  glow:      0.35,
+};
+
+// Weighted fold count from frequency content
+function targetM() {
+  const w = [2, 4, 6, 8, 10, 12, 14];
+  let num = 0, den = 0;
+  BAND_KEYS.forEach((k, i) => { const v = BANDS[k].val; num += v * w[i]; den += v; });
+  return den > 0.02 ? Math.max(2, Math.min(16, Math.round(num / den))) : 6;
+}
+
+function updateCym(dt) {
+  const { sub, bass, lowmid, mid, highmid, high, air } = BANDS;
+  const e = energy;
+  const A = 0.06; // smoothing alpha
+
+  cym.m        = cym.m        * (1-A*0.35) + targetM()                          * (A*0.35);
+  cym.rings    = cym.rings    * (1-A*0.25) + Math.max(2, 2 + bass.val * 5)      * (A*0.25);
+  cym.ar       = cym.ar       * (1-A)      + (0.06 + mid.val * 0.20)            * A;
+  cym.h2       = cym.h2       * (1-A)      + (0.10 + highmid.val * 0.55)        * A;
+  cym.cellFrac = cym.cellFrac * (1-A)      + (0.72 - e * 0.12)                  * A;
+  cym.rotSpeed = cym.rotSpeed * (1-A)      + (0.00006 + e * 0.00035)            * A;
+  cym.scale    = cym.scale    * (1-A)      + (1.0 + sub.val * 0.07 + bass.val * 0.04) * A;
+  cym.glow     = cym.glow     * (1-A*0.5)  + (0.25 + e * 0.75)                 * (A*0.5);
+  cym.rot     += cym.rotSpeed * dt;
+}
+
+// Build peaks + bands from audio state
+function buildState() {
+  const m      = Math.max(2, Math.round(cym.m));
+  const nRings = Math.max(2, Math.round(cym.rings));
+  const peaks = [], bounds = [0];
+
+  for (let i = 0; i < nRings; i++) {
+    const t = (i + 1) / (nRings + 1);
+    // Inner rings map to bass, outer to highs
+    const bk  = BAND_KEYS[Math.floor(t * BAND_KEYS.length)];
+    const fv  = BANDS[bk].val;
+    const normR = Math.min(0.88, 0.14 + t * 0.74 + fv * 0.02 * (1 - t));
+    peaks.push({ normR, v: 70 + fv * 185 });
+    bounds.push(normR);
+  }
+  bounds.push(0.9);
+
+  const bands = [];
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const r1 = bounds[i], r2 = bounds[i + 1];
+    const mid = (r1 + r2) * 0.5;
+    const bk  = BAND_KEYS[Math.min(BAND_KEYS.length-1, Math.floor(mid * BAND_KEYS.length))];
+    const fv  = BANDS[bk].val;
+    bands.push({
+      innerNorm: r1,
+      outerNorm: r2,
+      amplitude: Math.max(0.08, listening ? 0.12 + fv * 0.88 : 0.35 + i * 0.08),
+    });
+  }
+
+  return { peaks, bands, m };
+}
+
+// ── Sine ring primitives ──────────────────────────────────────────────────────
+// r(θ) = R + A·sin(m·θ + ph) + A·h2·sin(2m·θ + ph·1.1 + 0.4)
+// This is the wave function — stores ring boundaries as sine waves,
+// giving them the petal texture that makes cymatics look like cymatics.
+
+function _rp(R, A, A2, m, ph, θ) {
+  return R + A * Math.sin(m*θ + ph) + A2 * Math.sin(2*m*θ + ph*1.1 + 0.4);
+}
+
+// Draw m discrete CELLS for one ring band.
+// Each cell = sector arc (outer CW) + (inner CCW = hole).
+// Gap between cells is the angular nodal spoke.
+function drawCells(cx, cy, Ro, Ao, Ao2, Ri, Ai, Ai2, m, pho, phi, angOff, frac, color) {
+  const secArc = TAU / m;
+  const half   = secArc * frac * 0.5;
+  const N      = Math.max(18, Math.ceil(secArc * frac / TAU * 720));
+
+  for (let ci = 0; ci < m; ci++) {
+    const mid = (ci / m) * TAU + angOff;
+    const θ0  = mid - half, θ1 = mid + half;
+
+    ctx.beginPath();
+    // Outer arc CW
+    for (let i = 0; i <= N; i++) {
+      const θ = θ0 + (i/N) * (θ1-θ0);
+      const r = _rp(Ro,Ao,Ao2,m,pho,θ);
+      ctx.lineTo(cx + Math.cos(θ)*r, cy + Math.sin(θ)*r);
+    }
+    // Inner arc CCW (hole)
+    if (Ri > 1) {
+      for (let i = N; i >= 0; i--) {
+        const θ = θ0 + (i/N) * (θ1-θ0);
+        const r = _rp(Ri,Ai,Ai2,m,phi,θ);
+        ctx.lineTo(cx + Math.cos(θ)*r, cy + Math.sin(θ)*r);
+      }
+    } else {
+      ctx.lineTo(cx, cy);
+    }
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+}
+
+function strokeRing(cx, cy, R, A, A2, m, ph, color, lw, blur) {
+  ctx.save();
+  if (blur) { ctx.shadowBlur = blur; ctx.shadowColor = color; }
+  ctx.strokeStyle = color; ctx.lineWidth = lw;
+  ctx.beginPath();
+  const N = Math.max(360, m * 60);
+  for (let i = 0; i <= N; i++) {
+    const θ = (i/N)*TAU;
+    const r = _rp(R,A,A2,m,ph,θ);
+    ctx.lineTo(cx + Math.cos(θ)*r, cy + Math.sin(θ)*r);
+  }
+  ctx.closePath(); ctx.stroke(); ctx.restore();
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(now, dt) {
+  const F    = FILTERS[currentFilter];
+  const cx   = W/2, cy = H/2;
+  const maxR = Math.min(cx, cy) * 0.88;
+  const { peaks, bands, m } = buildState();
+
+  const R_scale   = maxR * cym.scale * (1 + kickFlash * 0.06);
+  const rot       = cym.rot;
+  const ar        = cym.ar  * (1 + kickFlash * 0.4);
+  const h2        = cym.h2;
+  const cellFrac  = Math.max(0.55, cym.cellFrac);
+  const e         = energy;
+
+  // ── Background ─────────────────────────────────────────────────────────────
+  ctx.fillStyle = F.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Vignette
+  const vg = ctx.createRadialGradient(cx, cy, R_scale*0.1, cx, cy, R_scale*1.3);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.8)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+  // ── Cells ──────────────────────────────────────────────────────────────────
+  ctx.globalCompositeOperation = 'source-over';
+
+  for (let b = 0; b < bands.length; b++) {
+    const band = bands[b];
+    if (band.amplitude < 0.04) continue;
+
+    const Ro  = band.outerNorm * R_scale;
+    const Ri  = band.innerNorm * R_scale;
+    const mid = (band.outerNorm + band.innerNorm) * 0.5;
+
+    const Ao  = Ro * ar,       Ao2 = Ao * h2;
+    const Ai  = Ri * ar * 0.8, Ai2 = Ai * h2;
+
+    const sign   = (b % 2 === 0) ? 1 : -1;
+    const pho    = sign * rot;
+    const phi    = sign * rot + Math.PI / m;
+    const angOff = (b % 2 === 0) ? rot * 0.3 : rot * 0.3 + Math.PI / m;
+
+    // Cell brightness: lightness driven by amplitude + kick flash
+    const light = 42 + band.amplitude * 28 + kickFlash * 18;
+    const sat   = F.cellSat - (1 - band.amplitude) * 20;
+    const alpha = band.amplitude * 0.75 * (0.85 + Math.sin(now*0.00085+b)*0.1);
+
+    drawCells(cx, cy, Ro, Ao, Ao2, Ri, Ai, Ai2, m, pho, phi, angOff, cellFrac,
+              `hsla(${F.cellHue}, ${sat}%, ${light}%, ${alpha})`);
+  }
+
+  // ── Subtractive filter overlay ──────────────────────────────────────────────
+  // MULTIPLY blend removes the complement of the filter color from the cells.
+  // This is the subtractive step: silence = minimal removal, sound = deeper color.
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  const mulAlpha = 0.30 + e * 0.42 + kickFlash * 0.1;
+  ctx.fillStyle = `${F.mul}${mulAlpha})`;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  // Overlay contrast boost — same as pride_metal's overlay pass
+  if (e > 0.05) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = e * 0.18;
+    const cg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R_scale);
+    cg.addColorStop(0,   'rgba(255,255,255,1)');
+    cg.addColorStop(0.6, 'rgba(0,0,0,0)');
+    cg.addColorStop(1,   'rgba(0,0,0,1)');
+    ctx.fillStyle = cg; ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  // ── Nodal spokes ────────────────────────────────────────────────────────────
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.strokeStyle = `${F.nodal}0.08)`;
+  ctx.lineWidth   = 0.7;
+  for (let ci = 0; ci < m; ci++) {
+    const θ = ((ci + 0.5) / m) * TAU + rot * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(θ)*R_scale*1.02, cy + Math.sin(θ)*R_scale*1.02);
+    ctx.stroke();
+  }
+
+  // ── Nodal ring strokes ──────────────────────────────────────────────────────
+  for (let i = 0; i < peaks.length; i++) {
+    const pk   = peaks[i];
+    const R    = pk.normR * R_scale;
+    const A    = R * ar * 0.62;
+    const A2   = A * h2;
+    const sign = (i % 2 === 0) ? 1 : -1;
+    const ph   = sign * rot;
+    const pulse = 0.82 + Math.sin(now * 0.0017 + i * 1.5) * 0.1;
+    const alpha = (0.32 + (pk.v / 255) * 0.40) * pulse;
+
+    strokeRing(cx, cy, R, A, A2, m, ph, `${F.nodal}${alpha*0.38})`, 3.5, 12);
+    strokeRing(cx, cy, R, A, A2, m, ph, `${F.nodal}${alpha})`,      1.1, 0);
+  }
+
+  // ── Ripple rings (kick response) ────────────────────────────────────────────
+  ctx.globalCompositeOperation = 'screen';
+  for (const rp of ripples) {
+    ctx.strokeStyle = `${F.nodal}${rp.alpha * 0.7})`;
+    ctx.lineWidth   = 1.2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rp.r * maxR, 0, TAU);
+    ctx.stroke();
+  }
+
+  // ── Brushed metal texture ────────────────────────────────────────────────────
+  // Fine horizontal scan-lines — same as pride_metal's metal pass
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.03;
+  for (let y = 0; y < H; y += 3) {
+    const bri = 0.4 + 0.6 * Math.abs(Math.sin(y * 0.06));
+    ctx.fillStyle = `rgba(255,255,255,${bri})`;
+    ctx.fillRect(0, y, W, 1);
+  }
+  ctx.globalAlpha = 1;
+
+  // ── Rim light on outer boundary ─────────────────────────────────────────────
+  ctx.globalCompositeOperation = 'screen';
+  const outerA  = R_scale * ar * 0.5;
+  const outerA2 = outerA * h2;
+  const rimAlpha = 0.10 + e * 0.14 + kickFlash * 0.12;
+  strokeRing(cx, cy, R_scale, outerA, outerA2, m, rot,
+             `${F.nodal}${rimAlpha})`, 1.0, 8);
+
+  // ── Core glow ───────────────────────────────────────────────────────────────
+  const pR   = (4.5 + Math.sin(now * 0.0028) * 1.1) * (1 + kickFlash * 0.5);
+  const gRad = Math.max(pR * 5, 15);
+  const [gr, gg, gb] = F.glow;
+  const coreG = ctx.createRadialGradient(cx, cy, 0, cx, cy, gRad * (1 + cym.glow * 0.8));
+  coreG.addColorStop(0,    `rgba(${gr+55}, ${gg+55}, ${gb+55}, ${0.85 + kickFlash*0.1})`);
+  coreG.addColorStop(0.25, `rgba(${gr},    ${gg},    ${gb},    ${0.45 * cym.glow})`);
+  coreG.addColorStop(0.65, `rgba(${Math.round(gr*0.4)}, ${Math.round(gg*0.4)}, ${Math.round(gb*0.4)}, 0.15)`);
+  coreG.addColorStop(1,    'rgba(0,0,0,0)');
+  ctx.fillStyle = coreG;
+  ctx.beginPath(); ctx.arc(cx, cy, gRad*(1+cym.glow*0.8), 0, TAU); ctx.fill();
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = `rgba(${gr+60},${gg+60},${gb+60},0.97)`;
+  ctx.beginPath(); ctx.arc(cx, cy, pR * 0.7, 0, TAU); ctx.fill();
+
+  // ── Waveform spine — drawn on chevron-edge as in pride_metal ───────────────
+  if (listening && energy > 0.04) {
+    ctx.globalCompositeOperation = 'screen';
+    const rimX  = cx + R_scale * 0.92;
+    const hueR  = F.rimHue;
+    for (let i = 0; i < 64; i++) {
+      const wy   = cy - R_scale + (i / 64) * R_scale * 2;
+      const woff = waveform[i] * 22 * (1 + energy * 2.5);
+      const wa   = 0.12 + energy * 0.4;
+      ctx.fillStyle = `hsla(${hueR}, 80%, 68%, ${wa})`;
+      ctx.fillRect(rimX + woff - 1, wy, 2, R_scale * 2 / 64 + 1);
+    }
+  }
+
+  // ── Mode label ───────────────────────────────────────────────────────────────
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.save();
+  ctx.font      = `${Math.round(W * 0.011)}px Orbitron, monospace`;
+  ctx.fillStyle = `rgba(${F.glow[0]},${F.glow[1]},${F.glow[2]},0.16)`;
+  ctx.textAlign = 'right';
+  ctx.fillText(F.name, W - W*0.022, H - H*0.038);
+  ctx.restore();
+}
+
+// ── UI auto-hide ──────────────────────────────────────────────────────────────
+const uiEl  = document.getElementById('ui');
+const lblEl = document.getElementById('mode-label');
+let hideTimer = null;
+
+function showUI() {
+  uiEl.classList.remove('hidden');
+  lblEl.classList.remove('hidden');
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    uiEl.classList.add('hidden');
+    lblEl.classList.add('hidden');
+  }, 3500);
+}
+
+['mousemove','keydown','click','touchstart'].forEach(ev =>
+  window.addEventListener(ev, showUI, { passive: true })
+);
+showUI();
+
+// Keyboard shortcuts: 1-5 select filter, M = mic
+window.addEventListener('keydown', e => {
+  const map = { '1':'bio','2':'forge','3':'void','4':'plasma','5':'raw','m':'toggleMic' };
+  const k = map[e.key.toLowerCase()];
+  if (!k) return;
+  if (k === 'toggleMic') { toggleMic(); return; }
+  const btns = uiEl.querySelectorAll('.btn:not(#mic-btn)');
+  const idx  = ['bio','forge','void','plasma','raw'].indexOf(k);
+  if (idx >= 0) setFilter(k, btns[idx]);
+});
+
+// ── Loop ──────────────────────────────────────────────────────────────────────
+let lastNow = null;
+
+function loop(now) {
+  if (!lastNow) lastNow = now;
+  const dt = Math.min(now - lastNow, 64); // cap dt at 64ms
+  lastNow  = now;
+
+  analyzeAudio();
+  updateCym(dt);
+  updateRipples();
+  render(now, dt);
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
