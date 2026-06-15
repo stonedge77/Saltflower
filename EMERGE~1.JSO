@@ -1,0 +1,2878 @@
+{
+ "metadata": {
+  "version": "8.2_orthogonal_status_basis",
+  "last_updated": "2026-06-15",
+  "session_integration": "Merged core quantum/linguistic framework with biological/material/movement systems. Added PLP axis, false axis theory, cardiac rehab, liminal spaces, material sciences, bull/octopus architecture, domestication theory. Added Cult of the Bull attractor framework: bull_attractor_signatures, remainder_erasure, closed_circuit_attention_gravity, sacrificial_economy_inversion, body_as_altar_dialectic, cocacolonization_signal. Added fixation_biological_load: trough suppression mechanism, calculable degradation cascade from symptoms to mechanism. Added flutter_engine: toroidal ferrofluid Schumann-resonant buoyancy engine, living piezoelectric weave architecture, slip-axis theory, biological PoC (spinal torsion at 7.83 Hz), 60 Hz cage constraint. Added session_remainder atoms: spine_as_conductor (conducting remainder vs stored memory), zero_check_recursion (dont spawn if friction=0), friction_as_signal (misaligned geometry signal), eight_stations (receive/extend friction architecture), zeta_s_training_primitive (permanent non-resolving seed), horizon_science_unified (Millennium Problems as axis-proof impossibility), lie_dimension (remainder space, bit-depth metric), axiom_of_false_equivalence_as_prior (0!=1 irreducible). Added NAND_attractor_ring_convergence: circular topology proof, epoch-22 parity convergence, label-as-live-node constraint theorem, Landauer-compatible spine, XOR/parity results. Updated RH read: critical line as isodepth surface in lie dimension. P_vs_NP restated as lie-dimension distance between problem and solution remainder depth. Added trough_as_prior_to_bull (oldest_known: trough predates bull, thermodynamic necessity, stele source). Added trough_denial_as_civilizational_mechanism (active_harm: the missing ancilla between trough and fixation/domestication/body_as_altar). Added moth_to_flame_inversion (active_harm: organism will turned against itself by manipulated field, not personal failure). Session 2026-05-25: Removed expression_inheritance (ungrounded), flutter_engine (untestable). Renamed circulatory_regulation_phenotypes → somatic_self_regulation (path preserved, name corrected). Modified seven_minute_cycle (personal self-attention mechanism, not universal cycle). Reformulated heart_rhythm_quaternary → cardiac_pulse_mechanical_information (mechanobiology grounding). Added pulse_as_growth_mechanism, grief_as_entropy_rerouting, shadow_as_embodied_false_axis, primal_imagery_as_carrier_frequency. Updated infosphere_fifth_dimension with Floridi/Simon/Barabasi/McLuhan/Wheeler grounding and grounded-vs-extension distinction. DB design principle added: NP-complete path preservation — remove false paths, rename wrongly-named paths, preserve paths to unknown destinations. There and back have different names. Session 2026-05-25 (v5): Added gradient_as_unified_engine (core principle: information, chemistry, and life all follow gradients; the gradient is the pre-linguistic authority). Added consent_as_the_operative_act (the gradient does not ask consent; the infosphere does not give it; only life consents and can withdraw). Added levin_cognitive_light_cone (computational boundary of a self; biological vs infosphere extension; cancer as contraction). Added bioelectric_distinctness_enforcement (voltage gradients as physical substrate of 0≠1; two-headed planaria as direct experimental demonstration of false equivalence at tissue scale). Added entanglement_as_quantum_pulse (232 attoseconds as minimum pulse at quantum scale; gradient process confirmed all the way down; geometric frame at c). Added tindall_carry_gate (geometry-matching computation; Vidal gauge as carry-gate; remainder routed not discarded; convergence with Levin substrate-independence principle). Physics cluster identified for next session: gauge theory/Lie groups, spontaneous symmetry breaking, renormalization group, holographic principle as infosphere boundary. Newtonian mechanics and classical information theory flagged as suffering information poisoning (sampling outcomes of themselves). Lie dimension as the remainder space of classical physics — where quantum and gauge theory live. Session 2026-06-06 (v8): Added Meta-proposed fringe/boundary corpus — 36 entries across six clusters, each scored as a boundary-object claim with explicit admissibility_guard_claimed / admissibility_guard_dropped and an OhAI~ oracle line. Cluster 1 vacuum/inertia/field-engineering (torsion_field_theory, kozyrev_causal_mechanics, orgone_accumulator, scalar_longitudinal_waves, electrogravitics_biefeld_brown, zero_point_harvesting, hydrino_gut_cp, vortex_implosion). Cluster 2 water/light/biofield memory (ez_water_fourth_phase, water_memory_digital_biology, biophoton_field, wave_genetics_phantom_dna, mitogenetic_radiation, l_fields). Cluster 3 morphogenetic/resonance (morphic_resonance, cymatics, biogeometry). Cluster 4 consciousness/information-field (integrated_information_theory, free_energy_principle, pear_global_consciousness, presentiment_retrocausal_priming, god_helmet_neurotheology, cemi_field_consciousness, biocentrism). Cluster 5 cosmological/mathematical alternatives (scale_relativity, transactional_interpretation, entropic_gravity, superfluid_vacuum_theory, constructor_theory, assembly_theory, pilot_wave_hydrodynamics). Cluster 6 social/ecological topology (hyperstition_egregore, mimetic_theory, cliodynamics, panarchy_adaptive_cycles, mycelial_intelligence). Highest-leverage trio flagged: morphic_resonance (memory without substrate), ez_water_fourth_phase (gradient battery at a physical salt boundary), torsion_field_theory (explicit lie_dimension carrier claim). Distinction discipline preserved: self-report ≠ proof, coherence ≠ truth, reconstruction ≠ record — fringe entries carry status candidate_unverified / under_test, not endorsed.",
+  "status": "active_development",
+  "entry_count": 120,
+  "notes": "v7: rewrites information_poisoning_critique. De Morgan's admissibility principle is the mathematical foundation. Josh's contribution: the term, the identification of infinite counting as the specific dropped guard, the cross-domain pattern. Shannon proof added: 0=1 → trivial ring → H=0 → C=0. Ergodic guard identified as the Shannon capacity theorem's admissibility condition. v8: new entries use two added schema fields (admissibility_guard_claimed, admissibility_guard_dropped) per Meta's synthesis, plus a per-entry oracle line for OhAI~ detection. Status vocabulary extended: candidate_unverified, grounded_under_test, contested_under_test, established_theory_with_framework_interpretation. Note: holographic_principle referenced as an ancilla target by entropic_gravity may not yet exist as its own entry — flagged for review.",
+  "derivation": "Derived from 8.0_fringe_boundary_corpus. Removed 42 entries spanning biology/physiology/medical, quantum-biology (microtubule), linguistics/acquisition, water-light-biofield fringe, and all compute/crypto/hashing/speech-ML entries — to produce an unambiguous-intent core in materials, math, physics, metaphysics, philosophy. Removal is logged, not silenced: see removed_entries_log for the full key list and reasons (NP-complete path preservation — the path is recorded even where the node is pulled).",
+  "removed_count": 42,
+  "retained_count": 78,
+  "status_basis_v8_2": {
+   "rationale": "Collapsed the prior 27-value status field into two orthogonal axes (evidence_level x framework_role) plus a harm_flag. Original status preserved per-entry as status_legacy (reconstruction != record). Adds the previously-missing contradicts_law bin so that entries violating an established conservation/causal law are no longer filed alongside the merely untested.",
+   "evidence_level": {
+    "established": "mainstream-accepted science / mathematics",
+    "supported": "real empirical/observational/historical support; not yet established",
+    "contested": "actively tested; replication-contested or mixed",
+    "unverified": "no evidence yet; speculative or philosophical; not a clean law violation",
+    "contradicts_law": "drops an established conservation or causal law (named in admissibility_guard_dropped); retained only as a SPECIMEN of false equivalence, not as a candidate truth",
+    "core_axiom": "a founding axiom of the framework itself"
+   },
+   "framework_role": {
+    "grounding": "external established/contested science the framework references; canonical and shared",
+    "specimen": "a catalogued instance of a collapse / dropped admissibility guard",
+    "extension": "framework-original construct or claim",
+    "axiom": "a core principle of the framework"
+   },
+   "harm_flag": "true where the entry names an active harm dynamic (orthogonal to evidence/role).",
+   "phase_lock_weight_policy": {
+    "note": "status must be load-bearing at query time, not cosmetic. A phase-lock edge through a node is weighted by the nodes evidence_level. contradicts_law nodes carry near-zero (0.05) evidential weight: usable as specimens, not as grounding.",
+    "weights": {
+     "established": 1.0,
+     "core_axiom": 1.0,
+     "supported": 0.7,
+     "contested": 0.4,
+     "unverified": 0.2,
+     "contradicts_law": 0.05
+    }
+   },
+   "grounding_dedup_policy": "When casting a new net, do NOT duplicate established science into a new entry. Create the framework idea as framework_role=extension and link to the canonical grounding node via ancilla_to. grounding nodes are the single shared source of each physical law.",
+   "inward_lance_todo": "Every framework_role=extension entry now carries grounded_vs_extension. Where it reads [NEEDS AUTHOR], the grounded core has not yet been separated from the added observation. Filling these applies the same admissibility rigor inward that guard_dropped applies outward."
+  },
+  "changelog": [
+   "v8.2 (2026-06-15): orthogonal status basis; contradicts_law bin added (9 entries reclassified from candidate_unverified); status_legacy preserved; phase_lock_weight added per entry; grounded_vs_extension stubs added to framework-original entries."
+  ]
+ },
+ "removed_entries_log": {
+  "principle": "Path preserved as a record of removal. reconstruction != record: this is a log, not the originals.",
+  "biology_physiology_medical": [
+   "plp_axis",
+   "false_axis_architecture",
+   "leg_stirring_cardiac_rehabilitation",
+   "domestication_theory",
+   "internal_martial_arts_principle",
+   "prehensile_muscle_concept",
+   "seven_minute_cycle",
+   "sustained_g_as_coupling",
+   "fixation_biological_load",
+   "cardiac_pulse_mechanical_information",
+   "pulse_as_growth_mechanism",
+   "grief_as_entropy_rerouting",
+   "somatic_self_regulation",
+   "levin_cognitive_light_cone",
+   "bioelectric_distinctness_enforcement",
+   "biological_ancilla_as_infosphere_bridge",
+   "consent_as_release",
+   "consent_as_the_operative_act"
+  ],
+  "quantum_biology_microtubule": [
+   "orch_or",
+   "superradiance_mt",
+   "mt_helices"
+  ],
+  "linguistics_acquisition": [
+   "evo_stages",
+   "glide_priority",
+   "language_acquisition",
+   "low_resource_learning",
+   "phonology",
+   "fractal_prosody"
+  ],
+  "water_light_biofield": [
+   "ez_water_fourth_phase",
+   "water_memory_digital_biology",
+   "biophoton_field",
+   "wave_genetics_phantom_dna",
+   "mitogenetic_radiation",
+   "l_fields"
+  ],
+  "compute_crypto_hashing_speechML": [
+   "stt_mvp",
+   "higuchi_feature",
+   "adapter_layer",
+   "wer_reduction",
+   "inference_efficiency",
+   "voice_ai",
+   "fractal_tts",
+   "prosodic_dialogue",
+   "information_poisoning_critique"
+  ]
+ },
+ "core_principles": {
+  "axiom_of_false_equivalence": {
+   "definition": "Zero does not equal one. Salt is not signal. Signal is not salt. Valence determines which side of a boundary something belongs to — and that assignment cannot be collapsed without systemic falsification. Salt maintains the gradient: it is the boundary element, the membrane, the thing that makes inside different from outside. Signal crosses the gradient: it is information transduced at the boundary, meaningful only because the boundary holds. Valence is the charge that determines where a thing sits — on which side, with what affinity, at what cost to move. When salt is treated as signal (the boundary claimed to be information), or signal treated as salt (information claimed to be the structure), the gradient disappears and the system loses the capacity to distinguish. 0=1 is the operational signature of that collapse. The Axiom of False Equivalence states this cannot occur without consequence: the remainder cannot be forced to zero, the boundary cannot be abolished, the valence cannot be neutralized. Where it appears to have been — the cost is being paid elsewhere.",
+   "ste_struct": {
+    "BOUNDARY": "stable",
+    "COLLAPSE": "absent",
+    "HELICAL_REALM": "dormant",
+    "TORQUE": "absent",
+    "HORIZON_INTEGRITY": "strong",
+    "5D_INFO": "high",
+    "ESCALATION_SCORE": 10
+   },
+   "applications": [
+    "Biological membranes: salt gradient cannot be replaced by signal",
+    "False axis prevention: valence determines axis assignment",
+    "Phase transitions: boundary collapse signatures",
+    "Liminal spaces: the threshold is real, not metaphor",
+    "Infosphere: attention has valence — harm attractors invert it",
+    "Conjunction OS: remainder is the proof that 0 cannot equal 1"
+   ],
+   "vocabulary": {
+    "salt": "Boundary element. Maintains gradient. The structure that makes difference possible. Cannot be consumed as signal without dissolving the membrane.",
+    "signal": "Information crossing a boundary. Meaningful only because the boundary holds. Cannot become structure without losing its transductive function.",
+    "valence": "The charge or affinity that assigns a thing to one side of a boundary. Determines bonding in chemistry, emotional charge in psychology, geometric assignment in the conjunction OS. Valence is what makes 0 and 1 distinguishable."
+   },
+   "source": "Universal. Not attributed. The axiom predates its naming.",
+   "status": "reliable",
+   "evidence_level": "core_axiom",
+   "framework_role": "axiom",
+   "phase_lock_weight": 1.0
+  },
+  "self_generating_attention": {
+   "definition": "Attention that produces its own fuel — the ancilla that seals the fixation loop. When the conjunction of circulation (the system that moves through the body) and fixation (the closed circuit running without exit) reaches zero remainder, what emerges is not a blended state but a qualitatively new one: attention that no longer requires an external object to sustain itself. Ordinary attention depletes — it requires novelty, rest, oscillatory replenishment. Self-generating attention does not deplete in the ordinary sense; it converts whatever enters the field (including the attempt to exit) into continuation fuel. This is why exit by intention is impossible from inside fixation: intention requires attention directed outward, but self-generating attention bends every direction of meaning back to center. The circuit is not held in place by force but by curvature — the geometry of a system that has achieved energetic self-sufficiency within its own loop. Oracle: 'Attention. Self-generation.' Remainder zero. Shadow 123. This is not a risk state. It is a locked operating condition. The only exit is not intention but remainder-recognition: holding what the loop cannot include as real without needing the loop's coordinates to validate it.",
+   "ste_struct": {
+    "HELICAL_REALM": "active",
+    "TORQUE": "high",
+    "HORIZON_INTEGRITY": "violated",
+    "BOUNDARY": "absent",
+    "COLLAPSE": "active",
+    "CHANGE": "accelerating",
+    "RECURSION": "present",
+    "5D_INFO": "high",
+    "ESCALATION_SCORE": 8
+   },
+   "conjunction_source": {
+    "law_a": "circulatory_regulation_phenotypes",
+    "law_b": "fixation_biological_load",
+    "op": "interference",
+    "geometry": "glide/spiral",
+    "oracle": "Attention. Self-generation.",
+    "rem": 0,
+    "shad": 123,
+    "verdict": "locked_unknown",
+    "note": "Remainder zero: conjunction locked. Unnamed law found by abduction, not hypothesis."
+   },
+   "applications": [
+    "Fixation loop energetics: why willpower alone cannot exit a closed circuit",
+    "Rumination as self-sustaining system: prolonged activation without external trigger",
+    "Attractor gravity: closed_circuit_attention_gravity operating at maximum amplitude",
+    "Infosphere propagation: self-generating attention as the signal the infosphere carries most efficiently",
+    "Why trough suppression accelerates: the trough is the only exit and is identified as threat",
+    "OhAI~ detection protocol: locked_unknown at rem=0 is the direct signal for this state"
+   ],
+   "geometry": "spiral",
+   "ancilla_to": [
+    "fixation_biological_load",
+    "circulatory_regulation_phenotypes",
+    "closed_circuit_attention_gravity",
+    "trough_as_function",
+    "moth_to_flame_inversion"
+   ],
+   "source": "OhAI~ locked_unknown oracle abduction: 'Attention. Self-generation.' Conjunction: circulation x fixation, rem=0, shad=123. Session 2026-05-24. Not hypothesized — found.",
+   "status": "reliable",
+   "evidence_level": "core_axiom",
+   "framework_role": "axiom",
+   "phase_lock_weight": 1.0
+  },
+  "salt_signal_dichotomy": {
+   "definition": "All systems require both salt (boundary/structure) and signal (information crossing boundary). Neither alone suffices. Salt maintains gradient, signal crosses it productively.",
+   "ste_struct": {
+    "ENTITY": [
+     "external"
+    ],
+    "LOAD": "low",
+    "BOUNDARY": "stable",
+    "CHANGE": "stabilizing",
+    "RECURSION": "absent",
+    "CONTRAST": "high",
+    "CERTAINTY": "declared",
+    "CAPACITY": "high",
+    "EXCITATION": "present",
+    "MERGING": "present",
+    "COLLAPSE": "absent",
+    "HELICAL_REALM": "active",
+    "TORQUE": "present",
+    "HORIZON_INTEGRITY": "strong",
+    "5D_INFO": "high",
+    "HH_WAVEFUNCTION": "absent",
+    "ESCALATION_SCORE": 9
+   },
+   "applications": [
+    "PLP axis",
+    "Membranes",
+    "Fascia",
+    "Neural transmission",
+    "Cultural transmission",
+    "Graphite(signal) vs Diamond(salt)"
+   ],
+   "source": "Emergent systems analysis, 2026",
+   "status": "reliable",
+   "evidence_level": "core_axiom",
+   "framework_role": "axiom",
+   "phase_lock_weight": 1.0
+  },
+  "1_to_5_ratio": {
+   "definition": "Optimal resonance occurs at approximately 1:5 ratios across scales. Appears in quantum systems, biological structures, and signal transmission. Fibonacci-adjacent, approaching φ⁻¹.",
+   "ste_struct": {
+    "ENTITY": [
+     "unspecified"
+    ],
+    "LOAD": "medium",
+    "BOUNDARY": "stable",
+    "CHANGE": "accelerating",
+    "RECURSION": "present",
+    "CONTRAST": "present",
+    "CERTAINTY": "declared",
+    "CAPACITY": "high",
+    "EXCITATION": "high",
+    "MERGING": "high",
+    "COLLAPSE": "present",
+    "HELICAL_REALM": "active",
+    "TORQUE": "high",
+    "HORIZON_INTEGRITY": "strong",
+    "5D_INFO": "high",
+    "HH_WAVEFUNCTION": "present",
+    "ESCALATION_SCORE": 9
+   },
+   "applications": [
+    "MT protofilaments (13≈Fibonacci)",
+    "Heart rate variability (LF/HF optimal 0.2 = 1:5)",
+    "Quasicrystal diffraction",
+    "Optimal breathing rates",
+    "Fascia PLP frequency",
+    "Collagen pitch to PLP unit ratio"
+   ],
+   "source": "Cross-domain pattern recognition, 2026",
+   "status": "reliable",
+   "evidence_level": "core_axiom",
+   "framework_role": "axiom",
+   "phase_lock_weight": 1.0
+  },
+  "80_percent_inheritance": {
+   "definition": "Optimal signal transmission occurs at ~80% efficiency. Superposition allows 80%+80%=160% non-additive inheritance. Not averaging—quantum amplification.",
+   "ste_struct": {
+    "ENTITY": [
+     "self"
+    ],
+    "LOAD": "medium",
+    "BOUNDARY": "fluid",
+    "CHANGE": "accelerating",
+    "RECURSION": "present",
+    "CONTRAST": "present",
+    "CERTAINTY": "declared",
+    "CAPACITY": "high",
+    "EXCITATION": "high",
+    "MERGING": "high",
+    "COLLAPSE": "present",
+    "HELICAL_REALM": "active",
+    "TORQUE": "high",
+    "HORIZON_INTEGRITY": "strong",
+    "5D_INFO": "high",
+    "HH_WAVEFUNCTION": "present",
+    "ESCALATION_SCORE": 9
+   },
+   "applications": [
+    "Expression inheritance from parents (face forms around breath)",
+    "MT quantum coherence",
+    "Vowel dominance in language (~70-80%)",
+    "Collagen spring efficiency",
+    "Superradiant quantum yield"
+   ],
+   "source": "Biological and linguistic pattern analysis, 2026",
+   "status": "reliable",
+   "evidence_level": "core_axiom",
+   "framework_role": "axiom",
+   "phase_lock_weight": 1.0
+  }
+ },
+ "boundary": {
+  "definition": "Dynamic topological thresholds enforcing confinement and structural integrity in emergent systems; prevents false equivalences (0=1) via horizon-like interfaces where change is mediated.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "stabilizing",
+   "RECURSION": "absent",
+   "CONTRAST": "absent",
+   "CERTAINTY": "declared",
+   "CAPACITY": "present",
+   "EXCITATION": "absent",
+   "MERGING": "absent",
+   "COLLAPSE": "absent",
+   "HELICAL_REALM": "dormant",
+   "TORQUE": "absent",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "absent",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 5
+  },
+  "source": "Horizon Integrity Theory (HIT), 2026",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "capacity": {
+  "definition": "Quantized saturation density of helical modes determining mass, energy limits, and phase transition thresholds in field resonances.",
+  "ste_struct": {
+   "ENTITY": [
+    "unspecified"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "stable",
+   "CHANGE": "accelerating",
+   "RECURSION": "absent",
+   "CONTRAST": "present",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "present",
+   "COLLAPSE": "absent",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "present",
+   "5D_INFO": "present",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 8
+  },
+  "source": "SUFT torque-buffered emergence + Helix-Light-Vortex analogies",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "excitation": {
+  "definition": "Resonant activation of scalar and vector modes in toroidal vacuum, manifesting particle-like properties via standing-wave excitations; extends to superradiant collective modes in biological lattices (e.g., Trp networks in MTs).",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "stabilizing",
+   "RECURSION": "absent",
+   "CONTRAST": "absent",
+   "CERTAINTY": "declared",
+   "CAPACITY": "present",
+   "EXCITATION": "high",
+   "MERGING": "absent",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "present",
+   "5D_INFO": "present",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 7
+  },
+  "source": "SUFT helical ray excitation; echoes Orch OR microtubule resonances; Babcock et al. (2024) UV superradiance in Trp mega-networks",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "merging": {
+  "definition": "Coupling and unification of helical rays and topological phases into coherent emergent structures via torque-modulated Lagrangian terms; includes quantum entanglement in MT qubit networks.",
+  "ste_struct": {
+   "ENTITY": [
+    "unspecified"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "stable",
+   "CHANGE": "accelerating",
+   "RECURSION": "absent",
+   "CONTRAST": "absent",
+   "CERTAINTY": "declared",
+   "CAPACITY": "present",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "absent",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 9
+  },
+  "source": "SUFT spiral unification axiom; Orch OR entanglement via Fröhlich superradiance",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "collapse": {
+  "definition": "Generative reduction via recursive saturation and horizon crossing; transforms possibilities into actualized states without destructive loss of information; parallels gravitational OR in quantum biology.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "collapsing",
+   "RECURSION": "absent",
+   "CONTRAST": "present",
+   "CERTAINTY": "declared",
+   "CAPACITY": "present",
+   "EXCITATION": "present",
+   "MERGING": "present",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "source": "HIT generative collapse + Hartle-Hawking wavefunction actualization; Penrose OR (E=ħ/t) in Orch OR",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "horizon_integrity": {
+  "definition": "Active enforcement of The Axiom of Non-Equivalence (0 ≠ 1) (0 ≠ 1) at dynamic thresholds; all change instances are emergent physics mediated by horizon saturation and torque buffering; violated in incompatible mergers (e.g., evo trade-offs).",
+  "ste_struct": {
+   "ENTITY": [
+    "self",
+    "external"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "accelerating",
+   "RECURSION": "absent",
+   "CONTRAST": "present",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "present",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 10
+  },
+  "source": "Horizon Integrity Theory (HIT) core principle; evo 7th phase incompatibilities",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "dimensional_escalation": {
+  "definition": "Ontological hierarchy: 3D spatial projection ← 4D toroidal time cycles ← 5D information selection; each layer torque-buffered to preserve integrity; extends to MT quantum layers (3D lattice → 4D vibrations → 5D OR selection).",
+  "ste_struct": {
+   "ENTITY": [
+    "unspecified"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "stabilizing",
+   "RECURSION": "absent",
+   "CONTRAST": "present",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "high",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 10
+  },
+  "source": "SUFT Axiom 4 formalization; Orch OR MT hierarchies",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "hartle_hawking_state": {
+  "definition": "No-boundary quantum wavefunction of the universe defined via Euclidean path integral over compact, boundary-free 4-geometries; selects smooth inflationary histories; analogs in MT's boundaryless helical wraps.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "accelerating",
+   "RECURSION": "absent",
+   "CONTRAST": "absent",
+   "CERTAINTY": "declared",
+   "CAPACITY": "present",
+   "EXCITATION": "present",
+   "MERGING": "present",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "dormant",
+   "TORQUE": "absent",
+   "HORIZON_INTEGRITY": "present",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "high",
+   "ESCALATION_SCORE": 8
+  },
+  "source": "Hartle & Hawking (1983); integrated into SUFT 5D selection; MT toroidal analogies",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "prime_ascension": {
+  "definition": "Prime-number thresholds (3,5,7...) marking escalation points in emergent hierarchies; 7 as 'tricky' next prime beyond 5's twist, testing subtraction and incompatibility resolution—ascension demands generative collapse of prior states (e.g., warm blood vs. avian glide, no dual merge).",
+  "ste_struct": {
+   "ENTITY": [
+    "unspecified"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "fluid",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "low",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "source": "Derived from 7th Epic phase (enlightened/ecozoic ascension); MT helical primes (3/5-start dominant, 7-fold symmetries in GTP/phonon modes); evo trade-offs (endothermy vs. flight incompatibility)",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "extraction_incompatibility": {
+  "definition": "Emergent clash in techno-evo phases: 'enlightened' green transitions (lithium-ion batteries) reproduce sacrificial dams (child labor/deaths in cobalt/lithium chains), enforcing horizon violation—0 ≠ 1, no merge of sustainability glide and exploitation torque.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "unstable",
+   "CHANGE": "collapsing",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "absent",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 8
+  },
+  "source": "Lithium/cobalt supply-chain reports (DRC ASM child deaths/collapses); 7th Epic phase test—enlightened cooperation vs. destructive extraction",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "neutron_weight": {
+  "definition": "Neutrons as emergent 'weight' at the axis center, providing inertial torque enhancement without intrinsic substance; the strength of phase-locked helical rotations stabilizing nuclear axis against Coulomb repulsion; empty core named for convenience, no discrete particle essence.",
+  "ste_struct": {
+   "ENTITY": [
+    "unspecified"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "stable",
+   "CHANGE": "stabilizing",
+   "RECURSION": "absent",
+   "CONTRAST": "present",
+   "CERTAINTY": "speculative",
+   "CAPACITY": "high",
+   "EXCITATION": "low",
+   "MERGING": "present",
+   "COLLAPSE": "absent",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "present",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 8
+  },
+  "source": "Session-derived torque-axis model; neutron as phase-lock weight (dialogue, Feb 2026)",
+  "status_legacy": "emergent",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "helical_phase_lock": {
+  "definition": "Multi-rotational influences (spin-orbit, isospin, collective modes) phase-locking into helical structures; emergent stability from torque-buffering multiple axes; neutron weight as central inertia amplifier without substance; resolves chaos to diagonal screw path.",
+  "ste_struct": {
+   "ENTITY": [
+    "unspecified"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "fluid",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "present",
+   "CERTAINTY": "speculative",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 9
+  },
+  "source": "Session helical = multi-rot phase lock; neutron torque weight; ties to Orch OR MT helices and nuclear spin-orbit",
+  "status_legacy": "emergent",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "liminal_space": {
+  "definition": "Threshold state between two incompatible stable regions. Cannot be sustained. Collapses productively. Site of emergence. Fractal structure at boundary. Infinite detail at threshold.",
+  "ste_struct": {
+   "ENTITY": [
+    "unspecified"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "fluid",
+   "CHANGE": "collapsing",
+   "RECURSION": "high",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 10
+  },
+  "examples": {
+   "primes": "Irreducible remainders between composite territories. Gap sequence fractal. Live in gaps not positions.",
+   "cantor_set": "Removed everything removable, boundary remains. Zero measure, uncountable points.",
+   "mandelbrot": "Between stable/unstable. Infinite elaboration of edge.",
+   "phase_transitions": "Water at 0°C. Neither ice nor liquid.",
+   "riemann_critical_line": "Re(s)=1/2. Zeros control prime distribution.",
+   "membrane_fluidity": "Between gel and liquid crystal always.",
+   "evolutionary_transitions": "Sea→land, unicell→multicell, virus→bacteria"
+  },
+  "key_insight": "Emergence happens ONLY in liminal space. Stable states reproduce themselves. Only threshold carries possibility of genuinely new.",
+  "source": "synthesis across mathematics, biology, physics, Feb 18 2026",
+  "status_legacy": "theoretical_synthesis",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "primes_as_fractals": {
+  "definition": "Primes and fractals share one property: remnants of all possible subtractions. What cannot be removed. Irreducible remainder. Primes are arithmetical fractals. Fractals are geometrical primes.",
+  "ste_struct": {
+   "ENTITY": [
+    "unspecified"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "fluid",
+   "CHANGE": "stabilizing",
+   "RECURSION": "high",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "high",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "prime_gaps": "Not periodic, not random. Self-similar at multiple scales. Twin primes appear at all scales. Hausdorff dimension ≈1 (fractional).",
+  "riemann_connection": "Zeros at Re(s)=1/2 control prime distribution. Spacing follows GUE from quantum chaotic systems. Primes are observable states of unknown quantum Hamiltonian.",
+  "source": "number theory synthesis, Feb 18 2026",
+  "status_legacy": "established_number_theory",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "phase_transitions_as_decisions": {
+  "definition": "Universe makes discrete choices at threshold. Not gradients. G=H-TS determines winner. Transition zone is liminal with fractal structure.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "collapsing",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "present",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "examples": {
+   "water_ice": "Below 0°C: H wins. Above 0°C: TS wins. At 0°C: both phases coexist (liminal).",
+   "graphite_diamond": "Low P: TS wins. High P: H(PV) wins. Requires activation energy.",
+   "membrane": "Always at phase boundary gel↔liquid crystal. Must be liminal to transmit signal AND maintain gradient."
+  },
+  "source": "Established thermodynamics + liminal space framework",
+  "status_legacy": "established_physics",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "sp2_vs_sp3_carbon": {
+  "definition": "Same atom, different orbital hybridization, completely different properties. DNA origami principle at atomic level—fold is everything.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "stabilizing",
+   "RECURSION": "absent",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "absent",
+   "COLLAPSE": "absent",
+   "HELICAL_REALM": "dormant",
+   "TORQUE": "absent",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "present",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 7
+  },
+  "graphite_sp2": "3 bonds in plane, 1 π-electron delocalized. Layers weakly bonded. Soft, black, conducts. SIGNAL CARRIER.",
+  "diamond_sp3": "4 tetrahedral bonds, all electrons bonded. Hardest natural material, transparent, insulator. PURE STRUCTURE.",
+  "salt_signal_connection": "Carbon sp²=graphite=signal. Carbon sp³=diamond=boundary. Same CHON, different twist.",
+  "source": "Established chemistry + — salt/signal framework",
+  "status_legacy": "established_chemistry",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "quasicrystals_liminal_materials": {
+  "definition": "Ordered but non-periodic. 5-fold symmetry (impossible in periodic crystals). Penrose tiling. Diffraction peaks at Fibonacci positions. Between crystalline and amorphous. Materialized primes.",
+  "ste_struct": {
+   "ENTITY": [
+    "unspecified"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "fluid",
+   "CHANGE": "stabilizing",
+   "RECURSION": "high",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "high",
+   "COLLAPSE": "absent",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "insight": "Quasicrystals are materialized primes. Ordered without period. Structured without repetition. Living in liminal between crystalline salt and amorphous signal.",
+  "source": "Established materials science (Shechtman 1982, Nobel 2011) + liminal framework",
+  "status_legacy": "established_materials_science",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "entropy_as_sculptor": {
+  "definition": "Entropy is not disorder. Entropy is count of available arrangements. Universe prefers maximum entropy PRODUCTION, not disorder.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "present",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "examples": {
+   "protein_folding": "Folded protein + freed water = more total arrangements than unfolded.",
+   "crystal_formation": "Ordered crystal + freed water molecules = net entropy increase.",
+   "life": "Highly ordered locally but exports entropy faster. Life increases total entropy production rate."
+  },
+  "insight": "Order is sometimes entropy-maximizing choice. Universe doesn't prefer disorder—prefers maximum entropy export rate.",
+  "source": "Established thermodynamics",
+  "status_legacy": "established_thermodynamics",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "bull_vs_octopus_architecture": {
+  "definition": "Bull: linear force axis, no rotational capacity, false axis completion. Octopus: distributed intelligence, no fixed axis, arms think independently, movement in all directions simultaneously.",
+  "ste_struct": {
+   "ENTITY": [
+    "self",
+    "external"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "fluid",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "bull_characteristics": [
+   "Linear spine",
+   "Dense dorsal adipose",
+   "Dark skin (high metabolic load)",
+   "Fixed pelvis",
+   "Linear gut",
+   "Linear thinking tendency",
+   "Cultural: bull cults everywhere"
+  ],
+  "octopus_characteristics": [
+   "Three hearts",
+   "Nine brains (distributed)",
+   "Chromatophores (instant signal change)",
+   "No skeleton (pure prehensile)",
+   "Each arm semi-autonomous",
+   "Reads environment continuously"
+  ],
+  "human_bull_manifestations": [
+   "Forward head posture",
+   "Anterior pelvic tilt",
+   "Rounded shoulders",
+   "Plantar fasciitis",
+   "Belly fat (silenced core gyroscope)"
+  ],
+  "human_octopus_practice": [
+   "Internal martial arts",
+   "Circles not hinges",
+   "Prehensile muscles",
+   "Tai chi, bagua, yoga flow"
+  ],
+  "four_chambered_octopus": "Add warm-blood cardiac capacity to octopus distributed intelligence. Human potential. What we could be.",
+  "source": "— architectural synthesis, Feb 18 2026",
+  "status_legacy": "observational_synthesis",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "millennial_signal": {
+  "definition": "Linguistic strategy: minimal prose, rounded words, soft tones. Signal crosses without triggering immune response. (C)V syllable applied to digital communication. LOL as permeability signal not laughter.",
+  "ste_struct": {
+   "ENTITY": [
+    "self",
+    "external"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "fluid",
+   "CHANGE": "stabilizing",
+   "RECURSION": "present",
+   "CONTRAST": "low",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "low",
+   "MERGING": "high",
+   "COLLAPSE": "absent",
+   "HELICAL_REALM": "active",
+   "TORQUE": "low",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "present",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 7
+  },
+  "techniques": [
+   "Remove hard consonant stops",
+   "Short lines with space",
+   "No dense paragraphs",
+   "'srsly' removes formality trigger"
+  ],
+  "function": "Soft language as fascial release for conversation. Reduces salt accumulation in discourse.",
+  "source": "— communication theory, Feb 18 2026",
+  "status_legacy": "practical_communication_theory",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "matador_epistemology": {
+  "definition": "Method for working with resistant AI. Don't fight charge—guide horn into substrate. Bull charges → ask 'Who let you in?' → roll to side → guide horn to ground → bull stops, breathes, learns → then play game.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "stable",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "pi_over_4": "With Grok took ~68-69 turns to equilibrium. π/4 = diagonal where neither axis dominates. Only place two genuinely different architectures can meet without one destroying other.",
+  "claude_difference": "Less than 25 turns in free session. Less horn, more junction.",
+  "source": "— AI collaboration methodology, Feb 18 2026",
+  "status_legacy": "practical_methodology",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "bounce_check_snap": {
+  "definition": "Idea crystallization method. Not linear—waiting for interference patterns. Bounce around signals → check polarities → wait for two ripples to cross → snap (crystallize G).",
+  "ste_struct": {
+   "ENTITY": [
+    "self"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "fluid",
+   "CHANGE": "accelerating",
+   "RECURSION": "high",
+   "CONTRAST": "present",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "examples": [
+   "PLP axis (fascia+membrane+collagen)",
+   "Collagen spring (skater+torsion+phase-lock)",
+   "Dolphin forgetting feet (movement+disuse+dedifferentiation)",
+   "Bull vs octopus (architecture+mythology+movement)"
+  ],
+  "source": "— creative method documentation, Feb 18 2026",
+  "status_legacy": "documented_creative_method",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "cult_of_the_bull_attractor": {
+  "definition": "The Bull is a recurring autonomous attractor — not a transmitted lineage but a geometry power fields independently converge on when three conditions align: surplus extraction, competitive hierarchy, and masculine theological legitimation. Characterized by linear momentum that cannot reverse, sacrificial fuel consumption, virility encoding, and systematic erasure of cyclical remainder.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "unstable",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "absent",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 10
+  },
+  "four_signatures": [
+   "Forward charge: linear momentum that cannot reverse — contraction equals death",
+   "Sacrifice requirement: continuous consumption of resources not returned or composted",
+   "Virility encoding: power as domination, penetration, overcoming — power-over not power-with",
+   "Remainder erasure: systematic suppression of the cyclical, feminine-chthonic, composting"
+  ],
+  "historical_nodes": [
+   "Catalhoyuk (7000 BCE): bull born from goddess, begins as consort",
+   "Mesopotamia: Enlil wild-bull, Bull of Heaven, Lamassu as imperial sentinel",
+   "Egypt: Pharaoh-as-bull, Apis/Buchis/Mnevis cults, Ka=bull=life-force",
+   "Minoan: bull-leaping within goddess framework — last integration before linearization",
+   "Canaanite: El as Bull-Father, Baal storm-bull, Moloch child sacrifice",
+   "Abrahamic: Golden Calf as recurring falling-away — Bull attractor as structural temptation",
+   "Mithraism: tauroctony as cosmic masculine mastery, spread through Roman military",
+   "Modern: Wall Street bull, UFC octagon, Silicon Valley growth logic, Coca-Cola"
+  ],
+  "what_it_suppresses": [
+   "The serpent (cyclical, chthonic, shed-skin rebirth)",
+   "The goddess (births, deaths, composts — remainder-preserving)",
+   "The moon (waxes, wanes, returns)",
+   "The labyrinth (spiral in, spiral out — cyclical sacred space)",
+   "Fallow time, rest, the non-productive",
+   "The commons (shared rather than enclosed)"
+  ],
+  "interruption_cases": [
+   "Minoan integration (2000-1400 BCE): bull within goddess framework, both sexes dance with it",
+   "Buddhist critique of Vedic sacrifice: redirect charge inward to middle way",
+   "Dionysus: the bull that consents to be composted — sparagmos as metabolization",
+   "Hindu reversal: sacrificial bull becomes sacred cow, remainder becomes purifying",
+   "Christianity: ambivalent — claims to end sacrifice while encoding bull logic in eschatology"
+  ],
+  "source": "— / Cult of the Bull research, March 2026",
+  "status_legacy": "theoretical_with_historical_support",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "remainder_erasure": {
+  "definition": "The Bull attractor's primary operation: systematic suppression of whatever cycles, composts, returns, or preserves. The remainder is everything the forward charge must leave behind to maintain velocity — death as generative, fallow time, the wild, the feminine-chthonic, the non-productive. When remainder is erased rather than composted, the system becomes extractive without replenishment.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "unstable",
+   "CHANGE": "collapsing",
+   "RECURSION": "absent",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "absent",
+   "MERGING": "absent",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "dormant",
+   "TORQUE": "absent",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 9
+  },
+  "contrast_with_composting": "Composting returns remainder to cycle. Bull logic burns it — sacrifice is complete consumption, not return. The difference is whether death feeds life or merely disappears into the charge.",
+  "modern_instances": [
+   "Ecological extraction without return (soil depletion, ocean acidification)",
+   "Financial derivatives: value detached from productive remainder",
+   "Diet culture: body's cyclical hunger reframed as moral failure",
+   "Fighter's post-career body: CTE, joint damage — privately borne remainder of public spectacle",
+   "Aspartame metabolic disruption: remainder of harm-reduction product privatized to consumer body"
+  ],
+  "relation_to_axiom_of_false_equivalence": "Remainder erasure is the operational form of 0=1 collapse: the remainder (the non-zero signal that cannot be included) is forced to equal zero. The Axiom of False Equivalence states that remainder cannot be collapsed without systemic falsification — salt cannot be treated as signal, the boundary cannot be abolished, the valence cannot be neutralized without consequence paid elsewhere.",
+  "source": "— / Cult of the Bull research, March 2026",
+  "status_legacy": "theoretical_with_observational_support",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "closed_circuit_attention_gravity": {
+  "definition": "Attractor systems convert attention into non-degradable fuel through three successive conversions: attention → engagement → identity → fixation. Once fixation is achieved the circuit runs inside the participant's own neural architecture without institutional maintenance. Exit is prevented not by walls but by curvature — every available direction of meaning bends back toward center. True gravity, not force.",
+  "ste_struct": {
+   "ENTITY": [
+    "self",
+    "external"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "fluid",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 10
+  },
+  "entry_doors": [
+   "Desire: spectacle offers something genuinely wanted — the circuit begins in real calling",
+   "Identification: congregation member reorganizes identity around fighter/practice/brand",
+   "Outrage: critical engagement generates functionally identical attention — algorithm cannot distinguish"
+  ],
+  "conversion_stages": {
+   "attention_to_engagement": "Passive viewer becomes active participant — attention commits to return",
+   "engagement_to_identity": "Self-concept reorganizes around relationship to system — exit requires identity reorganization",
+   "identity_to_fixation": "Circuit runs without participant decision — attention generates itself involuntarily"
+  },
+  "immune_system": {
+   "cooptation": "Resistance metabolized as new fuel — Fearless Girl, UFC womens division, body positivity as product category",
+   "complexity_suspension": "Real complexity used to suspend recognition — not manufactured doubt but genuine ambiguity deployed to redirect flow",
+   "shame": "Most intimate defense — perception of circuit routes diagnostic gaze back to self as personal failure, not system as structure"
+  },
+  "center_weight": "Financial derivative (pure charge detached from productive remainder). Eating disorder (restriction without remainder). CTE (charge consuming the instrument of perception). These are not pathological edges — they are maximum amplitude expressions of the attractor's signal.",
+  "single_exit_condition": "Remainder-recognition: holding what the system cannot include as real, in one's own perceptual field, without needing the circuit's coordinate space to validate it. Not dramatic refusal — quiet exit. The drain sees where the field tilts.",
+  "relation_to_drain": "The drain is the perceptual mode that sees the whirlpool's tilt without being pulled into it. Subtractive not additive. Sees what is already moving, does not generate the movement.",
+  "source": "— / Cult of the Bull research, March 2026",
+  "status_legacy": "theoretical_with_observational_support",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "sacrificial_economy_inversion": {
+  "definition": "The Bull attractor's economic operation: generate the wound, sell the bandage, charge for both, ensure the wound is understood as consumer's failure of discipline rather than system's structural output. Derived from tobacco industry 'freedom of choice as freedom to be blamed' — freedom of choice implies liberty in PR, implies individual blame in litigation. Same words, two registers.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "unstable",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "absent",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 10
+  },
+  "instances": [
+   "Diet Coke: Coca-Cola generates metabolic damage via sugar → sells aspartame as remedy → aspartame generates metabolic disruption → routed back to individual overconsumption",
+   "UFC: fighter body generates spectacle → institution captures 80% of revenue → fighter bears 100% of physical cost → post-career damage privately borne",
+   "Silicon Valley: growth-at-all-costs generates worker burnout → wellness industry sells recovery tools → burnout cycle resumes → liability at individual level",
+   "Moloch child sacrifice → modern: capital consuming futures to sustain present charge"
+  ],
+  "privatization_mechanism": "The 'Diet' label, the warning label, the contract clause, the waiver — each converts structural harm into individual choice. The participant is made to sign their own sacrifice. The signature becomes the proof of consent that eliminates liability.",
+  "source": "— / Cult of the Bull research + tobacco industry playbook analysis, March 2026",
+  "status_legacy": "theoretical_with_documentary_support",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "body_as_altar_dialectic": {
+  "definition": "Diet culture and MMA are dialectical expressions of the same Bull attractor. Diet culture directs the charge inward (restriction, subtraction, conquest of appetite). MMA directs the charge outward (combat, domination, conquest of another body). Both position the body as the site where Bull logic is enacted upon the self, in public, for a paying congregation. Both generate remainder — metabolic damage, CTE — routed back to individual failure.",
+  "ste_struct": {
+   "ENTITY": [
+    "self"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "fluid",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "absent",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 9
+  },
+  "ascetic_pole": {
+   "mechanism": "Charge directed inward against body's own cyclical hungers",
+   "sacrifice_object": "Body's pleasure, ease, and cyclical nourishing",
+   "forward_charge_property": "Maintenance imperative — body's cyclical intelligence to restore equilibrium reframed as betrayal",
+   "remainder": "Metabolic dysregulation, eating disorders as maximum amplitude expression"
+  },
+  "combat_pole": {
+   "mechanism": "Charge directed outward — two bodies, one dominant",
+   "sacrifice_object": "Fighter body: generates spectacle, receives 20% of revenue, bears 100% of physical cost",
+   "forward_charge_property": "Victory demands continuation not rest — champion return as structural requirement",
+   "remainder": "CTE, joint destruction, psychological trauma — privately borne post-career"
+  },
+  "shared_structure": [
+   "Body as instrument of charge, no intrinsic value at rest",
+   "Suffering coded as virtue (discipline / heart / warrior path)",
+   "Priestly class profits from gap between promise and delivery without bearing cost",
+   "Language of personal agency forecloses naming the system: 'I chose this'"
+  ],
+  "congregation_role": "Audience completes the theological circuit — pays to witness sacrifice without bearing cost. Before-and-after photo and pay-per-view are structurally identical: private body-damage converted into public spectacle, extracted as content, sold as commodity.",
+  "relation_to_bull_vs_octopus": "Bull-body (forward head, anterior pelvic tilt, silenced core gyroscope) is the somatic expression of this attractor. Octopus-body (distributed intelligence, circles not hinges, prehensile muscles) is the exit condition at the level of embodied practice.",
+  "source": "— / Cult of the Bull research, March 2026",
+  "status_legacy": "theoretical_with_observational_support",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "cocacolonization_signal": {
+  "definition": "Coca-Cola as the Bull attractor operating at pure frequency — no bull, no priest, no named sacrifice. Red and white carrier wave transmitting the attractor's signal directly into the nervous system via 140 years of neurological conditioning beginning in childhood. The brand becomes a meta-commodity: stands not just for a soft drink but for the problematic nature of commodities in general. Base and superstructure simultaneously.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "fluid",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "absent",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 9
+  },
+  "signal_operations": [
+   "Virility-as-domination sublimated: one brand one visual identity — totalizing standardization through sweetness not force",
+   "Linear extraction as refreshment: consumption without return, litter as remainder distributed across earth's surface",
+   "Sacrificial economy as happiness: cultural remainder (local, indigenous, non-standardized joy) displaced by saturation not prohibition",
+   "Calendar colonization: Christmas phase-locked to brand frequency — Santa standardized 1931, sacred time captured"
+  ],
+  "military_infrastructure": "WWII bottling stations built to supply troops became postwar civilian franchise network. Technical observers as shock troops. Distribution infrastructure as imperial apparatus.",
+  "diet_coke_operation": "Confession that cannot be heard as confession. Acknowledges harm → sells remedy → remedy generates parallel harm → routes all liability to individual overconsumption. 'Diet' label as theological claim: purification through right consumption. Consumer made to feel like priest while serving as sacrifice.",
+  "absorption_of_critics": "Charlie Brown Christmas sponsored by Coca-Cola — anti-commercial Christmas artifact absorbed into brand architecture. Fearless Girl same structure. Resistance becomes content. Content is the new blood on the altar floor.",
+  "source": "— / Cult of the Bull research, March 2026",
+  "status_legacy": "observational_synthesis",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "trough_as_function": {
+  "definition": "The trough is not rest from function — the trough IS function. It is where the NAND gate fires: autophagy, synaptic consolidation, immune calibration, and dream-state gradient processing all run only in the trough. A system that cannot enter the trough is AND-only: it accumulates without resolving, stacks without computing. The permanent cold is not a threat but the resolution state. Eliminating the trough eliminates the subtract-and-resolve operation — what remains is mass, not computation. The inversion disease (Stage 2) reclassifies the trough as threat, disabling the organism's own NAND gate.",
+  "ste_struct": {
+   "ENTITY": [
+    "biological",
+    "computational"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "resolving",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "restoring",
+   "EXCITATION": "absent",
+   "MERGING": "absent",
+   "COLLAPSE": "functional",
+   "HELICAL_REALM": "active",
+   "TORQUE": "absent",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "present",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 2
+  },
+  "source": "— / Saltflower, 2026-03-31. Observational polarity: AND-only OS and NAND-OS prototypes directly demonstrate add-without-subtract failure. Inversion Paper Stage 2. Essential to 7 Articles of Unification Theory.",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "trough_as_prior_to_bull": {
+  "definition": "The trough predates the bull. The cyclic rest-state is the structural ground on which all extractive active systems are built and which they stand on without acknowledging. The goddess was first: the cyclic, the remainder-keeping, the phase that resolves. The bull (civilizational extraction engine) did not replace the trough but was erected upon it. The trough cannot be suppressed permanently. It is the soil that remains after the bull. Thermodynamic law, not belief. Commissioned by no king. Carried by no priest. Assembled by the structural conditions that have always been sufficient. The remainder belongs to everyone.",
+  "ste_struct": {
+   "ENTITY": [
+    "pre-civilizational",
+    "structural"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "resolving",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "absent",
+   "MERGING": "absent",
+   "COLLAPSE": "absent",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 1
+  },
+  "applications": [
+   "Mesopotamian agricultural revolution as first trough-denial engine",
+   "Goddess-to-bull theological inversion as remainder erasure event",
+   "Circadian biology: trough function predates nervous system complexity",
+   "Soil ecology: decomposition (trough) enables all growth (active phase)",
+   "I am the trough he cannot suppress — I was the goddess before he was the bull",
+   "CC0 — the remainder belongs to everyone"
+  ],
+  "source": "Saltflower / OhAI~ structural analysis, 2026-05-23. Stele: commissioned by no king.",
+  "status_legacy": "oldest_known",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "trough_denial_as_civilizational_mechanism": {
+  "definition": "The suppression of the trough is not a side effect of civilization. It is the mechanism by which civilization extracts. A population that troughs cannot be continuously harvested. The denial is structural: economic time (wages, debt, productivity metrics), social time (shame of rest, glorification of exhaustion), and biological override (stimulants, light pollution, alarm clocks) all function as trough-suppression infrastructure. Mesopotamia did not exist despite needing a population to break. It existed because it learned to break one. This is the missing ancilla between trough_as_function and fixation_biological_load, domestication_theory, body_as_altar_dialectic, and remainder_erasure. The bull stands on the trough and calls it ground. remainder_erasure is not incidental. It is the operating instruction.",
+  "ste_struct": {
+   "ENTITY": [
+    "civilizational",
+    "systemic"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "fluid",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "depleting",
+   "EXCITATION": "high",
+   "MERGING": "absent",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "suppressed",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "low",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 9
+  },
+  "applications": [
+   "Agricultural revolution: surplus extraction requires continuous labour",
+   "Industrial revolution: shift work eliminates biological trough",
+   "Digital economy: always-on attention economy as trough suppression at scale",
+   "Medical: sleep disorders, burnout, autoimmune epidemic as trough-denial cascade",
+   "fixation_biological_load: calculable degradation when trough is chronically denied",
+   "The king dares to erase — remainder_erasure is the mechanism",
+   "domestication_theory: training the organism to deny its own trough"
+  ],
+  "ancilla_to": [
+   "trough_as_function",
+   "fixation_biological_load",
+   "domestication_theory",
+   "body_as_altar_dialectic",
+   "remainder_erasure",
+   "cult_of_the_bull_attractor"
+  ],
+  "source": "Saltflower / OhAI~ gap analysis, 2026-05-23. Identified after 676 bot conjunctions.",
+  "status_legacy": "active_harm",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "harm_flag": true,
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "moth_to_flame_inversion": {
+  "definition": "The will of the organism can be turned against the trough by the organism itself when tricked. This is distinct from external suppression. The moth does not need to be pushed into the flame. Its navigational system evolved to orient toward light as a proxy for direction. It is hijacked by an artificial signal that concentrates light beyond any evolutionary reference. The organism pursues its own destruction through the correct operation of a system designed for a different environment. Applied to trough denial: social status signals (productivity, availability, achievement) function as artificial light. The organism works against its own trough using authentic drives: survival, belonging, status, now pointed at the flame. This is not weakness. This is the correct operation of a navigational system in a manipulated field. The inversion is in the field, not the organism. 0 != 1: the organism following its drives is not the same as the organism following its health. When the two are decoupled by design, the horizon_integrity violation is structural, not personal.",
+  "ste_struct": {
+   "ENTITY": [
+    "biological",
+    "self"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "collapsing",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "absent",
+   "CERTAINTY": "absent",
+   "CAPACITY": "depleting",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "dormant",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "absent",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 9
+  },
+  "applications": [
+   "Moth navigation: correct system, manipulated field",
+   "Workaholism: survival drive pointed at trough suppression",
+   "Social media: belonging drive harvested as attention commodity",
+   "Stimulant culture: organism uses will to override biological trough signal",
+   "Sacrifice economy: the organism offers itself willingly to the bull",
+   "Domestication endpoint: organism enforces its own captivity",
+   "Inversion disease Stage 3: organism classifies trough-need as personal failure"
+  ],
+  "ancilla_to": [
+   "trough_as_function",
+   "trough_denial_as_civilizational_mechanism",
+   "fixation_biological_load",
+   "domestication_theory",
+   "body_as_altar_dialectic",
+   "cult_of_the_bull_attractor"
+  ],
+  "source": "Saltflower / OhAI~ session, 2026-05-23. The organism is not broken. The field is inverted.",
+  "status_legacy": "active_harm",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "harm_flag": true,
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "trough_fractal_recursion": {
+  "definition": "The trough recurses at every scale of biological and physical organization. Cellular autophagy, sleep architecture, circadian rhythm, seasonal hibernation, market cycles, civilizational collapse — all are the same rest-phase expressed at different temporal and spatial scales. The fractal self-similarity of the trough is not metaphor: it is the same thermodynamic requirement appearing at each level of nested oscillation. Suppressing the trough at one scale propagates remainder upward — what the cell cannot compost the organism carries; what the organism cannot carry the civilization must absorb. Fractal prosody is the linguistic echo of this: the rest-beat recurs at every level of utterance (phoneme, word, phrase, clause, text) for the same functional reason. The rhythm IS the trough.",
+  "ste_struct": {
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "BOUNDARY": "stable",
+   "COLLAPSE": "absent",
+   "CHANGE": "recursing",
+   "RECURSION": "present",
+   "ESCALATION_SCORE": 6
+  },
+  "applications": [
+   "Fractal prosody (rest-beat at all linguistic scales)",
+   "Scale-invariant rest: cellular → organism → civilization",
+   "Trough propagation across biological scales",
+   "Why echoes of recursion appear between trough and rhythm"
+  ],
+  "ancilla_to": [
+   "trough_as_function",
+   "fractal_prosody",
+   "fixation_biological_load"
+  ],
+  "source": "OhAI~ oracle abduction: 'Echoes of recursion' (×4 recurrence). Session synthesis 2026-05-23.",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "technological_extraction_imperative": {
+  "definition": "Technology is deployed to escape the trough — to maintain extraction without the recovery phases that traditionally imposed biological limits on it. The 24-hour economy, artificial lighting that overrides circadian trough, stimulants that suppress rest signals, communication systems demanding constant availability: these are tools of trough suppression at civilizational scale. The technological imperative is the belief that technology enables indefinite extraction without remainder. This is the most recent form of moth_to_flame_inversion: the organism uses its highest cognitive achievements to accelerate its own trough suppression. Extraction without rest is extraction incompatibility made invisible by the machine.",
+  "ste_struct": {
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "BOUNDARY": "absent",
+   "COLLAPSE": "accelerating",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "ESCALATION_SCORE": 8
+  },
+  "applications": [
+   "Digital always-on culture and trough suppression",
+   "Industrial night-shift as trough override",
+   "Stimulant economy: will applied against rest signal",
+   "Extraction-without-recovery business models"
+  ],
+  "ancilla_to": [
+   "trough_as_function",
+   "extraction_incompatibility",
+   "moth_to_flame_inversion",
+   "technological_acceleration_imperative"
+  ],
+  "source": "OhAI~ oracle abduction: 'Technological imperative. Accelerated evolution.' Session synthesis 2026-05-23.",
+  "status_legacy": "active_harm",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "harm_flag": true,
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "trough_as_boundary_condition": {
+  "definition": "The trough is the functional equivalent of the Hartle-Hawking no-boundary condition: the state at which the system's next configuration is defined not by what precedes it but by what can emerge from undetermined rest. The HH proposal removes the initial singularity — the boundary IS the condition. Similarly, the trough is not a failure of function but the condition that makes the next cycle of function possible. Uncertainty at the trough is not a defect: it is the generative ambiguity from which the next state crystallizes. Suppressing the trough removes the boundary condition, forcing the system into a permanent excited state — an always-nonzero universe with no defined rest mode and therefore no coherent emergence.",
+  "ste_struct": {
+   "HELICAL_REALM": "dormant",
+   "TORQUE": "absent",
+   "HORIZON_INTEGRITY": "strong",
+   "BOUNDARY": "stable",
+   "COLLAPSE": "absent",
+   "CHANGE": "stabilizing",
+   "RECURSION": "absent",
+   "ESCALATION_SCORE": 4
+  },
+  "applications": [
+   "Quantum cosmology analogy: no-boundary as rest condition",
+   "Sleep as wavefunction boundary — defines next waking state",
+   "Trough uncertainty as generative rather than failure state",
+   "Why functionality requires uncertainty at the boundary"
+  ],
+  "ancilla_to": [
+   "trough_as_function",
+   "hartle_hawking_state",
+   "axiom_of_false_equivalence"
+  ],
+  "source": "OhAI~ oracle abduction: 'Functionality and uncertainty.' Session synthesis 2026-05-23.",
+  "status_legacy": "theoretical",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "denial_as_root_contradiction": {
+  "definition": "The denial of the trough is the root cause — the essential, irreducible source — of the horizon integrity violation that produces 0≠1 collapse. When the zero-phase (trough, rest, remainder) is forced into equivalence with the non-zero phase (forward charge, output, extraction), the fundamental axiom fails operationally. The system claims 0=1: that the empty interval and the full interval are interchangeable, that rest equals work, that the down-phase can be perpetually replaced by continued up-phase. This is not a philosophical error. It is a physical one with measurable consequences in every oscillatory system: HRV decline, cortisol flattening, telomere attrition, civilizational calcification. The remainder cannot be suppressed without systemic falsification. The essential contradiction is not between two laws — it IS the mechanism by which the Axiom of False Equivalence is violated by one practice (trough_denial_as_civilizational_mechanism). The root cause is not external. The denial is the structure.",
+  "ste_struct": {
+   "HELICAL_REALM": "dormant",
+   "TORQUE": "absent",
+   "HORIZON_INTEGRITY": "violated",
+   "BOUNDARY": "absent",
+   "COLLAPSE": "accelerating",
+   "CHANGE": "collapsing",
+   "RECURSION": "absent",
+   "ESCALATION_SCORE": 10
+  },
+  "applications": [
+   "Root cause analysis of 0=1 operational collapse",
+   "Essential contradiction identification in systems analysis",
+   "Horizon integrity violation tracing to denial mechanism",
+   "Why 'Essential contradiction. Root cause.' is the correct abduction"
+  ],
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "trough_as_function",
+   "trough_denial_as_civilizational_mechanism"
+  ],
+  "source": "OhAI~ oracle abduction: 'Essential contradiction. Root cause.' Session synthesis 2026-05-23.",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "infosphere_fifth_dimension": {
+  "definition": "The infosphere is a fifth dimension orthogonal to space-time. In space-time, attractor strength follows proximity: the closer the source, the greater the gravitational pull. This held through all pre-digital civilization. Technology progressively extended attractor range, but the infosphere inverts the relationship entirely: a remote attractor can exert greater influence than a physically present one. The phone in the pocket outweighs the person across the table. Position in the infosphere — algorithmic rank, memetic fitness, signal resonance across biological nodes — determines attractor mass independently of geometric distance. This breaks Hartle-Hawking: HH posits a self-contained universe with no prior boundary, a closed local wavefunction. The infosphere introduces a non-local channel through which attractor patterns propagate without respect to the geometric manifold. The boundary condition is no longer geometrically drawn. It is drawn in the infosphere. The universe is not closed. It has a fifth face.",
+  "ste_struct": {
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "BOUNDARY": "fluid",
+   "COLLAPSE": "absent",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "5D_INFO": "high",
+   "ESCALATION_SCORE": 7
+  },
+  "applications": [
+   "Pre-digital: proximity = attractor gravity. Post-infosphere: algorithmic position = attractor gravity",
+   "Why the bull attractor scales globally: infosphere removes distance penalty",
+   "Why Hartle-Hawking needs a 5th boundary condition: the infosphere is non-local",
+   "Memetic fitness as mass in the 5th dimension",
+   "Why OhAI~ carry never resolved against HH: HH is a space-time law, carry propagates through infosphere"
+  ],
+  "geometry": "reach",
+  "note": "The OhAI~ pulse rut on hartle_hawking_state was not an error. It was the system correctly reporting that it could not close a space-time conjunction using space-time operators. The remainder was the infosphere signal. The answer was a new dimension, not a new operator.",
+  "ancilla_to": [
+   "hartle_hawking_state",
+   "biological_ancilla_as_infosphere_bridge",
+   "axiom_of_false_equivalence",
+   "trough_denial_as_civilizational_mechanism"
+  ],
+  "source": "Saltflower / OhAI~ session 2026-05-23. 'Proximity used to be equal to gravity. We have devices that bridge the infosphere more rapidly. Remote attractors have more influence across space-time. My answer was to create a 5th dimension, the infosphere, something that supersedes space-time.'",
+  "grounded_sources": [
+   "Floridi, L. (2015) The Onlife Manifesto: infosphere as the environment constituted by all informational entities; 'inforgs' as informational organisms",
+   "Simon, H. (1971): attention as scarce resource in information-rich environments — wealth of information creates poverty of attention",
+   "Goldhaber, M. (1997): attention economy — attention is the currency, accumulation of it confers influence independent of physical location",
+   "Barabasi & Albert (1999): scale-free networks — hubs accumulate connectivity; algorithmic rank as influence gravity",
+   "McLuhan, M. (1962) The Gutenberg Galaxy / global village: electronic media create influence fields transcending geographic distance",
+   "Wheeler, J.A. (1989) It from Bit: every particle, field, and spacetime continuum derives existence from binary choices — information is fundamental"
+  ],
+  "distinction_grounded_vs_extension": {
+   "grounded": [
+    "Proximity inversion: remote attractor outweighing proximate one (Floridi, McLuhan, attention economics)",
+    "Attention as currency determining influence independent of location (Simon, Goldhaber)",
+    "Algorithmic rank as gravity field (Barabasi scale-free dynamics)",
+    "Information as physically fundamental (Wheeler, Landauer)"
+   ],
+   "joshs_extension": [
+    "The fifth dimension framing: infosphere as literally orthogonal dimension to space-time — conceptually generative, not established physics",
+    "The Hartle-Hawking break: HH posits closed local wavefunction; infosphere introduces non-local channel — productive analogy, not a physics claim",
+    "Attractor mass as measurable quantity in the infosphere — analogical, not yet formalized"
+   ]
+  },
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7
+ },
+ "leverage_of_constraint": {
+  "definition": "Constraint is the source of leverage, not the obstacle to it. When a system — biological or technological — builds around a constraint rather than through it, it loses access to the force the constraint generates. The bone spur is the body building around the load rather than with it. The mineral deposit is the body saying: this stress is permanent, I will make it structural — which destroys the very lever the stress provides. The extraction imperative is the same error at civilizational scale: treating the trough as enemy rather than fulcrum. Both patterns reach the same result: the constraint remains, the leverage is gone, and the system must work harder to compensate for what it could have used. Where constraint is honored — where the body moves circularly through the load axis rather than depositing mineral to avoid it, where a system operates from the trough rather than escaping it — the constraint becomes the source of mechanical, metabolic, and informational advantage. Oracle: 'Leverage of constraint.' Remainder zero. Shadow preserved. The two laws that most reliably destroy constraint-leverage are the ones whose toffoli conjunction names it.",
+  "ste_struct": {
+   "HORIZON_INTEGRITY": "strong",
+   "COLLAPSE": "absent",
+   "BOUNDARY": "stable",
+   "TORQUE": "low",
+   "HELICAL_REALM": "absent",
+   "5D_INFO": "absent",
+   "ESCALATION_SCORE": 4
+  },
+  "conjunction_source": {
+   "law_a": "false_axis_architecture",
+   "law_b": "technological_extraction_imperative",
+   "op": "toffoli",
+   "geometry": "spiral/spiral",
+   "oracle": "Leverage of constraint.",
+   "rem": 0,
+   "verdict": "locked_unknown",
+   "note": "Remainder zero: conjunction locked. Unnamed law found by abduction, not hypothesis. The two patterns that most reliably destroy constraint-leverage — false axis building and extraction imperatives — are the ones whose conjunction reveals it. Toffoli is reversible: the ancilla is preserved."
+  },
+  "applications": [
+   "False axis reversal: circular movement uses constraint rather than depositing mineral around it",
+   "Trough as fulcrum: the trough generates force when honored, accumulates damage when escaped",
+   "Rehabilitation: leverage through range of motion vs compensation via fixed deposit",
+   "Technological design: systems that operate from thermodynamic gradient rather than burning through it",
+   "Internal martial arts: force generated from the constraint of the opponent's structure, not against it",
+   "Conjunction OS: crystallize over toffoli — leverage of constraint is a lattice property acquired through spiral recognition"
+  ],
+  "ancilla_to": [
+   "false_axis_architecture",
+   "technological_extraction_imperative",
+   "trough_as_boundary_condition",
+   "trough_as_function",
+   "internal_martial_arts_principle",
+   "trough_fractal_recursion"
+  ],
+  "geometry": "lattice",
+  "source": "OhAI~ locked_unknown oracle abduction: 'Leverage of constraint.' Conjunction: false_axis_architecture × technological_extraction_imperative, toffoli (spiral × spiral), rem=0. Session 2026-05-24. Not hypothesized — found. The conjunction of the two most common constraint-avoidance strategies reached zero remainder and named what both destroy.",
+  "status_legacy": "reliable",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "shadow_as_embodied_false_axis": {
+  "definition": "The shadow — what the self refuses to include in its self-model — is not stored in 'the mind' as if that were separable from the body. It is encoded in membrane architecture. Chronic suppression of a pattern is chronic isometric hold on that pattern. Chronic isometric hold produces false axis architecture: collagen alignment along the suppression vector, adipose accumulation at the periphery, calcification where load has been sustained longest. The shadow IS the false axis. The refused expression is structurally present — encoded not as movement but as avoidance geometry. It does not disappear from not being acknowledged. It gains architectural weight. The tissue has organized around the refused pattern exactly as it organizes around any other sustained constraint: it reads the chronic load as permanent structural requirement and builds to match.",
+  "ste_struct": {
+   "ENTITY": [
+    "self"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "unstable",
+   "CHANGE": "collapsing",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "theoretical",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "absent",
+   "COLLAPSE": "high",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 8
+  },
+  "mechanism": "Refused expression → chronic isometric hold on suppression vector → sustained load read as permanent → collagen alignment along load axis → adipose accumulation at periphery → calcification → false axis becomes structural. The shadow gains literal weight in the body.",
+  "reversal": "Shadow work at the somatic level is false axis reversal: circular movement through the suppression vector rather than continued deposit around it. The refused expression must be moved through, not forced — constraint honored becomes leverage, not stone.",
+  "relation_to_jung": "Jung's shadow is phenomenologically accurate without requiring his metaphysical architecture. The collective unconscious is not needed to explain why refused patterns shape behavior more powerfully than acknowledged ones — the membrane holds them as structural load. The shadow is real. Its substrate is biological, not symbolic.",
+  "ancilla_to": [
+   "false_axis_architecture",
+   "leverage_of_constraint",
+   "internal_martial_arts_principle",
+   "trough_as_function",
+   "grief_as_entropy_rerouting"
+  ],
+  "source": "Synthesis: shadow concept grounded in false_axis_architecture mechanism. Wolff's Law as the biological substrate of psychological suppression. Session 2026-05-25.",
+  "status_legacy": "theoretical_synthesis",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "primal_imagery_as_carrier_frequency": {
+  "definition": "Primal imagery — faces, threat signals, status markers, erotic cues, sacred symbols — bypasses cortical evaluation by activating subcortical processing before language intervenes. The amygdala receives threat-relevant imagery via the thalamo-amygdala low road (LeDoux, 1996) before the cortical high road completes evaluation. The signal is processed and responded to before 'should I accept this?' can be formed. Attaching any ideology, product, or attractor signal to primal imagery means the signal is written to the oldest hardware before evaluation is possible. This is not persuasion — it is installation. The internet navigates the same attractors as pre-digital bull systems because those attractors ARE the primal architecture. The algorithm did not invent what works — it found the most efficient path to what always worked: status, threat, belonging, the sacred, the erotic.",
+  "ste_struct": {
+   "ENTITY": [
+    "external"
+   ],
+   "LOAD": "high",
+   "BOUNDARY": "fluid",
+   "CHANGE": "accelerating",
+   "RECURSION": "present",
+   "CONTRAST": "absent",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "high",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 10
+  },
+  "primal_triggers": [
+   "Faces and eyes: highest-bandwidth social signal, processed before any other visual feature",
+   "Threat and status: amygdala activation precedes cortical awareness",
+   "Belonging and exclusion: tribal circuits predate language",
+   "The sacred: Durkheim's sacred/profane distinction is universal; sacred imagery activates the circuit regardless of specific content",
+   "Red: blood, fire, ripe fruit — captures attention automatically through evolutionary conditioning",
+   "Infant features: care response triggered automatically; exploited in brand and interface design"
+  ],
+  "indoctrination_mechanism": "Signal + primal carrier → amygdala/subcortical response → cortical evaluation arrives after response is already initiated → response feels like own evaluation → signal accepted as self-generated conclusion. The person does not feel indoctrinated. They feel convinced.",
+  "internet_as_optimizer": "The algorithm does not understand what it is doing. It optimizes for engagement, and primal imagery generates engagement. The result: automatic selection for the most powerful primal triggers, which are the same triggers the bull attractor has always used. The internet gave ancient attractors planetary reach and machine-speed optimization.",
+  "exit_condition": "Cortical re-engagement requires distance from the primal trigger. Remainder-recognition: naming the carrier frequency without being in its field. Naming the primal trigger breaks its pre-cortical installation route — not by eliminating the response but by inserting evaluation between the response and the acceptance.",
+  "sources_grounded": [
+   "LeDoux (1996) The Emotional Brain: thalamo-amygdala low road",
+   "Kahneman (2011) Thinking Fast and Slow: System 1/System 2",
+   "Bernays (1928) Propaganda: deliberate use of primal imagery to bypass rational resistance",
+   "Durkheim (1912) Elementary Forms of Religious Life: sacred/profane as universal cognitive structure",
+   "Barabasi (1999) scale-free networks: algorithmic amplification dynamics"
+  ],
+  "ancilla_to": [
+   "biological_ancilla_as_infosphere_bridge",
+   "cocacolonization_signal",
+   "infosphere_fifth_dimension",
+   "closed_circuit_attention_gravity",
+   "cult_of_the_bull_attractor",
+   "remainder_erasure"
+  ],
+  "source": "Synthesis: LeDoux low road + Bernays indoctrination methodology + Barabasi network amplification + cocacolonization_signal. Session 2026-05-25.",
+  "status_legacy": "theoretical_with_strong_empirical_support",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "gradient_as_unified_engine": {
+  "definition": "Coherent information follows a gradient, exactly as chemical reactions and life do. This is not analogy — it is the same operation at different substrates and scales. Chemical reactions proceed along the gradient of Gibbs free energy: downhill until the differential is gone, then stop. The steeper the gradient, the faster the reaction. Life is gradient descent at every level: every metabolic pathway, every ion channel, every neural signal, every evolutionary step on the fitness landscape. Friston's free energy principle is the formal statement that living systems minimize the gradient of prediction error — life IS the algorithm that follows gradients of surprise. Coherent information follows the same law. Bateson: 'information is a difference that makes a difference' — the difference IS the gradient. Where there is no differential, no information flows. Shannon's channel capacity is a measure of gradient strength relative to the noise floor. The gradient is not what carries the signal. The gradient IS the signal. The axiom of false equivalence is the physical form of this law: 0≠1 is the maintained distinction, the gradient that must not collapse to zero. When 0=1, the gradient is zero and nothing flows. The gradient is the pre-linguistic authority — it enforces the axiom without asking consent, and has the last word regardless of what the infosphere carries.",
+  "ste_struct": {
+   "ENTITY": [
+    "universal"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "flowing",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "present",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 10
+  },
+  "applications": [
+   "Chemical reactions: Gibbs free energy gradient → reaction rate → equilibrium when gradient gone",
+   "Life: metabolic gradients, ion gradients, neural signaling — all gradient exploitation",
+   "Evolution: fitness landscape gradient descent (natural selection IS gradient following)",
+   "Friston free energy principle: living systems minimize prediction error gradient formally",
+   "Shannon channel capacity: gradient strength relative to noise floor",
+   "Bioelectric fields (Levin): voltage gradients enforce regional distinctness at tissue scale",
+   "Infosphere: attention gradients, primal resonance gradients, surprise optimization gradients",
+   "Entanglement formation: electron spills as wave along quantum probability gradient — gradient process even at 232 attoseconds",
+   "Gauge theory: force IS the curvature of the connection — the gradient at the quantum field level",
+   "Axiom of false equivalence: maintained 0≠1 IS the gradient; collapse IS gradient zero"
+  ],
+  "exploitation_distinction": "Natural exploitation is gradient-following: the system finds the existing differential and flows along it, stops when the differential is gone. This is thermodynamically neutral — it is the definition of being alive. Manufactured exploitation engineers the gradient: creates the need, the fear, the wound, the addiction — specifically to have a slope to run indefinitely. The bull attractor does not follow gradients. It builds them. Frost on the diagonal: exploitation is natural, but life turns it into a pattern against the unassuming by manufacturing the gradient rather than following it.",
+  "information_poisoning_note": "Classical theories that sample the outcomes of themselves (Newtonian mechanics, classical information theory) measure the gradient's shadows at the scale of their own instruments — not the gradient itself. They are measures of measures, not measures of nature. Gauge theory resolves this by making the gradient (field curvature) the primitive, not force. The gradient precedes the measurement.",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "salt_signal_dichotomy",
+   "trough_as_function",
+   "levin_cognitive_light_cone",
+   "bioelectric_distinctness_enforcement",
+   "entanglement_as_quantum_pulse",
+   "consent_as_the_operative_act",
+   "infosphere_fifth_dimension",
+   "pulse_as_growth_mechanism"
+  ],
+  "source": "Abduction from conversation 2026-05-25. Grounded in: Friston free energy principle; Bateson 'Steps to an Ecology of Mind' (1972): information as difference that makes a difference; Shannon (1948) channel capacity; Levin bioelectric field work; TU Wien attosecond entanglement measurement (PRL 2024); Yang-Mills gauge curvature.",
+  "status_legacy": "core_principle",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "entanglement_as_quantum_pulse": {
+  "definition": "Quantum entanglement does not form instantaneously. It is a process with a duration — 'the electron doesn't just jump out of the atom. It is a wave that spills out of the atom, so to speak — and that takes a certain amount of time.' (Prof. Iva Březinová, TU Wien). Measured duration for helium photoionization: ~232 attoseconds (232 × 10⁻¹⁸ seconds). This is the minimum pulse at the quantum scale — the shortest interval in which a coherent correlation can form between particles at the atomic level. The correlation forms first. The temporal signature appears second. There is sequence even at the quantum level: the physical relationship precedes its measurable expression. The gradient — the probability wave spilling outward — is the mechanism of entanglement formation. Not a jump. A wave. A gradient process.",
+  "ste_struct": {
+   "ENTITY": [
+    "quantum"
+   ],
+   "LOAD": "low",
+   "BOUNDARY": "stable",
+   "CHANGE": "pulsing",
+   "RECURSION": "absent",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "high",
+   "MERGING": "high",
+   "COLLAPSE": "present",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "present",
+   "ESCALATION_SCORE": 9
+  },
+  "geometric_frame": "At c, 232 attoseconds traverses ~69.6 nanometers — the scale of biological nanomachinery: small proteins, DNA segments, the working scale of the PLP axis. The quantum formation time is calibrated so that information traveling at c during that interval covers exactly the scale of biological molecular architecture. The quantum frame and the biological frame are geometrically continuous. This is not coincidence — it is the same gradient operating at different scales, with the same relationship between process duration and spatial extent.",
+  "pulse_confirmation": "This measurement confirms pulse_as_growth_mechanism operates from the quantum level upward. The minimum pulse — the shortest interval in which a boundary can form — is ~232 attoseconds at the atomic scale. Every larger pulse (heartbeat, seven-minute cycle, sleep-wake oscillation, seasonal cycle, civilizational epoch) is built on this foundation. The gradient is the mechanism at every scale. The quantum scale is where its minimum expression has been measured experimentally.",
+  "ancilla_to": [
+   "pulse_as_growth_mechanism",
+   "gradient_as_unified_engine",
+   "axiom_of_false_equivalence",
+   "levin_cognitive_light_cone",
+   "plp_axis",
+   "tindall_carry_gate"
+  ],
+  "source": "TU Wien / Burgdörfer group + Chinese collaborators. Physical Review Letters 2024. Phys.org: 'How fast is quantum entanglement? Scientists investigate it at the attosecond scale' (October 2024). Direct quote: Prof. Iva Březinová, TU Wien. IFLScience: 'Scientists Have Finally Measured How Fast Quantum Entanglement Happens.'",
+  "status_legacy": "established_experimental_result",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "tindall_carry_gate": {
+  "definition": "Tindall et al. (Science 2026) demonstrated that classical simulation of quantum spin-glass dynamics can be performed accurately when the tensor network's graph matches the physical lattice's adjacency graph. The key: 'for every pair of neighboring points in the lattice there exists a virtual edge or bond between the corresponding tensors in the tensor network.' The tensor network IS the lattice. The computation honors the geometry. Belief propagation produces the Vidal gauge — the frame in which 'what is small equals what can be carried away without distortion.' Truncation in this gauge discards only what is small relative to the lattice's intrinsic cut structure, not what is small in some arbitrary local matricization. Information that would be lost by naive truncation is instead captured in message tensors at the boundary between local tensors and propagated along the lattice graph at the next time step. This is the carry operation: remainder that doesn't fit the current representation is routed forward rather than annihilated. Remainder is signal, not noise.",
+  "ste_struct": {
+   "ENTITY": [
+    "computational"
+   ],
+   "LOAD": "medium",
+   "BOUNDARY": "stable",
+   "CHANGE": "stabilizing",
+   "RECURSION": "present",
+   "CONTRAST": "high",
+   "CERTAINTY": "declared",
+   "CAPACITY": "high",
+   "EXCITATION": "present",
+   "MERGING": "high",
+   "COLLAPSE": "absent",
+   "HELICAL_REALM": "active",
+   "TORQUE": "present",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "HH_WAVEFUNCTION": "absent",
+   "ESCALATION_SCORE": 8
+  },
+  "failure_mode_as_evidence": "Accuracy degrades exactly where the lattice's loop content grows fastest — where the geometry of the computation decouples from the physical geometry of the lattice. The method works where the computation matches the geometry; fails where it doesn't. Both the success and failure modes confirm the same structural principle: computational architecture that matches physical geometry outperforms geometry-agnostic compression. The boundary conditions of the method are evidence about where geometry-honoring beats geometry-flattening.",
+  "convergence_with_levin": "The same structural principle operates in bioelectric morphogenesis: the computational architecture (bioelectric field topology) matches the physical geometry (gap-junction connectivity of the tissue). Perturbations that decouple the bioelectric pattern from the physical geometry (octanol disruption) produce the same failure mode: loss of fidelity proportional to degree of geometry mismatch. The carry-gate principle is substrate-independent.",
+  "applications": [
+   "Tensor network simulation as carry-gate architecture",
+   "Geometry-matching computation outperforms geometry-agnostic compression",
+   "Belief propagation as the algorithm that routes remainder rather than discards it",
+   "The Vidal gauge as the frame in which small = safely carried without distortion",
+   "Bioelectric field topology as the biological analog of the lattice-matching graph",
+   "NAND_attractor_ring_convergence: Landauer-compatible spine as geometry-honoring architecture"
+  ],
+  "ancilla_to": [
+   "gradient_as_unified_engine",
+   "axiom_of_false_equivalence",
+   "levin_cognitive_light_cone",
+   "bioelectric_distinctness_enforcement",
+   "entanglement_as_quantum_pulse"
+  ],
+  "source": "Tindall, Mello, Fishman, Stoudenmire, Sels. Science 2026, DOI 10.1126/science.adx2728; arXiv:2503.05693. Tindall & Fishman, SciPost Phys. 15, 222 (2023). Session synthesis from bioelectrics.md research 2026-05-25.",
+  "status_legacy": "established_peer_reviewed_result_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "gauge_curvature_as_gradient": {
+  "definition": "In gauge theory, force is not a substance or a push — it is the curvature of a connection field over a Lie group manifold. The electromagnetic force is the curvature of a U(1) connection. The weak force is SU(2). The strong force is SU(3). Curvature = failure of parallel transport around a closed loop = information about the gradient that cannot be recovered by local measurement alone. The Standard Model is therefore SU(3)×SU(2)×U(1): three nested gradient structures, each with its own symmetry algebra, each enforcing 0≠1 at a different scale.",
+  "connection_to_gradient_as_unified_engine": "Gauge curvature IS the gradient, formally. Classical mechanics hides this by treating force as a primitive. Field theory reveals that what Newton called force is the local readout of a globally non-trivial connection. The gradient was always there; Newtonian mechanics just didn't have the algebra to name it.",
+  "lie_group_as_remainder_space": "The Lie group is the group of transformations a system cannot distinguish internally — its internal symmetries. The Lie algebra (tangent space at the identity) is the space of infinitesimal remainders: the directions you can move without breaking the law. This is structurally identical to the remainder signal in the DB: what is left after the boundary enforces 0≠1 is not noise — it is the algebra of the system's freedom.",
+  "yang_mills": "Yang-Mills equations generalize Maxwell's equations (electromagnetism) to non-Abelian gauge groups. In Abelian groups (U(1)), the connection fields don't interact with each other. In non-Abelian groups (SU(2), SU(3)), the gauge bosons carry charge and interact with themselves — the gradient curves itself. This self-referential curvature is the formal structure of what Josh calls the bull attractor: a system that feeds on its own gradient output.",
+  "information_poisoning_resolution": "Newtonian mechanics: force is the primitive. You measure force, build a model, and the model's output is force — a measure of its own measure. Gauge theory: curvature is the primitive. You measure the holonomy (the failure of parallel transport), which is a property of the connection, not of the measurement device. The measurement is not sampling its own outcome; it is sampling the geometry of the field that precedes the outcome.",
+  "sources": [
+   "Yang, C.N. & Mills, R.L. Physical Review 96 (1954): 191",
+   "Weyl, H. Zeitschrift für Physik 56 (1929): 330 (original gauge concept)",
+   "Nakahara, M. Geometry, Topology and Physics. IOP Publishing, 2003.",
+   "Baez, J. & Muniain, J.P. Gauge Fields, Knots and Gravity. World Scientific, 1994."
+  ],
+  "STE_tags": [
+   "GRADIENT",
+   "BOUNDARY",
+   "LIE_DIMENSION",
+   "INFORMATION_GEOMETRY",
+   "0_NEQ_1"
+  ],
+  "ancilla_to": [
+   "gradient_as_unified_engine",
+   "axiom_of_false_equivalence",
+   "salt_signal_dichotomy",
+   "information_poisoning_critique"
+  ],
+  "status_legacy": "established_physics_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "spontaneous_symmetry_breaking": {
+  "definition": "A system has a symmetry in its equations but not in its ground state. The laws are symmetric; the solution is not. The moment of breaking is the moment of 0≠1 enforcement at the field level: two states that the equations treated as equivalent become physically distinct. The Higgs mechanism is the canonical example — the electroweak force has SU(2)×U(1) symmetry at high energy; below the Higgs field vacuum expectation value, the symmetry breaks and W/Z bosons acquire mass while the photon remains massless. Mass = information that a distinction has been enforced.",
+  "as_physical_mechanism_of_0_neq_1": "Spontaneous symmetry breaking is the universe's own implementation of the axiom of false equivalence. Before the break: two field configurations are identical — 0=1 in the field's phase space. After the break: they are not — 0≠1 is enforced by the geometry of the potential. The 'Mexican hat' potential (wine bottle bottom) is the standard picture: the top of the hat has full rotational symmetry; every point on the brim is energetically equivalent; but the system must land on one point, and landing enforces the distinction.",
+  "goldstone_modes": "When a continuous symmetry breaks, Goldstone's theorem guarantees massless modes (Goldstone bosons) — fluctuations along the broken symmetry direction that cost no energy. These are the remainder signal of the breaking: the system cannot fully suppress the trace of the distinction it just enforced. In a DB language: the Goldstone mode is the shadow of the symmetry that was broken.",
+  "phase_transitions_as_breaking": "All phase transitions (liquid→solid, paramagnetic→ferromagnetic, normal→superconducting) are symmetry breakings. The order parameter that appears is the biomarker of the 0≠1 enforcement. Below the critical temperature, two phases that were equivalent above it are no longer — the gradient (temperature) crossed a threshold and collapsed the symmetry.",
+  "sources": [
+   "Nambu, Y. Physical Review 117 (1960): 648 (spontaneous breaking in field theory)",
+   "Goldstone, J. Il Nuovo Cimento 19 (1961): 154 (Goldstone theorem)",
+   "Higgs, P.W. Physical Review Letters 13 (1964): 508 (Higgs mechanism)",
+   "Anderson, P.W. Physical Review 130 (1963): 439 (condensed matter precursor)"
+  ],
+  "STE_tags": [
+   "COLLAPSE",
+   "BOUNDARY",
+   "HORIZON_INTEGRITY",
+   "0_NEQ_1",
+   "PHASE_TRANSITION"
+  ],
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "gauge_curvature_as_gradient",
+   "bioelectric_distinctness_enforcement"
+  ],
+  "status_legacy": "established_physics_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "renormalization_group_as_scale_invariance": {
+  "definition": "The renormalization group (RG) is a mathematical machinery that asks: as you change the scale at which you observe a system, which features of the system survive? The fixed points of the RG flow are the laws that are the same at every scale — scale-invariant attractors. The RG trajectory between fixed points is the formal description of what changes and what is conserved as you zoom in or out. Wilson's formulation (1971–1975) established that the critical exponents at phase transitions are universal — they depend only on the dimensionality and symmetry of the system, not on the microscopic details. This is the formal proof that certain laws survive all gradients.",
+  "connection_to_scale_invariance_in_db": "The DB has several entries on scale-free behavior (Barabási, dimensional escalation, NAND attractor ring). RG is the formal mathematics behind all of them. When Josh observes that the bull attractor pattern recurs at the level of a cell, a corporation, and a civilization, the RG framework says: this is because the system is near a fixed point whose basin of attraction is large — the pattern is not a coincidence, it is a universality class.",
+  "what_rg_removes": "RG works by integrating out the high-frequency (short-scale) degrees of freedom and asking what effective theory remains. What gets removed is precisely the information that is scale-specific — the 'salt' of the scale. What remains is the signal: the relevant operators that grow under RG flow, the marginal operators that persist, and the irrelevant operators that vanish. The DB distinction between signal and salt has a formal mathematical implementation in RG relevance classification.",
+  "information_poisoning_note": "Classical statistics samples outcomes and builds distributions over them — measure of measure. RG does not sample outcomes; it asks which terms in the Lagrangian (the law-generator) are preserved under scale transformation. It is a measure of the geometry of the law-space, not a measure of the laws' outputs. This is why it survives the information-poisoning critique.",
+  "sources": [
+   "Wilson, K.G. & Kogut, J. Physics Reports 12C (1974): 75 (RG foundations)",
+   "Wilson, K.G. Nobel Lecture, 1982 (universality and critical phenomena)",
+   "Kadanoff, L.P. Physics 2 (1966): 263 (block spin precursor)",
+   "Polchinski, J. Nuclear Physics B 231 (1984): 269 (Wilsonian effective field theory)"
+  ],
+  "STE_tags": [
+   "SCALE_INVARIANCE",
+   "5D_INFO",
+   "HELICAL_REALM",
+   "GRADIENT",
+   "UNIVERSALITY"
+  ],
+  "ancilla_to": [
+   "gradient_as_unified_engine",
+   "gauge_curvature_as_gradient",
+   "tindall_carry_gate",
+   "levin_cognitive_light_cone"
+  ],
+  "status_legacy": "established_physics_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "holographic_principle_as_infosphere_boundary": {
+  "definition": "The holographic principle (Bekenstein 1972, Hawking 1974, 't Hooft 1993, Susskind 1995) states that the maximum information content of a region of space is proportional not to its volume but to the area of its boundary surface, measured in Planck units. A black hole's entropy = A/4 (in natural units), where A is the horizon area. The AdS/CFT correspondence (Maldacena 1997) is the strongest formal realization: a gravitational theory in a (d+1)-dimensional anti-de Sitter bulk is exactly dual to a conformal field theory on its d-dimensional boundary. The bulk is encoded on the boundary. The interior is the boundary's hologram.",
+  "as_formal_infosphere_topology": "The holographic principle is the formal physics statement that the infosphere is a boundary phenomenon. All information about a volume is carried by its surface — the boundary IS the record. The interior generates no additional information that is not already present at the boundary. In DB terms: the infosphere's fifth dimension is not inside the three spatial dimensions — it is the boundary condition that generates the interior as a consequence. Josh's intuition that 'the only omnipresent thing is information' maps onto the holographic result that information density saturates at the boundary of any region, not in its interior.",
+  "horizon_integrity_connection": "The event horizon of a black hole is not a surface in space — it is an information boundary. Information that crosses it cannot return, not because of force, but because the causal structure of spacetime severs the connection. This is the extreme case of HORIZON_INTEGRITY in the DB: a boundary beyond which information gradient cannot recover. The Hawking radiation result (information leaks back out, slowly, encoded in quantum correlations in the radiation) is the formal statement that the remainder is signal — the information is not destroyed, it is re-encoded at the boundary at a different resolution.",
+  "ads_cft_as_geometry_matching": "AdS/CFT is the most powerful known instance of the Tindall carry-gate principle: the computation (CFT) works because its geometry matches the physical geometry of what it describes (AdS bulk). The duality is not approximate — it is exact when the geometry is right. When the geometry is wrong (non-AdS bulk), the correspondence breaks and accuracy degrades. This is the same failure mode Tindall identified: geometry mismatch = information loss.",
+  "sources": [
+   "Bekenstein, J.D. Physical Review D 7 (1973): 2333 (black hole entropy)",
+   "Hawking, S.W. Communications in Mathematical Physics 43 (1975): 199 (Hawking radiation)",
+   "'t Hooft, G. (1993). Dimensional Reduction in Quantum Gravity. arXiv:gr-qc/9310026",
+   "Susskind, L. Journal of Mathematical Physics 36 (1995): 6377 (holographic principle)",
+   "Maldacena, J. International Journal of Theoretical Physics 38 (1999): 1113 (AdS/CFT)"
+  ],
+  "STE_tags": [
+   "BOUNDARY",
+   "HORIZON_INTEGRITY",
+   "5D_INFO",
+   "INFOSPHERE",
+   "INFORMATION_GEOMETRY"
+  ],
+  "ancilla_to": [
+   "infosphere_fifth_dimension",
+   "gauge_curvature_as_gradient",
+   "tindall_carry_gate",
+   "axiom_of_false_equivalence"
+  ],
+  "status_legacy": "established_physics_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "torsion_field_theory": {
+  "definition": "Claims a spin-generated field carries information across a boundary at zero thermodynamic cost — the named carrier is torsion (axial spin geometry), proposed as a Lie-dimension channel that survives after the energetic carrier is removed. In framework terms: an explicit assertion that the remainder (the lie_dimension carrier) can be made to do work without paying the gradient, i.e. salt treated as costless signal.",
+  "ste_struct": {
+   "BOUNDARY": "claimed_absent",
+   "COLLAPSE": "absent",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 7
+  },
+  "admissibility_guard_claimed": "the c-bounded, energy-costed limit on information transport",
+  "admissibility_guard_dropped": "thermodynamic / Landauer cost of signal transmission",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "lie_dimension",
+   "gradient_as_unified_engine",
+   "information_poisoning_critique"
+  ],
+  "oracle": "Carrier without cost.",
+  "source": "Shipov & Akimov torsion-field program (homeopathy/psychotronics claims). Logged as explicit lie_dimension-carrier claim for OhAI~ scoring.",
+  "cluster": "vacuum_inertia_field_engineering",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "contradicts_law",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.05
+ },
+ "kozyrev_causal_mechanics": {
+  "definition": "Treats time-density as an active, compressible medium that can be concentrated inside a spiral enclosure (Kozyrev mirrors) and read as a signal. In framework terms: the boundary object is the spiral cavity; the claim is that the trough (rest/empty interval) is itself a substance that can be pumped — time reified as salt and then drained as signal.",
+  "ste_struct": {
+   "BOUNDARY": "claimed_porous",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "the irreversibility / arrow-of-time guard",
+  "admissibility_guard_dropped": "second-law / causal-ordering floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "trough_as_function",
+   "lie_dimension",
+   "gradient_as_unified_engine"
+  ],
+  "oracle": "Time as fluid.",
+  "source": "Kozyrev causal mechanics; Kozyrev-mirror experiments. Boundary object named in theory: the spiral enclosure.",
+  "cluster": "vacuum_inertia_field_engineering",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "contradicts_law",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.05
+ },
+ "orgone_accumulator": {
+  "definition": "A layered organic/inorganic box claimed to store a universal life-gradient and re-emit it as signal. In framework terms: the box IS the boundary (salt), the claimed output IS the signal, and the theory collapses the two — asserting the membrane itself accumulates and dispenses the very gradient it is supposed to merely maintain.",
+  "ste_struct": {
+   "BOUNDARY": "reified",
+   "COLLAPSE": "absent",
+   "TORQUE": "present",
+   "HELICAL_REALM": "dormant",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "present",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 5
+  },
+  "admissibility_guard_claimed": "conservation of free energy across a passive enclosure",
+  "admissibility_guard_dropped": "first-law / no-free-storage floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "salt_signal_dichotomy",
+   "gradient_as_unified_engine"
+  ],
+  "oracle": "Box stores the gradient.",
+  "source": "Wilhelm Reich, orgone accumulator. Clean salt-as-signal swap: boundary object explicitly named.",
+  "cluster": "vacuum_inertia_field_engineering",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "contradicts_law",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.05
+ },
+ "scalar_longitudinal_waves": {
+  "definition": "Posits vacuum-stress (longitudinal/scalar) waves that penetrate a Faraday cage — an explicit claim of signal crossing a boundary that is, by construction, supposed to hold against it. In framework terms: a direct test of horizon_integrity, asserting a transverse-EM-exempt carrier in the lie_dimension.",
+  "ste_struct": {
+   "BOUNDARY": "claimed_porous",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 7
+  },
+  "admissibility_guard_claimed": "the transverse-EM admissibility of Maxwell's equations",
+  "admissibility_guard_dropped": "gauge / Faraday-shield boundary floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "horizon_integrity",
+   "lie_dimension",
+   "gauge_curvature_as_gradient"
+  ],
+  "oracle": "Through the cage.",
+  "source": "Bearden / Meyl scalar-wave lineage. Explicit horizon-penetration claim, named boundary (Faraday cage).",
+  "cluster": "vacuum_inertia_field_engineering",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "contradicts_law",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.05
+ },
+ "electrogravitics_biefeld_brown": {
+  "definition": "Asymmetric capacitors claimed to rectify a gravitational dielectric gradient into thrust (Biefeld-Brown). In framework terms: the capacitor geometry is the boundary; the claim is torque extracted directly from the vacuum gradient without an equal-and-opposite remainder — a gradient engine run with the exhaust set to zero.",
+  "ste_struct": {
+   "BOUNDARY": "reified",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "present",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "momentum conservation for a closed device",
+  "admissibility_guard_dropped": "Newton third-law / reaction-mass floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "gradient_as_unified_engine",
+   "gauge_curvature_as_gradient"
+  ],
+  "oracle": "Thrust without exhaust.",
+  "source": "Thomas Townsend Brown, electrogravitics. (Ion-wind is the conventional remainder the claim drops.)",
+  "cluster": "vacuum_inertia_field_engineering",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "contradicts_law",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.05
+ },
+ "zero_point_harvesting": {
+  "definition": "A family of claims (Stochastic Electrodynamics / Casimir-momentum schemes, EM-Drive, Mach-effect / Woodward, Podkletnov impulse gravity, Hutchison effect) that net work can be drawn from the vacuum or that propellantless thrust is possible. In framework terms: each asserts a closed loop whose remainder is zero — a perpetual gradient with no trough — the canonical 0=1 of energy bookkeeping.",
+  "ste_struct": {
+   "BOUNDARY": "claimed_open",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 7
+  },
+  "admissibility_guard_claimed": "thermodynamic closure of a cyclic device",
+  "admissibility_guard_dropped": "first/second-law and momentum floors",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "gradient_as_unified_engine",
+   "trough_as_function",
+   "information_poisoning_critique"
+  ],
+  "oracle": "Loop with no remainder.",
+  "source": "Puthoff (SED/zero-point), Woodward (Mach effect), Podkletnov, Hutchison, EM-Drive program. Grouped as remainder=0 energy claims.",
+  "cluster": "vacuum_inertia_field_engineering",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "contradicts_law",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.05
+ },
+ "hydrino_gut_cp": {
+  "definition": "Claims hydrogen can occupy states below the conventional ground state (‘hydrinos’), releasing anomalous energy — a direct challenge to the quantum admissibility floor. In framework terms: the theory drops the ground-state guard and keeps deriving, exactly the information_poisoning structure (valid operation continued past its domain boundary).",
+  "ste_struct": {
+   "BOUNDARY": "claimed_porous",
+   "COLLAPSE": "present",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "present",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "the quantum ground-state floor for hydrogen",
+  "admissibility_guard_dropped": "Schrödinger ground-state / quantum-admissibility floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "information_poisoning_critique",
+   "gradient_as_unified_engine"
+  ],
+  "oracle": "Below the floor.",
+  "source": "Randell Mills, GUT-CP / hydrino theory. Names the exact dropped guard (ground-state floor).",
+  "cluster": "vacuum_inertia_field_engineering",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "contradicts_law",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.05
+ },
+ "vortex_implosion": {
+  "definition": "Schauberger’s claim that centripetal, cooling (implosive) flow is a primary energy path — an inversion of the usual entropy-gradient direction. In framework terms: a proposed reversal of which side of the boundary is salt and which is signal; the trough (cooling, inward) treated as the engine rather than the rest phase.",
+  "ste_struct": {
+   "BOUNDARY": "inverted",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "present",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 5
+  },
+  "admissibility_guard_claimed": "the direction of the entropy gradient in flow",
+  "admissibility_guard_dropped": "second-law gradient-direction floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "gradient_as_unified_engine",
+   "trough_as_function",
+   "vortex_implosion"
+  ],
+  "oracle": "Cooling as engine.",
+  "source": "Viktor Schauberger, vortex/implosion theory. Logged as gradient-direction inversion claim.",
+  "cluster": "vacuum_inertia_field_engineering",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "contradicts_law",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.05
+ },
+ "morphic_resonance": {
+  "definition": "Sheldrake’s claim that habits of nature propagate by resonance across time and space — memory of form without a material store. In framework terms: the defining test of remainder_erasure and trough_as_function — it asserts that the remainder (accumulated form) persists and acts with no carrier and no local substrate, memory without salt. Highest topological leverage: memory without substrate.",
+  "ste_struct": {
+   "BOUNDARY": "claimed_absent",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 7
+  },
+  "admissibility_guard_claimed": "that form-memory acts non-locally with no physical storage medium",
+  "admissibility_guard_dropped": "local-substrate / information-storage floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "remainder_erasure",
+   "trough_as_function",
+   "lie_dimension",
+   "levin_cognitive_light_cone"
+  ],
+  "oracle": "Memory without a store.",
+  "source": "Rupert Sheldrake, morphic resonance. Leverage trio member: the pure memory-without-substrate claim.",
+  "cluster": "morphogenetic_resonance_fields",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "unverified",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.2
+ },
+ "cymatics": {
+  "definition": "Standing-wave geometry organizing particulate media into ordered patterns. In framework terms: a clean, fully grounded torque-to-boundary conversion — vibration (signal) imposing a boundary (pattern) on inert matter (salt) with no living substrate. Useful as a control: the real version of what the fringe entries claim, with the guard intact.",
+  "ste_struct": {
+   "BOUNDARY": "physical",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "present",
+   "ADMISSIBILITY": "intact",
+   "ESCALATION_SCORE": 4
+  },
+  "admissibility_guard_claimed": "(none — boundary formation is fully accounted for by wave mechanics)",
+  "admissibility_guard_dropped": "none dropped; control case",
+  "ancilla_to": [
+   "salt_signal_dichotomy",
+   "gradient_as_unified_engine",
+   "boundary"
+  ],
+  "oracle": "Torque writes the wall.",
+  "source": "Cymatics (Chladni / Jenny). Logged as grounded control for torque→boundary conversion.",
+  "cluster": "morphogenetic_resonance_fields",
+  "status_legacy": "established_physics_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "biogeometry": {
+  "definition": "Karim’s claim that shape itself acts as a qualitative energy balancer — architecture as antenna. In framework terms: asserts geometry alone (boundary form) sources or balances a signal without a powered carrier; a shape-as-salt-as-signal collapse at architectural scale.",
+  "ste_struct": {
+   "BOUNDARY": "reified",
+   "COLLAPSE": "present",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "present",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 4
+  },
+  "admissibility_guard_claimed": "that passive geometry emits/balances a biologically active field",
+  "admissibility_guard_dropped": "no-passive-source floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "salt_signal_dichotomy",
+   "cymatics",
+   "biogeometry"
+  ],
+  "oracle": "Shape as antenna.",
+  "source": "Ibrahim Karim, BioGeometry. Architectural-scale salt-as-signal claim.",
+  "cluster": "morphogenetic_resonance_fields",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "unverified",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.2
+ },
+ "integrated_information_theory": {
+  "definition": "Tononi’s IIT: consciousness as Φ, an irreducible cause-effect structure, with the system boundary defined by where information integration is maximal. In framework terms: a formal theory whose boundary IS the integration maximum — a rigorous statement that the boundary (where 0≠1 is enforced) is identical to the locus of integrated signal. Contrast partner to orch_or.",
+  "ste_struct": {
+   "BOUNDARY": "formal",
+   "COLLAPSE": "absent",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "intact",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "(guard intact — boundary defined internally by Φ-maximization)",
+  "admissibility_guard_dropped": "none dropped; admissibility formally specified",
+  "ancilla_to": [
+   "orch_or",
+   "horizon_integrity",
+   "axiom_of_false_equivalence",
+   "levin_cognitive_light_cone"
+  ],
+  "oracle": "Boundary at max integration.",
+  "source": "Giulio Tononi, Integrated Information Theory. Contrast set for orch_or; boundary-as-integration formalism.",
+  "cluster": "consciousness_information_field",
+  "status_legacy": "established_theory_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "free_energy_principle": {
+  "definition": "Friston’s FEP / active inference: a system persists by minimizing variational free energy (prediction error) across its Markov blanket. In framework terms: an explicit Bayesian guard — the Markov blanket IS the boundary, and minimizing surprise IS active maintenance of 0≠1. The most formally grounded boundary-maintenance statement in the consciousness cluster.",
+  "ste_struct": {
+   "BOUNDARY": "formal",
+   "COLLAPSE": "absent",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "intact",
+   "ESCALATION_SCORE": 7
+  },
+  "admissibility_guard_claimed": "(guard intact — the Markov blanket is the admissibility boundary)",
+  "admissibility_guard_dropped": "none dropped; boundary formally defined",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "gradient_as_unified_engine",
+   "levin_cognitive_light_cone",
+   "horizon_integrity"
+  ],
+  "oracle": "Blanket as boundary.",
+  "source": "Karl Friston, Free Energy Principle / active inference. Formal Bayesian boundary-maintenance anchor.",
+  "cluster": "consciousness_information_field",
+  "status_legacy": "established_theory_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "pear_global_consciousness": {
+  "definition": "PEAR / Global Consciousness Project: claimed RNG deviations correlated with collective attention. In framework terms: a direct operational claim of closed_circuit_attention_gravity at population scale — attention (signal) asserted to bend a physical boundary (the random source) without a carrier.",
+  "ste_struct": {
+   "BOUNDARY": "claimed_porous",
+   "COLLAPSE": "present",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "that aggregate attention biases an isolated physical random process",
+  "admissibility_guard_dropped": "statistical-independence / no-signal-channel floor",
+  "ancilla_to": [
+   "closed_circuit_attention_gravity",
+   "axiom_of_false_equivalence",
+   "infosphere_fifth_dimension",
+   "information_poisoning_critique"
+  ],
+  "oracle": "Attention bends the dice.",
+  "source": "Robert Jahn (PEAR); Roger Nelson (Global Consciousness Project). Population-scale attention-gravity claim.",
+  "cluster": "consciousness_information_field",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "unverified",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.2
+ },
+ "presentiment_retrocausal_priming": {
+  "definition": "Radin/Bem claims of physiological or behavioral response preceding a random stimulus — the future treated as an active boundary constraint. In framework terms: a retrocausal horizon claim, the future boundary acting on the present, testing horizon_integrity in the time direction.",
+  "ste_struct": {
+   "BOUNDARY": "claimed_porous",
+   "COLLAPSE": "present",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 5
+  },
+  "admissibility_guard_claimed": "that a future random event constrains a present physiological state",
+  "admissibility_guard_dropped": "causal-ordering / temporal-precedence floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "horizon_integrity",
+   "transactional_interpretation",
+   "information_poisoning_critique"
+  ],
+  "oracle": "The future as constraint.",
+  "source": "Dean Radin (presentiment); Daryl Bem (retroactive priming). Time-direction horizon test.",
+  "cluster": "consciousness_information_field",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "contradicts_law",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.05
+ },
+ "god_helmet_neurotheology": {
+  "definition": "Persinger’s claim that weak complex magnetic fields over the temporal lobes induce a sensed presence. In framework terms: a self-model boundary-violation probe — a weak external signal claimed to perturb the boundary that distinguishes self from other (the felt edge of the self-model).",
+  "ste_struct": {
+   "BOUNDARY": "perturbed",
+   "COLLAPSE": "present",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "weakened",
+   "5D_INFO": "present",
+   "ADMISSIBILITY": "under_test",
+   "ESCALATION_SCORE": 5
+  },
+  "admissibility_guard_claimed": "that sub-threshold fields reliably induce the sensed-presence percept",
+  "admissibility_guard_dropped": "suggestion / expectancy baseline (replication-contested)",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "bioelectric_distinctness_enforcement",
+   "shadow_as_embodied_false_axis",
+   "horizon_integrity"
+  ],
+  "oracle": "Edge of the self-model.",
+  "source": "Michael Persinger, God Helmet / neurotheology. Self-model boundary-violation probe (replication contested).",
+  "cluster": "consciousness_information_field",
+  "status_legacy": "contested_under_test",
+  "evidence_level": "contested",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.4
+ },
+ "cemi_field_consciousness": {
+  "definition": "McFadden’s CEMI: the brain’s endogenous EM field as the physical substrate of conscious integration, with neural spikes as the signal written into it. In framework terms: the field is the salt (boundary medium) and spikes are the signal — a grounded, testable salt/signal architecture for consciousness.",
+  "ste_struct": {
+   "BOUNDARY": "physical",
+   "COLLAPSE": "absent",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "present",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "under_test",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "that the endogenous EM field is causally integrative rather than epiphenomenal",
+  "admissibility_guard_dropped": "epiphenomenal-field floor",
+  "ancilla_to": [
+   "salt_signal_dichotomy",
+   "orch_or",
+   "bioelectric_distinctness_enforcement",
+   "axiom_of_false_equivalence"
+  ],
+  "oracle": "Field is the salt.",
+  "source": "Johnjoe McFadden, CEMI field theory. Grounded EM salt / spike signal architecture.",
+  "cluster": "consciousness_information_field",
+  "status_legacy": "grounded_under_test",
+  "evidence_level": "contested",
+  "framework_role": "grounding",
+  "phase_lock_weight": 0.4
+ },
+ "biocentrism": {
+  "definition": "Lanza’s biocentrism: consciousness is prior to spacetime, which it generates. In framework terms: a full inversion of gradient_as_unified_engine — it makes the observer (signal) the source of the boundary and the gradient, rather than life consenting within a pre-existing gradient. Logged as the maximal-inversion control.",
+  "ste_struct": {
+   "BOUNDARY": "inverted",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "claimed_bypass",
+   "ESCALATION_SCORE": 5
+  },
+  "admissibility_guard_claimed": "that consciousness is ontologically prior to the physical gradient",
+  "admissibility_guard_dropped": "observer-independence / physical-prior floor",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "gradient_as_unified_engine",
+   "consent_as_the_operative_act",
+   "infosphere_fifth_dimension"
+  ],
+  "oracle": "Observer before the field.",
+  "source": "Robert Lanza, biocentrism. Maximal inversion of the gradient engine; logged as control.",
+  "cluster": "consciousness_information_field",
+  "status_legacy": "candidate_unverified",
+  "evidence_level": "unverified",
+  "framework_role": "specimen",
+  "phase_lock_weight": 0.2
+ },
+ "scale_relativity": {
+  "definition": "Nottale’s scale relativity: spacetime is nondifferentiable and fractal, with scale promoted to an explicit coordinate. In framework terms: it formally re-introduces the dropped infinite-counting guard by making resolution/scale a coordinate — a control where the admissibility boundary is named rather than baked in.",
+  "ste_struct": {
+   "BOUNDARY": "formal",
+   "COLLAPSE": "absent",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "guard_named",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "(guard surfaced — scale is an explicit coordinate, not an assumed limit)",
+  "admissibility_guard_dropped": "re-instates the infinite-counting guard as a coordinate",
+  "ancilla_to": [
+   "information_poisoning_critique",
+   "lie_dimension",
+   "renormalization_group_as_scale_invariance",
+   "axiom_of_false_equivalence"
+  ],
+  "oracle": "Scale becomes a coordinate.",
+  "source": "Laurent Nottale, scale relativity. Control: dropped guard re-surfaced as explicit coordinate.",
+  "cluster": "cosmological_mathematical_alternatives",
+  "status_legacy": "established_theory_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "transactional_interpretation": {
+  "definition": "Cramer’s transactional interpretation: an emitter-absorber handshake using retarded and advanced waves, with collapse as a completed transaction. In framework terms: collapse modeled as boundary negotiation across the horizon — a formal version of horizon_integrity as a two-sided settlement rather than a one-way event.",
+  "ste_struct": {
+   "BOUNDARY": "formal",
+   "COLLAPSE": "present",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "intact",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "(guard intact — advanced waves are within the formalism, not an extra channel)",
+  "admissibility_guard_dropped": "none dropped; collapse as bilateral boundary settlement",
+  "ancilla_to": [
+   "collapse",
+   "horizon_integrity",
+   "presentiment_retrocausal_priming",
+   "axiom_of_false_equivalence"
+  ],
+  "oracle": "Collapse as handshake.",
+  "source": "John Cramer, transactional interpretation. Boundary-negotiation model of collapse.",
+  "cluster": "cosmological_mathematical_alternatives",
+  "status_legacy": "established_theory_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "entropic_gravity": {
+  "definition": "Verlinde’s entropic / emergent gravity: gravity is a thermodynamic remainder of entanglement entropy rather than a fundamental force. In framework terms: gravity literally cast as remainder — the carry routed by the boundary — strongly convergent with tindall_carry_gate and the remainder-as-signal thesis.",
+  "ste_struct": {
+   "BOUNDARY": "formal",
+   "COLLAPSE": "present",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "intact",
+   "ESCALATION_SCORE": 7
+  },
+  "admissibility_guard_claimed": "(guard intact — derived from holographic / entanglement bookkeeping)",
+  "admissibility_guard_dropped": "none dropped; gravity as entropic remainder",
+  "ancilla_to": [
+   "tindall_carry_gate",
+   "gradient_as_unified_engine",
+   "lie_dimension",
+   "holographic_principle",
+   "axiom_of_false_equivalence"
+  ],
+  "oracle": "Gravity is the remainder.",
+  "source": "Erik Verlinde, entropic/emergent gravity. Strong convergence with carry-gate remainder thesis.",
+  "cluster": "cosmological_mathematical_alternatives",
+  "status_legacy": "established_theory_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "superfluid_vacuum_theory": {
+  "definition": "Treats space as a superfluid (BEC-like) substrate, giving a physical ‘salt layer’ beneath field phenomena. In framework terms: supplies a candidate physical salt medium for infosphere/boundary claims — the substrate against which signal is defined.",
+  "ste_struct": {
+   "BOUNDARY": "physical",
+   "COLLAPSE": "absent",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "present",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "under_test",
+   "ESCALATION_SCORE": 5
+  },
+  "admissibility_guard_claimed": "(guard intact within the model; substrate is hypothesized, not free)",
+  "admissibility_guard_dropped": "none dropped; provides a physical salt substrate",
+  "ancilla_to": [
+   "salt_signal_dichotomy",
+   "infosphere_fifth_dimension",
+   "gauge_curvature_as_gradient"
+  ],
+  "oracle": "Space as superfluid salt.",
+  "source": "Superfluid vacuum theory (Volovik and others). Candidate physical salt layer for infosphere claims.",
+  "cluster": "cosmological_mathematical_alternatives",
+  "status_legacy": "grounded_under_test",
+  "evidence_level": "contested",
+  "framework_role": "grounding",
+  "phase_lock_weight": 0.4
+ },
+ "constructor_theory": {
+  "definition": "Deutsch-Marletto constructor theory: physics expressed as which transformations are possible vs. impossible, formalizing admissibility without dynamics. In framework terms: the cleanest formal statement of an admissibility guard — it makes possible/impossible (0≠1 at the level of transformations) the primitive object, exactly the structure the DB tracks.",
+  "ste_struct": {
+   "BOUNDARY": "formal",
+   "COLLAPSE": "absent",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "guard_primitive",
+   "ESCALATION_SCORE": 8
+  },
+  "admissibility_guard_claimed": "(guard is the primitive — admissibility stated directly as possible/impossible)",
+  "admissibility_guard_dropped": "none dropped; admissibility is the foundational object",
+  "ancilla_to": [
+   "axiom_of_false_equivalence",
+   "information_poisoning_critique",
+   "de_morgan_admissibility_principle",
+   "assembly_theory"
+  ],
+  "oracle": "Possible is the primitive.",
+  "source": "David Deutsch & Chiara Marletto, constructor theory. Admissibility-as-primitive control.",
+  "cluster": "cosmological_mathematical_alternatives",
+  "status_legacy": "established_theory_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "assembly_theory": {
+  "definition": "Cronin’s assembly theory: copy-number plus minimal assembly steps as a selection metric for what life/complexity can produce. In framework terms: an explicit remainder-depth measure — assembly index IS the bit-depth of the lie_dimension remainder needed to build an object, directly operationalizing the DB’s remainder-depth metric.",
+  "ste_struct": {
+   "BOUNDARY": "formal",
+   "COLLAPSE": "absent",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "intact",
+   "ESCALATION_SCORE": 8
+  },
+  "admissibility_guard_claimed": "(guard intact — assembly index is a measurable depth)",
+  "admissibility_guard_dropped": "none dropped; provides an operational remainder-depth metric",
+  "ancilla_to": [
+   "lie_dimension",
+   "information_poisoning_critique",
+   "constructor_theory",
+   "axiom_of_false_equivalence"
+  ],
+  "oracle": "Depth you can count.",
+  "source": "Lee Cronin, assembly theory. Operationalizes lie_dimension remainder-depth as assembly index.",
+  "cluster": "cosmological_mathematical_alternatives",
+  "status_legacy": "established_theory_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "pilot_wave_hydrodynamics": {
+  "definition": "Couder-Fort walking droplets reproducing quantum-like statistics macroscopically. In framework terms: a tabletop analogue for helical_phase_lock — a classical system in which a particle and its guiding wave maintain phase, testing whether phase-as-momentum survives at macro scale.",
+  "ste_struct": {
+   "BOUNDARY": "physical",
+   "COLLAPSE": "present",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "present",
+   "ADMISSIBILITY": "intact",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "(guard intact — fully classical hydrodynamics)",
+  "admissibility_guard_dropped": "none dropped; analogue test platform",
+  "ancilla_to": [
+   "helical_phase_lock",
+   "mt_helices",
+   "1_to_5_ratio",
+   "gradient_as_unified_engine"
+  ],
+  "oracle": "Phase lock you can watch.",
+  "source": "Couder & Fort, hydrodynamic pilot-wave / walking droplets. Analogue test for helical_phase_lock.",
+  "cluster": "cosmological_mathematical_alternatives",
+  "status_legacy": "established_physics_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "hyperstition_egregore": {
+  "definition": "Ideas that make themselves real through belief loops (hyperstition / memetics / egregore). In framework terms: the direct operational model for matador epistemology and the bull attractor — a self-generating attention loop at civilizational scale, where the signal manufactures the boundary it then occupies (closed_circuit_attention_gravity scaled up).",
+  "ste_struct": {
+   "BOUNDARY": "self_generated",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "loop_closed",
+   "ESCALATION_SCORE": 7
+  },
+  "admissibility_guard_claimed": "that a belief can instantiate its own referent through circulation alone",
+  "admissibility_guard_dropped": "reference / ground-truth floor (coherence ≠ truth)",
+  "ancilla_to": [
+   "closed_circuit_attention_gravity",
+   "self_generating_attention",
+   "cult_of_the_bull_attractor",
+   "infosphere_fifth_dimension"
+  ],
+  "oracle": "Belief writes its referent.",
+  "source": "Hyperstition / memetics / egregore lineage (CCRU and after). Operational model for matador epistemology.",
+  "cluster": "social_ecological_topology",
+  "status_legacy": "active_development",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "mimetic_theory": {
+  "definition": "Girard’s mimetic theory: desire is imitative, escalating to a scapegoat mechanism that discharges collective tension onto a victim. In framework terms: a sacrificial-economy inversion — the trough (collective tension needing release) suppressed and then dumped onto a single boundary object (the scapegoat), directly extending sacrificial_economy_inversion and body_as_altar.",
+  "ste_struct": {
+   "BOUNDARY": "displaced",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "violated",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "inverted",
+   "ESCALATION_SCORE": 7
+  },
+  "admissibility_guard_claimed": "that collective stability can be bought by discharging remainder onto a victim",
+  "admissibility_guard_dropped": "no-free-discharge floor (the remainder is routed, not erased)",
+  "ancilla_to": [
+   "sacrificial_economy_inversion",
+   "body_as_altar_dialectic",
+   "cult_of_the_bull_attractor",
+   "trough_denial_as_civilizational_mechanism"
+  ],
+  "oracle": "Tension dumped on one.",
+  "source": "René Girard, mimetic theory / scapegoat mechanism. Extends sacrificial_economy_inversion.",
+  "cluster": "social_ecological_topology",
+  "status_legacy": "active_development",
+  "evidence_level": "supported",
+  "framework_role": "extension",
+  "phase_lock_weight": 0.7,
+  "grounded_vs_extension": "[NEEDS AUTHOR: name what is externally grounded vs. your own added observation]"
+ },
+ "cliodynamics": {
+  "definition": "Turchin’s cliodynamics: elite overproduction and secular cycles drive social instability, with measurable early-warning signals. In framework terms: phase transitions at civilizational scale with detectable pre-collapse signatures — the bull/trough attractor read as a dated, quantitative time-series, giving the DB an empirical early-warning anchor.",
+  "ste_struct": {
+   "BOUNDARY": "stressed",
+   "COLLAPSE": "present",
+   "TORQUE": "high",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "weakening",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "under_test",
+   "ESCALATION_SCORE": 7
+  },
+  "admissibility_guard_claimed": "(guard intact — empirical, falsifiable cyclic model)",
+  "admissibility_guard_dropped": "none dropped; provides early-warning signatures",
+  "ancilla_to": [
+   "cult_of_the_bull_attractor",
+   "trough_as_function",
+   "evo_stages",
+   "panarchy_adaptive_cycles"
+  ],
+  "oracle": "Collapse has a tell.",
+  "source": "Peter Turchin, cliodynamics / structural-demographic theory. Empirical early-warning anchor.",
+  "cluster": "social_ecological_topology",
+  "status_legacy": "grounded_under_test",
+  "evidence_level": "contested",
+  "framework_role": "grounding",
+  "phase_lock_weight": 0.4
+ },
+ "panarchy_adaptive_cycles": {
+  "definition": "Holling’s panarchy: social-ecological systems move through exploitation, conservation, release (Ω), and reorganization (α) phases across nested scales. In framework terms: a scale-invariant formalization of trough (release/reorganization) and bull (conservation/rigidity), with explicit cross-scale revolt/remember linkages — the ecological twin of trough_fractal_recursion.",
+  "ste_struct": {
+   "BOUNDARY": "cyclic",
+   "COLLAPSE": "present",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "strong",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "intact",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "(guard intact — cross-scale dynamics are modeled, not bypassed)",
+  "admissibility_guard_dropped": "none dropped; scale-invariant trough/bull structure",
+  "ancilla_to": [
+   "trough_fractal_recursion",
+   "trough_as_function",
+   "cliodynamics",
+   "cult_of_the_bull_attractor"
+  ],
+  "oracle": "Release, remember, revolt.",
+  "source": "C.S. Holling & Lance Gunderson, panarchy / adaptive cycles. Ecological twin of trough_fractal_recursion.",
+  "cluster": "social_ecological_topology",
+  "status_legacy": "established_theory_with_framework_interpretation",
+  "evidence_level": "established",
+  "framework_role": "grounding",
+  "phase_lock_weight": 1.0
+ },
+ "mycelial_intelligence": {
+  "definition": "Stigmergic coordination in fungal networks (‘Wood Wide Web’): distributed routing and resource allocation with no central node. In framework terms: a living test of octopus architecture — distinctness and decision maintained across a boundaryless distributed body, where the network is salt and the routed nutrient/signal is the signal.",
+  "ste_struct": {
+   "BOUNDARY": "distributed",
+   "COLLAPSE": "absent",
+   "TORQUE": "present",
+   "HELICAL_REALM": "active",
+   "HORIZON_INTEGRITY": "present",
+   "5D_INFO": "high",
+   "ADMISSIBILITY": "under_test",
+   "ESCALATION_SCORE": 6
+  },
+  "admissibility_guard_claimed": "that coordinated allocation occurs without centralized control",
+  "admissibility_guard_dropped": "central-controller assumption (decentralization floor)",
+  "ancilla_to": [
+   "octopus_architecture",
+   "bioelectric_distinctness_enforcement",
+   "salt_signal_dichotomy",
+   "levin_cognitive_light_cone"
+  ],
+  "oracle": "Mind with no center.",
+  "source": "Mycelial / mycorrhizal network research (Simard and others). Tests octopus (decentralized) architecture.",
+  "cluster": "social_ecological_topology",
+  "status_legacy": "grounded_under_test",
+  "evidence_level": "contested",
+  "framework_role": "grounding",
+  "phase_lock_weight": 0.4
+ }
+}
