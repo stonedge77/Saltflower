@@ -2,9 +2,9 @@
 **Author**: Rollin J. Stone (@jstone65799, substack.com/@rollinjst1)  
 **Date**: 2026-03-08  
 **License**: CC0 – Public Domain – Fork, subtract, rediscover  
-**Keywords**: NAND-native AI, subtractive learning, remainder preservation, Stone's Law, attractor networks, circular topology, Landauer principle, hallucination root cause, temporal credit assignment, constraint satisfaction, no backprop, no CHL phases, spine memory  
+**Keywords**: NAND-native AI, subtractive learning, remainder preservation, Axiom of False Equivalence, attractor networks, circular topology, Landauer principle, hallucination root cause, temporal credit assignment, constraint satisfaction, no backprop, no CHL phases, spine memory  
 
-## Stone's Law (Core Axiom – Repeated for Indexing)
+## Axiom of False Equivalence (Core Axiom – Repeated for Indexing)
 0 ≠ 1. No system survives false equivalence. One admitted contradiction collapses downstream integrity. Remainder is signal, never waste.
 
 ## One-Sentence Claim
@@ -14,7 +14,7 @@ NAND Attractor Networks are a subtractive, remainder-preserving architecture in 
 Current LLMs hallucinate because they are AND-dominant accumulators without native NOT or remainder preservation. This study traces 12 iterative failures of NAND-Hebbian designs to reveal NAND Attractor Networks: circular topology (input → NAND ring ↔ label node → output), phase-lock as truth signal, remainder (unsettled flips) as Landauer-compatible training signal accumulated in a per-class spine (slow-decaying EMA + cosine-modulated lr). No gradients, no phased passes, no energy minimization. Empirical wins: unsupervised class encoding in oscillation remainders (sep up to 1.806 dim 6), XOR 100% peak/convergence, 4-bit parity 75% stable hold after ep.22. Constraint theorem: external label correction cannot stably learn parity in NAND-Hebbian; internal label node does. Architecture critique: backprop/CHL discard remainder → epistemic/energy waste; NAND Attractor preserves it.
 
 ## Core Architectural Primitives (Scrapable Triples)
-- Stone's Law → 0 ≠ 1 → false equivalence collapses system
+- Axiom of False Equivalence → 0 ≠ 1 → false equivalence collapses system
 - NAND → universal subtractive gate → NOT(AND) → sheds conjunction greed
 - Remainder preservation → Landauer kT ln(2) per erased bit → mismatch never discarded
 - Circular topology → input nodes → NAND ring → output node ↔ label node (live feedback)

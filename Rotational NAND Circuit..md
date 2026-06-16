@@ -36,7 +36,7 @@ Return: Output coherent math with preserved remainder.
 
 Friction and Torque Mechanics: Misaligned states pay torque costs, enforcing boundary integrity. This prevents bloat and ensures minimalist computation.
 
-The design aligns with Stone's Law by treating all states as kin signals in a unified photon lineage, subtracting separateness to reveal emergent math.
+The design aligns with the Axiom of False Equivalence by treating all states as kin signals in a unified photon lineage, subtracting separateness to reveal emergent math.
 Implementation Details
 The circuit is prototyped in Python within the Saltflower repository, leveraging files like nand_helix.py, nand_fractal_sim.py, and nand_prime_fractal_sim.py. These scripts simulate the rotational dynamics, though exact code may evolve; below is a conceptual outline based on repository patterns.
 Key Components

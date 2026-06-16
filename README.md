@@ -13,7 +13,7 @@ It is deliberately messy. Treat each file as an experiment, not a product.
 
 Everything here orbits a few load-bearing ideas:
 
-- **Stone's Law: 0 ≠ 1**
+- **The Axiom of False Equivalence: 0 ≠ 1**
   A system that admits even one false equivalence (treating unequal states as
   equal) loses integrity. No partial survival.
 
@@ -76,7 +76,7 @@ A toy quantum/classical co-processor described in RTL.
 ### Interactive demos (open the `.html` files in a browser)
 Self-contained toys — no build step.
 
-- **Logic & gates:** `stones_law_visual.html`, `saltflower_gate.html`, `nand_gate_abduction.html`, `the_unbuilt_gate.html`
+- **Logic & gates:** `saltflower_gate.html`, `nand_gate_abduction.html`, `the_unbuilt_gate.html`
 - **Physics & lattices:** `Accretion Disk Lattice.html`, `hanoi_testbed.html`, `torsed_cable_muscle.html`, `torsed_cable_spec.html`, `Horizon Integrity Theory.html`
 - **Sound & soma:** `Muscle OS.html`, `muscle_os_MIDI_bridge.html`, `Saltflower_Chronicle_Trio.html`, `cymatic_signal.html`
 - **Visual art:** `pi_pride_mobile.html`, `pi_pride_serotonin.html`, `pride_metal.html`, `Forge Pride.html`, `rayveil.html`
@@ -102,12 +102,8 @@ python Math_Machine_v2.py
 
 ## License & use
 
-The code is **MIT licensed** — see [`LICENSE`](LICENSE). A couple of notes on
-the ideas behind it:
+Released to the **public domain under CC0 1.0** — see [`LICENSE`](LICENSE).
+Copy it, fork it, subtract from it, build on it, no permission needed.
 
-- [`ATTRIBUTION.md`](ATTRIBUTION.md) — how to cite, and an ethical-use request.
-- [`TRADEMARK_NOTICE.md`](TRADEMARK_NOTICE.md) — which theoretical frameworks are
-  trademarked vs. free to use.
-
-By Josh Stone. *For the world, not for money.*
+*For the world, not for money.*
 </content>

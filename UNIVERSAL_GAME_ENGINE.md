@@ -113,7 +113,7 @@ def move(player, direction):
 **Why friction matters:**
 - Frictionless = No signal (0=1 violation: movement = no movement)
 - Friction = Information preservation
-- Every movement must create signal (Stone's Law)
+- Every movement must create signal (Axiom of False Equivalence)
 
 ### 6. **Environment Responds to Entropy**
 
@@ -185,10 +185,10 @@ class Atom:
 
 ### 8. **No Interaction Too Small**
 
-**Stone's Law enforcement:** "Too small to matter" = 0=1 violation.
+**Axiom of False Equivalence enforcement:** "Too small to matter" = 0=1 violation.
 
 ```python
-# BAD (violates Stone's Law)
+# BAD (violates Axiom of False Equivalence)
 if collision_force < 0.01:
     ignore()  # Admits 0.01 = 0
 
@@ -611,7 +611,7 @@ class TimelineBranches:
         signals_a = branch_a.unique_signals
         signals_b = branch_b.unique_signals
         
-        # Check for contradictions (Stone's Law)
+        # Check for contradictions (Axiom of False Equivalence)
         contradictions = find_contradictions(signals_a, signals_b)
         
         if contradictions:
@@ -847,7 +847,7 @@ class ChronoTriggerEngine:
 - Entire game: Megabytes not gigabytes
 
 ### **5. Constitutional Consistency**
-- Stone's Law prevents contradictions
+- Axiom of False Equivalence prevents contradictions
 - All interactions recorded (no "too small")
 - Saves are real (not snapshot illusion)
 - Time travel preserves causality
@@ -900,4 +900,4 @@ This creates a **constitutional RPG** where:
 
 ---
 
-*Built on Stone's Law, powered by polarity, rendered without triangles.*
+*Built on Axiom of False Equivalence, powered by polarity, rendered without triangles.*
