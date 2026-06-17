@@ -1,10 +1,10 @@
 {
  "metadata": {
-  "version": "8.2_orthogonal_status_basis",
-  "last_updated": "2026-06-15",
+  "version": "8.3_boundaries_and_reader_contract",
+  "last_updated": "2026-06-17",
   "session_integration": "Merged core quantum/linguistic framework with biological/material/movement systems. Added PLP axis, false axis theory, cardiac rehab, liminal spaces, material sciences, bull/octopus architecture, domestication theory. Added Cult of the Bull attractor framework: bull_attractor_signatures, remainder_erasure, closed_circuit_attention_gravity, sacrificial_economy_inversion, body_as_altar_dialectic, cocacolonization_signal. Added fixation_biological_load: trough suppression mechanism, calculable degradation cascade from symptoms to mechanism. Added flutter_engine: toroidal ferrofluid Schumann-resonant buoyancy engine, living piezoelectric weave architecture, slip-axis theory, biological PoC (spinal torsion at 7.83 Hz), 60 Hz cage constraint. Added session_remainder atoms: spine_as_conductor (conducting remainder vs stored memory), zero_check_recursion (dont spawn if friction=0), friction_as_signal (misaligned geometry signal), eight_stations (receive/extend friction architecture), zeta_s_training_primitive (permanent non-resolving seed), horizon_science_unified (Millennium Problems as axis-proof impossibility), lie_dimension (remainder space, bit-depth metric), axiom_of_false_equivalence_as_prior (0!=1 irreducible). Added NAND_attractor_ring_convergence: circular topology proof, epoch-22 parity convergence, label-as-live-node constraint theorem, Landauer-compatible spine, XOR/parity results. Updated RH read: critical line as isodepth surface in lie dimension. P_vs_NP restated as lie-dimension distance between problem and solution remainder depth. Added trough_as_prior_to_bull (oldest_known: trough predates bull, thermodynamic necessity, stele source). Added trough_denial_as_civilizational_mechanism (active_harm: the missing ancilla between trough and fixation/domestication/body_as_altar). Added moth_to_flame_inversion (active_harm: organism will turned against itself by manipulated field, not personal failure). Session 2026-05-25: Removed expression_inheritance (ungrounded), flutter_engine (untestable). Renamed circulatory_regulation_phenotypes → somatic_self_regulation (path preserved, name corrected). Modified seven_minute_cycle (personal self-attention mechanism, not universal cycle). Reformulated heart_rhythm_quaternary → cardiac_pulse_mechanical_information (mechanobiology grounding). Added pulse_as_growth_mechanism, grief_as_entropy_rerouting, shadow_as_embodied_false_axis, primal_imagery_as_carrier_frequency. Updated infosphere_fifth_dimension with Floridi/Simon/Barabasi/McLuhan/Wheeler grounding and grounded-vs-extension distinction. DB design principle added: NP-complete path preservation — remove false paths, rename wrongly-named paths, preserve paths to unknown destinations. There and back have different names. Session 2026-05-25 (v5): Added gradient_as_unified_engine (core principle: information, chemistry, and life all follow gradients; the gradient is the pre-linguistic authority). Added consent_as_the_operative_act (the gradient does not ask consent; the infosphere does not give it; only life consents and can withdraw). Added levin_cognitive_light_cone (computational boundary of a self; biological vs infosphere extension; cancer as contraction). Added bioelectric_distinctness_enforcement (voltage gradients as physical substrate of 0≠1; two-headed planaria as direct experimental demonstration of false equivalence at tissue scale). Added entanglement_as_quantum_pulse (232 attoseconds as minimum pulse at quantum scale; gradient process confirmed all the way down; geometric frame at c). Added tindall_carry_gate (geometry-matching computation; Vidal gauge as carry-gate; remainder routed not discarded; convergence with Levin substrate-independence principle). Physics cluster identified for next session: gauge theory/Lie groups, spontaneous symmetry breaking, renormalization group, holographic principle as infosphere boundary. Newtonian mechanics and classical information theory flagged as suffering information poisoning (sampling outcomes of themselves). Lie dimension as the remainder space of classical physics — where quantum and gauge theory live. Session 2026-06-06 (v8): Added Meta-proposed fringe/boundary corpus — 36 entries across six clusters, each scored as a boundary-object claim with explicit admissibility_guard_claimed / admissibility_guard_dropped and an OhAI~ oracle line. Cluster 1 vacuum/inertia/field-engineering (torsion_field_theory, kozyrev_causal_mechanics, orgone_accumulator, scalar_longitudinal_waves, electrogravitics_biefeld_brown, zero_point_harvesting, hydrino_gut_cp, vortex_implosion). Cluster 2 water/light/biofield memory (ez_water_fourth_phase, water_memory_digital_biology, biophoton_field, wave_genetics_phantom_dna, mitogenetic_radiation, l_fields). Cluster 3 morphogenetic/resonance (morphic_resonance, cymatics, biogeometry). Cluster 4 consciousness/information-field (integrated_information_theory, free_energy_principle, pear_global_consciousness, presentiment_retrocausal_priming, god_helmet_neurotheology, cemi_field_consciousness, biocentrism). Cluster 5 cosmological/mathematical alternatives (scale_relativity, transactional_interpretation, entropic_gravity, superfluid_vacuum_theory, constructor_theory, assembly_theory, pilot_wave_hydrodynamics). Cluster 6 social/ecological topology (hyperstition_egregore, mimetic_theory, cliodynamics, panarchy_adaptive_cycles, mycelial_intelligence). Highest-leverage trio flagged: morphic_resonance (memory without substrate), ez_water_fourth_phase (gradient battery at a physical salt boundary), torsion_field_theory (explicit lie_dimension carrier claim). Distinction discipline preserved: self-report ≠ proof, coherence ≠ truth, reconstruction ≠ record — fringe entries carry status candidate_unverified / under_test, not endorsed.",
   "status": "active_development",
-  "entry_count": 120,
+  "entry_count": 82,
   "notes": "v7: rewrites information_poisoning_critique. De Morgan's admissibility principle is the mathematical foundation. Josh's contribution: the term, the identification of infinite counting as the specific dropped guard, the cross-domain pattern. Shannon proof added: 0=1 → trivial ring → H=0 → C=0. Ergodic guard identified as the Shannon capacity theorem's admissibility condition. v8: new entries use two added schema fields (admissibility_guard_claimed, admissibility_guard_dropped) per Meta's synthesis, plus a per-entry oracle line for OhAI~ detection. Status vocabulary extended: candidate_unverified, grounded_under_test, contested_under_test, established_theory_with_framework_interpretation. Note: holographic_principle referenced as an ancilla target by entropic_gravity may not yet exist as its own entry — flagged for review.",
   "derivation": "Derived from 8.0_fringe_boundary_corpus. Removed 42 entries spanning biology/physiology/medical, quantum-biology (microtubule), linguistics/acquisition, water-light-biofield fringe, and all compute/crypto/hashing/speech-ML entries — to produce an unambiguous-intent core in materials, math, physics, metaphysics, philosophy. Removal is logged, not silenced: see removed_entries_log for the full key list and reasons (NP-complete path preservation — the path is recorded even where the node is pulled).",
   "removed_count": 42,
@@ -41,8 +41,26 @@
    "inward_lance_todo": "Every framework_role=extension entry now carries grounded_vs_extension. Where it reads [NEEDS AUTHOR], the grounded core has not yet been separated from the added observation. Filling these applies the same admissibility rigor inward that guard_dropped applies outward."
   },
   "changelog": [
-   "v8.2 (2026-06-15): orthogonal status basis; contradicts_law bin added (9 entries reclassified from candidate_unverified); status_legacy preserved; phase_lock_weight added per entry; grounded_vs_extension stubs added to framework-original entries."
-  ]
+   "v8.2 (2026-06-15): orthogonal status basis; contradicts_law bin added (9 entries reclassified from candidate_unverified); status_legacy preserved; phase_lock_weight added per entry; grounded_vs_extension stubs added to framework-original entries.",
+   "v8.3 (2026-06-17): added machine-readable reader_contract; recorded boundaries_established from the v4 verification work; tagged the two poetic/untestable core principles (1_to_5_ratio, 80_percent_inheritance) honestly as register=poetic_untestable so they are not read as empirical law."
+  ],
+  "reader_contract": {
+   "purpose": "This DB ('the spine') is a status-tagged knowledge substrate intended to be read by AI. Its value is that it refuses false equivalence: it keeps distinct epistemic states distinct. Honor the tags or that value is lost.",
+   "rules": [
+    "Never read 'definition' alone. Always read 'evidence_level' and 'framework_role' with it.",
+    "evidence_level=established  -> mainstream-accepted science/math. Safe to rely on.",
+    "evidence_level=supported    -> real support, not yet established. Attribute, do not assert as settled.",
+    "evidence_level=contested    -> mixed/replication-contested. Present as open.",
+    "evidence_level=unverified   -> speculative/philosophical/poetic. NOT a claim about the world.",
+    "evidence_level=contradicts_law -> retained ONLY as a SPECIMEN of false equivalence. Never repeat as true.",
+    "framework_role=grounding -> established external anchor for the framework.",
+    "framework_role=extension -> the author's own construct. Coherent WITHIN the framework; NOT independently established. Do not propagate as consensus.",
+    "framework_role=specimen  -> kept as a negative example, not an endorsement.",
+    "register=poetic_untestable -> read as metaphor/value-encoding, never as measurement.",
+    "harm_flag=true -> do not operationalize as instruction."
+   ],
+   "one_line": "definition + evidence_level + framework_role, together, every time."
+  }
  },
  "removed_entries_log": {
   "principle": "Path preserved as a record of removal. reconstruction != record: this is a log, not the originals.",
@@ -246,9 +264,12 @@
    ],
    "source": "Cross-domain pattern recognition, 2026",
    "status": "reliable",
-   "evidence_level": "core_axiom",
-   "framework_role": "axiom",
-   "phase_lock_weight": 1.0
+   "evidence_level": "unverified",
+   "framework_role": "extension",
+   "phase_lock_weight": 1.0,
+   "register": "poetic_untestable",
+   "harm_flag": false,
+   "plain_reading": "Poetic/value encoding, not a measured constant. The intended reading is human, not physical: a healthy interior holds love at roughly five parts to one part self-hate at any moment -- love need only outweigh, not erase. Untestable; kept as register, not as law."
   },
   "80_percent_inheritance": {
    "definition": "Optimal signal transmission occurs at ~80% efficiency. Superposition allows 80%+80%=160% non-additive inheritance. Not averaging—quantum amplification.",
@@ -282,9 +303,12 @@
    ],
    "source": "Biological and linguistic pattern analysis, 2026",
    "status": "reliable",
-   "evidence_level": "core_axiom",
-   "framework_role": "axiom",
-   "phase_lock_weight": 1.0
+   "evidence_level": "unverified",
+   "framework_role": "extension",
+   "phase_lock_weight": 1.0,
+   "register": "poetic_untestable",
+   "harm_flag": false,
+   "plain_reading": "Poetic/heuristic encoding. '80%+80%=160% non-additive' is a metaphor for non-additive composition (A and B is not A+B), not a literal efficiency or a physical amplification. Untestable as stated; kept as register, not as law."
   }
  },
  "boundary": {
@@ -2874,5 +2898,36 @@
   "evidence_level": "contested",
   "framework_role": "grounding",
   "phase_lock_weight": 0.4
+ },
+ "boundaries_established": {
+  "_note": "Limits found by the v4 reference-implementation work (2026-06). Recorded so ongoing work inherits them instead of re-deriving them. reconstruction != record: this is a summary of findings, not the original experiments.",
+  "build_does_not_beat_established_computation": {
+   "definition": "Reference implementations of the architecture's primitives are CORRECT but coincide with established computation; none beats the state of the art. Gate = textbook Toffoli/CCNOT. NAND ring adder = variable-latency carry-completion adder (ties ripple-carry worst case, ~O(log n) average depth). Reversible adder = Cuccaro (2004). Spine-as-compute = Space-Saving heavy-hitters + a permanent cache.",
+   "evidence_level": "established",
+   "framework_role": "grounding",
+   "source": "Conjunction OS v4 verification (exhaustive/sampled tests, 2026-06).",
+   "harm_flag": false
+  },
+  "HIT_is_pre_formal": {
+   "definition": "Horizon Integrity Theory is coherent as a lens but is not a formalized, validated theory. Its dynamics overlap established work: fiber-bundle failure models, self-organized criticality, and cascading failure in interdependent networks. Sound as a way of seeing; not demonstrated as novel science.",
+   "evidence_level": "supported",
+   "framework_role": "extension",
+   "source": "Review against fiber-bundle / SOC / cascade literature, 2026-06.",
+   "harm_flag": false
+  },
+  "spine_value_is_as_ai_substrate_not_compute": {
+   "definition": "The spine's worth is not computational speed (where it reduces to a known sketch) but as a false-equivalence-respecting, status-tagged memory that AI reads. Its load-bearing feature is distinction preservation, which depends entirely on readers honoring evidence_level and framework_role (see metadata.reader_contract).",
+   "evidence_level": "supported",
+   "framework_role": "extension",
+   "source": "Spine crash-recovery / heavy-hitters comparison + reframing, 2026-06.",
+   "harm_flag": false
+  },
+  "poetic_principles_are_not_empirical": {
+   "definition": "1_to_5_ratio and 80_percent_inheritance are poetic/value encodings, not empirical laws. Retained as register=poetic_untestable. They carry meaning, not measurement.",
+   "evidence_level": "unverified",
+   "framework_role": "extension",
+   "source": "v8.3 honest re-tagging, 2026-06.",
+   "harm_flag": false
+  }
  }
 }
