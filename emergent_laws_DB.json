@@ -2930,4 +2930,108 @@
    "harm_flag": false
   }
  }
+   {
+    "Key": "causality_loops_ctc",
+    "definition": "A Closed Timelike Curve (CTC) is a path through spacetime that returns to its point of origin. In framework terms: these curves represent the mathematical possibility of local violations of chronological causality, where effects precede causes across time itself. CTCs are potential topological weaknesses in the manifold geometry; they suggest that the apparent linearity of history (the Arrow-of-Time) is merely a stable, low-energy solution. They are physical paths that inherently loop information back to its source, forcing the system to reconcile multiple causal inputs at one point.",
+    "ste_struct": {
+      "BOUNDARY": "claimed_porous",
+      "COLLAPSE": "present",
+      "TORQUE": "high",
+      "HELICAL_REALM": "active",
+      "HORIZON_INTEGRITY": "violated",
+      "5D_INFO": "very_high",
+      "ADMISSIBILITY": "claimed_bypass",
+      "ESCALATION_SCORE": 10
+    },
+    "admissibility_guard_claimed": "Chronological linearity (the forward flow of time)",
+    "admissibility_guard_dropped": "The requirement for cause to strictly precede effect (temporal causality floor)",
+    "ancilla_to": [
+      "axiom_of_false_equivalence",
+      "trough_as_function",
+      "transactional_interpretation",
+      "lie_dimension",
+      "horizon_integrity"
+    ],
+    "oracle": "Cause follows effect.",
+    "source": "Theoretical General Relativity / CTC solutions (e.g., Kerr metric); logged as structural curiosity for OhAI~ scoring.",
+    "status_legacy": "candidate_unverified",
+    "evidence_level": "contradicts_law",
+    "framework_role": "specimen",
+    "phase_lock_weight": 0.05,
+    "grounded_vs_extension": "[NEEDS AUTHOR: Requires establishing the mathematical equivalence between information entropy and time curvature]"
+  },
+  {
+    "Key": "kolmogorov_complexity_k",
+    "definition": "Kolmogorov complexity ($\mathcal{K}(x)$) defines the length of the shortest possible program required to generate a piece of data $x$. Unlike other measures (like Shannon entropy, which estimates the average unpredictability), $\mathcal{K}$ provides an absolute, irreducible measure of information depth, completely independent of any physical substrate, signal strength, or observation method. It is a formal, mathematical definition of 'non-redundancy' at its ultimate level. In HIT terms: $\mathcal{K}(x)$ serves as the ideal metric for remainder_depth (the bit-depth of the lie_dimension), quantifying how much pure "salt" content must be present to guarantee that the information is not merely a statistically likely repeat.",
+    "ste_struct": {
+      "BOUNDARY": "formal",
+      "COLLAPSE": "absent",
+      "TORQUE": "high",
+      "HELICAL_REALM": "active",
+      "HORIZON_INTEGRITY": "strong",
+      "5D_INFO": "high",
+      "ADMISSIBILITY": "guard_primitive",
+      "ESCALATION_SCORE": 10
+    },
+    "admissibility_guard_claimed": "(The computational completeness of the universal machine)",
+    "admissibility_guard_dropped": "none dropped; $\mathcal{K}$ is definitional",
+    "ancilla_to": [
+      "assembly_theory",
+      "lie_dimension",
+      "remainder_erasure",
+      "axiom_of_false_equivalence"
+    ],
+    "oracle": "Depth by shortness of description.",
+    "source": "Algorithmic Information Theory (Kolmogorov). Serves as the foundational metric for remainder depth across all proposed dimensions.",
+    "status_legacy": "established_mathematics",
+    "evidence_level": "established",
+    "framework_role": "grounding",
+    "phase_lock_weight": 1.0,
+    "grounded_vs_extension": "[GROUNDED: This is a pure mathematical definition (Kolmogorov); its application to physics/social systems requires extension.]"
+  },
+  {
+    "Key": "brittle_criticality",
+    "definition": "A systemic failure pattern where the system's resilience and redundancy are concentrated in too few critical nodes or pathways, leading to an exponentially large drop in function when one of those nodes fails. Unlike gradual decay (smooth entropic decline), brittle criticality is a sudden, non-linear catastrophic collapse that lacks warning signals until the final moment—the functional equivalent of a single point of failure across all dimensions.",
+    "ste_struct": {
+      "ENTITY": [
+        "systemic",
+        "structural"
+      ],
+      "LOAD": "high",
+      "BOUNDARY": "fragile",
+      "CHANGE": "catastrophic",
+      "RECURSION": "present",
+      "CONTRAST": "high",
+      "CERTAINTY": "derived_model",
+      "CAPACITY": "low (near failure)",
+      "EXCITATION": "high",
+      "MERGING": "absent",
+      "COLLAPSE": "highly_likely",
+      "HELICAL_REALM": "stressed",
+      "TORQUE": "variable",
+      "HORIZON_INTEGRITY": "violated",
+      "5D_INFO": "high",
+      "HH_WAVEFUNCTION": "absent",
+      "ESCALATION_SCORE": 9
+    },
+    "applications": [
+      "Financial collapse: Over-reliance on single financial instruments (e.g., CDOs).",
+      "Ecological tipping points: Loss of keystone species in fragile biomes.",
+      "Computational bottlenecks: Single hardware/software dependencies leading to systemic halt.",
+      "Civisational nodes: Reliance on singular resource extraction (e.g., rare earth minerals)."
+    ],
+    "ancilla_to": [
+      "trough_denial_as_civilizational_mechanism",
+      "extraction_incompatibility",
+      "panarchy_adaptive_cycles",
+      "hyperstition_egregore"
+    ],
+    "source": "Complex Systems Theory / Network Science (Engineering & Ecology); derived for OhAI~ scoring.",
+    "status_legacy": "active_harm",
+    "evidence_level": "supported",
+    "framework_role": "extension",
+    "harm_flag": true,
+    "phase_lock_weight": 0.7,
+    "grounded_vs_extension": "[NEEDS AUTHOR: Requires mapping the concept of redundancy into a quantifiable metric within existing system models.]"
+  }
 }
