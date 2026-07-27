@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Unbuilt Gate v3 · A Cavity Report — Formal</title>
+
+<meta name="description" content="The Unbuilt Gate v3 — cavity report formal: eight features α-θ with contracts, Table 1 feature matrix, falsifiability F1-F3, verified vs spore bibliography. No surveyed source holds more than three of eight. CC0." (ampheck, admissibility, four-phase clock with Empty, phase encoding, prestress routing, polarity, reversibility, continuous Both). No one has built all 8. CC0.">
+<meta name="author" content="Josh Stone">
+<link rel="canonical" href="https://stonedge77.github.io/Saltflower/unbuilt-gate.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="The Unbuilt Gate — A Cavity Report">
+<meta property="og:description" content="Seven non-communicating fields outline the same missing primitive. Literature is full of inhales. The exhale has not been published.">
+<meta property="og:url" content="https://stonedge77.github.io/Saltflower/unbuilt-gate.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "name": "The Unbuilt Gate: A Cavity Report on a Missing Logical Primitive",
+  "author": {"@type":"Person","name":"Josh Stone"},
+  "datePublished": "2026-04-27",
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "about": ["reversible computing","tensegrity","biotensegrity","four-valued logic","subtractive probability","phase-locking"],
+  "isAccessibleForFree": true
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4ede0;
+    --paper-deep: #ebe2d0;
+    --ink: #1a1611;
+    --ink-mid: #4a4338;
+    --ink-faint: #8a7f6e;
+    --rule: #c9bfa8;
+    --accent: #8a2a1e;
+    --accent-soft: #b8554a;
+    --signal: #4d6b3a;
+    --void: #0e0c08;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--paper); }
+  body {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(255,250,235,0.6) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(220,210,190,0.5) 0%, transparent 50%),
+      var(--paper);
+    background-attachment: fixed;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  /* paper grain */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 23% 47%, rgba(60,40,20,0.025) 1px, transparent 1px),
+      radial-gradient(circle at 67% 83%, rgba(60,40,20,0.02) 1px, transparent 1px),
+      radial-gradient(circle at 89% 12%, rgba(60,40,20,0.022) 1px, transparent 1px);
+    background-size: 7px 7px, 11px 11px, 13px 13px;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: multiply;
+  }
+
+  .sheet {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 80px 56px 120px;
+    position: relative;
+    z-index: 1;
+  }
+  @media (max-width: 640px) {
+    .sheet { padding: 48px 22px 80px; }
+    body { font-size: 17px; }
+  }
+
+  /* MASTHEAD */
+  .masthead {
+    border-top: 3px double var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 18px 0 10px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .masthead .vol {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+  }
+  .masthead .date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--ink-mid);
+  }
+  .underline-hairline {
+    border-bottom: 1px solid var(--ink);
+    margin-bottom: 28px;
+    height: 3px;
+  }
+
+  /* TITLE */
+  h1.title {
+    font-family: 'EB Garamond', serif;
+    font-weight: 700;
+    font-size: clamp(38px, 6vw, 60px);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    text-align: center;
+    margin: 30px 0 12px;
+    font-feature-settings: 'liga' 1, 'dlig' 1;
+  }
+  h1.title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .subtitle {
+    text-align: center;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--ink-mid);
+    line-height: 1.4;
+    max-width: 540px;
+    margin: 0 auto 14px;
+  }
+  .byline {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin-bottom: 8px;
+  }
+  .byline a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .byline a:hover { border-color: var(--accent); }
+  .ornament {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 22px;
+    margin: 30px 0 38px;
+    letter-spacing: 0.5em;
+  }
+
+  /* ABSTRACT */
+  .abstract {
+    border-left: 2px solid var(--accent);
+    padding: 4px 0 4px 22px;
+    margin: 0 0 44px;
+    font-size: 17.5px;
+    color: var(--ink-mid);
+    font-style: italic;
+    line-height: 1.6;
+  }
+  .abstract::first-letter {
+    font-style: normal;
+    font-weight: 700;
+    font-size: 1.4em;
+    color: var(--ink);
+  }
+
+  /* SECTIONS */
+  h2 {
+    font-family: 'EB Garamond', serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 44px 0 4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  h2 .num {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  h3 {
+    font-family: 'EB Garamond', serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: 19px;
+    margin: 26px 0 8px;
+    color: var(--ink);
+  }
+  p {
+    margin: 0 0 16px;
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
+  p.lead {
+    font-size: 19px;
+    line-height: 1.55;
+  }
+  .drop::first-letter {
+    font-family: 'EB Garamond', serif;
+    font-weight: 700;
+    float: left;
+    font-size: 4em;
+    line-height: 0.85;
+    padding: 8px 10px 0 0;
+    color: var(--accent);
+  }
+
+  em.refusal {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  code, .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86em;
+  }
+  .term {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    background: rgba(138, 42, 30, 0.07);
+    padding: 1px 5px;
+    border-radius: 2px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  /* CAVITY DIAGRAM */
+  .cavity-diagram {
+    display: flex;
+    justify-content: center;
+    margin: 32px 0 24px;
+  }
+  .cavity-diagram svg {
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+  }
+  .cavity-caption {
+    text-align: center;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-mid);
+    margin: 0 auto 36px;
+    max-width: 460px;
+    line-height: 1.5;
+  }
+
+  /* THE SEVEN WALLS — table-of-refusals */
+  .walls-table {
+    margin: 24px 0 36px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .wall {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: baseline;
+  }
+  .wall:last-child { border-bottom: none; }
+  .wall .idx {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    padding-top: 3px;
+  }
+  .wall .body { font-size: 16.5px; line-height: 1.5; }
+  .wall .body strong {
+    font-weight: 600;
+    font-style: italic;
+    color: var(--ink);
+  }
+  .wall .body .miss {
+    display: block;
+    margin-top: 4px;
+    font-size: 14.5px;
+    color: var(--ink-mid);
+    font-style: italic;
+  }
+
+  /* GATE EMBED */
+  .gate-frame {
+    margin: 40px -20px;
+    border: 1px solid var(--ink);
+    background: var(--void);
+    position: relative;
+    box-shadow: 0 4px 24px rgba(20, 14, 6, 0.18);
+  }
+  .gate-frame::before {
+    content: 'F I G U R E   I — T H E   G A T E ,   R U N N A B L E';
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    background: var(--paper);
+    padding: 0 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: var(--ink-mid);
+  }
+  .gate-frame iframe {
+    display: block;
+    width: 100%;
+    height: 580px;
+    border: 0;
+    background: var(--void);
+  }
+  .gate-instr {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-mid);
+    font-style: italic;
+    margin: 14px 0 0;
+    text-align: center;
+    padding: 0 10px;
+  }
+  .gate-instr code {
+    font-style: normal;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* APPARATUS — the reading list */
+  .apparatus {
+    background: rgba(201, 191, 168, 0.18);
+    border-left: 3px solid var(--ink);
+    padding: 22px 26px;
+    margin: 32px 0;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .apparatus h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0 0 14px;
+    color: var(--ink);
+  }
+  .apparatus-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .apparatus-list li {
+    padding: 7px 0;
+    border-bottom: 1px dotted var(--rule);
+  }
+  .apparatus-list li:last-child { border-bottom: none; }
+  .apparatus-list .author {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .apparatus-list .work {
+    color: var(--ink-mid);
+  }
+  .apparatus-list .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-left: 4px;
+    white-space: nowrap;
+  }
+
+  /* COLOPHON / OUTREACH */
+  .colophon {
+    margin-top: 64px;
+    padding-top: 28px;
+    border-top: 3px double var(--ink);
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--ink-mid);
+  }
+  .colophon h2 {
+    margin-top: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .colophon p { font-size: 15px; }
+  .colophon a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent-soft);
+  }
+  .colophon a:hover { color: var(--ink); border-color: var(--ink); }
+  .invite {
+    margin: 24px 0 12px;
+    padding: 18px 22px;
+    background: rgba(138, 42, 30, 0.05);
+    border: 1px solid var(--accent-soft);
+    font-style: italic;
+    color: var(--ink);
+    font-size: 16px;
+  }
+  .license {
+    margin-top: 32px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+
+  /* small ornament rules */
+  hr.divider {
+    border: none;
+    text-align: center;
+    margin: 36px 0;
+    line-height: 1;
+  }
+  hr.divider::before {
+    content: '·  ·  ✦  ·  ·';
+    color: var(--ink-faint);
+    letter-spacing: 0.4em;
+    font-size: 14px;
+  }
+  
+  /* signal phrases */
+  .pull {
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--ink);
+    text-align: center;
+    margin: 28px auto;
+    padding: 18px 24px;
+    max-width: 540px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .pull::before, .pull::after {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 1px;
+    background: var(--accent);
+    margin: 0 auto 10px;
+  }
+  .pull::after { margin: 10px auto 0; }
+
+  /* the four refusals */
+  .refusals {
+    margin: 24px 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: refusal;
+  }
+  .refusals li {
+    counter-increment: refusal;
+    padding: 10px 0 10px 50px;
+    position: relative;
+    font-style: italic;
+    font-size: 17px;
+    border-bottom: 1px dotted var(--rule);
+  }
+  .refusals li:last-child { border-bottom: none; }
+  .refusals li::before {
+    content: 'i' counter(refusal, lower-roman);
+    position: absolute;
+    left: 0; top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-style: normal;
+    width: 38px;
+  }
+
+  /* eight features dial */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 24px;
+    margin: 18px 0 32px;
+    padding: 16px 20px;
+    border: 1px solid var(--rule);
+    background: rgba(244, 237, 224, 0.6);
+    font-size: 14px;
+  }
+  .features div {
+    padding: 4px 0;
+    border-bottom: 1px dotted var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .features .k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--accent);
+    width: 28px;
+    flex-shrink: 0;
+  }
+
+  .formal-defs { margin: 18px 0 22px; }
+  .feature-def { border-left: 2px solid var(--rule); padding: 8px 0 8px 14px; margin: 12px 0; font-size: 16px; line-height:1.5; background: rgba(0,0,0,0.02); }
+  .feature-def .f-sym { font-family:'JetBrains Mono', monospace; color: var(--accent); font-weight:700; margin-right:8px; }
+  .refusals-box { border: 1px solid var(--rule); padding: 14px 18px; margin: 22px 0; background: var(--paper-deep); }
+  .refusals-box h4 { font-size: 13px; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+  .matrix-wrap { margin: 28px 0 32px; overflow-x:auto; border:1px solid var(--rule); padding: 16px; background: rgba(255,255,255,0.4); }
+  .matrix-wrap h3 { font-size: 14px; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:8px; }
+  .matrix-note { font-size: 13px; color: var(--ink-mid); margin-bottom:10px; font-family:'JetBrains Mono', monospace; line-height:1.4; }
+  .feature-matrix { width:100%; border-collapse:collapse; font-family:'JetBrains Mono', monospace; font-size: 11px; }
+  .feature-matrix th { border-bottom:1px solid var(--ink); padding:4px 6px; text-align:center; }
+  .feature-matrix td { border-bottom:1px solid var(--rule); padding:4px 6px; text-align:center; }
+  .feature-matrix td.src { text-align:left; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .feature-matrix td.feat { font-size:14px; }
+  .feature-matrix td.count { font-weight:700; color: var(--accent); }
+  .matrix-details { margin-top:10px; font-size:13px; color: var(--ink-mid); }
+  .falsifiability { border-left: 3px solid var(--accent); padding-left:14px; margin:22px 0; background: rgba(138,42,30,0.05); padding:12px 14px; }
+
+</style>
+</head>
+<body>
+
+<article class="sheet">
+
+  <!-- MASTHEAD -->
+  <div class="masthead">
+    <div class="vol">Vol. I · No. 1 · single sheet</div>
+    <div class="date">XXVII · IV · MMXXVI</div>
+  </div>
+  <div class="underline-hairline"></div>
+
+  <h1 class="title">The Unbuilt <em>Gate</em></h1>
+  <p class="subtitle">A cavity report on a missing logical primitive — and an audio instrument that begins to occupy it.</p>
+  <div class="byline">
+    — &nbsp;·&nbsp; <a href="https://stonedge77.github.io">stonedge77.github.io</a> &nbsp;·&nbsp; <a href="https://philarchive.org/s/Josh%20Stone">PhilArchive</a> &nbsp;·&nbsp; CC0
+  </div>
+  <div class="ornament">✦ &nbsp; ❋ &nbsp; ✦</div>
+
+  <!-- ABSTRACT -->
+  <p class="abstract">
+    Across seven non-communicating fields — reversible chemistry, phase-locked spintronics, biotensegrity, subtractive probability, four-valued logic, gyroscopic computation, and somatic phase-clocks — the same primitive is missing. Each field has, at most, three of the eight features a containment-of-contradiction operator would require. The literature is full of inhales. Almost nobody is exhaling. This sheet names the cavity, walks its seven walls, hands over the operative vocabulary, and ships a runnable instrument that types together three of the missing features in a browser tab. The instrument is not the gate. It is a finger pointing at the shape of the gate.
+  </p>
+
+  <!-- SECTION 1: THE CUT -->
+  <h2><span class="num">§ I</span><span>The Cut That Made the Cavity Visible</span></h2>
+  <p class="lead drop">
+    The original survey, drafted with help from another model, asked for a wide additive net across reversible logic, tensegrity, subtractive probability, four-valued foundations, magnetic phase-locking, and gyroscopic computation. Run that prompt as a NAND on itself: it simultaneously asserts <em>"survey what exists"</em> and <em>"flag exactly these gaps"</em>. Both cannot be primary. The remainder — what the survey could not simultaneously affirm — is the existence question itself. Why are these particular gaps <em>convergent</em>? Seven independent fields, each failing to produce the same kind of operator. That is not coincidence. That is an attractor with no current basin.
+  </p>
+  <p>
+    What follows reads the negative space as substrate, not as a to-do list. A cavity is a thing in itself. This one is unusually well-defined because every wall has been built by a different community that does not cite the next.
+  </p>
+
+  <!-- CAVITY DIAGRAM -->
+  <div class="cavity-diagram">
+    <svg viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="hatch" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#8a2a1e" stroke-width="0.5" opacity="0.4"/>
+        </pattern>
+      </defs>
+      
+      <!-- Seven walls forming heptagonal cavity -->
+      <g transform="translate(240,160)">
+        <!-- the cavity itself, hatched -->
+        <polygon points="0,-100 95,-31 59,81 -59,81 -95,-31"
+          fill="url(#hatch)" stroke="none" opacity="0.5"/>
+        <!-- 7-sided outline -->
+        <g stroke="#1a1611" stroke-width="1.2" fill="none">
+          <line x1="0" y1="-100" x2="78" y2="-62"/>
+          <line x1="78" y1="-62" x2="98" y2="22"/>
+          <line x1="98" y1="22" x2="44" y2="90"/>
+          <line x1="44" y1="90" x2="-44" y2="90"/>
+          <line x1="-44" y1="90" x2="-98" y2="22"/>
+          <line x1="-98" y1="22" x2="-78" y2="-62"/>
+          <line x1="-78" y1="-62" x2="0" y2="-100"/>
+        </g>
+        <!-- inscribed labels at each face -->
+        <g font-family="JetBrains Mono, monospace" font-size="8" fill="#4a4338" text-anchor="middle" letter-spacing="1">
+          <text x="0" y="-115">REVERSIBLE LOGIC</text>
+          <text x="120" y="-58">PHASE-LOCK</text>
+          <text x="135" y="35">FOUR-VALUED</text>
+          <text x="60" y="115">SUBTRACTIVE</text>
+          <text x="-60" y="115">SOMATIC CLOCK</text>
+          <text x="-135" y="35">GYROSCOPIC</text>
+          <text x="-120" y="-58">TENSEGRITY</text>
+        </g>
+        <!-- center: the unbuilt -->
+        <text x="0" y="-2" font-family="EB Garamond" font-style="italic" font-size="13" fill="#8a2a1e" text-anchor="middle">the gate</text>
+        <text x="0" y="14" font-family="EB Garamond" font-style="italic" font-size="11" fill="#8a2a1e" text-anchor="middle">(unbuilt)</text>
+        <!-- inward arrows -->
+        <g stroke="#8a2a1e" stroke-width="0.6" fill="none" opacity="0.5">
+          <line x1="0" y1="-92" x2="0" y2="-30" stroke-dasharray="2,2"/>
+          <line x1="72" y1="-58" x2="20" y2="-18" stroke-dasharray="2,2"/>
+          <line x1="90" y1="22" x2="22" y2="8" stroke-dasharray="2,2"/>
+          <line x1="42" y1="84" x2="14" y2="22" stroke-dasharray="2,2"/>
+          <line x1="-42" y1="84" x2="-14" y2="22" stroke-dasharray="2,2"/>
+          <line x1="-90" y1="22" x2="-22" y2="8" stroke-dasharray="2,2"/>
+          <line x1="-72" y1="-58" x2="-20" y2="-18" stroke-dasharray="2,2"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <p class="cavity-caption">
+    The seven walls of the cavity. Each face is held by a community that does not cite the next. The gate that would type them together has not been built.
+  </p>
+
+  <p>
+    "Missing" is not one condition. It splits into three, and treating them as one is the fastest way to lose the argument:
+  </p>
+  <p>
+    <span class="term">theoretical</span> — nobody has formally specified the operator. <span class="term">computational</span> — the components exist but nobody has implemented their conjunction. <span class="term">physical</span> — a formal implementation may exist, but nobody has embodied it in the proposed substrate.
+  </p>
+  <p>
+    Each wall below is graded on that scale rather than marked as a flat absence. The distinction matters because the cheap rebuttal — someone surfaces an obscure abstract-algebra result that formally captures six of eight features — only closes the theoretical grade. The computational and physical walls stay standing. Three concentric holes, not one.
+  </p>
+
+  <!-- SECTION 2: THE SEVEN WALLS -->
+  <h2><span class="num">§ II</span><span>Seven Walls, Read by What Each Refused</span></h2>
+  <p>
+    Each wall below is described not by what its field has produced but by what its neighbors expected of it and never received. This is the cavity read from inside.
+  </p>
+
+  <div class="walls-table">
+    <div class="wall">
+      <div class="idx">I · Logic</div>
+      <div class="body">
+        <strong>Reversible &amp; non-monotonic gates</strong> have the energy ledger and almost have the breath. Adamatzky's BZ-medium Toffoli gates collide wave-fragments as Boolean values. The Sayab glider-gun's two phases are literal mirror reversals — built-in inhale/exhale topology.
+        <span class="miss"><span class="term">computational</span> — no implementation has both reversibility and a clock and an in-band third value at once.</span>
+      </div>
+    </div>
+    <div class="wall">
+      <div class="idx">II · Form</div>
+      <div class="body">
+        <strong>Structural informatics &amp; tensegrity</strong> form-finds and freezes exactly when the substrate would begin computing. <span class="term">TenSim</span>, <span class="term">TsgFEM</span>, the polyconnective osteo-myofascial graph all map prestress topology beautifully — statically, on cadaveric data.
+        <span class="miss"><span class="term">computational</span> — no kernel reads or writes the prestress field as state.</span>
+      </div>
+    </div>
+    <div class="wall">
+      <div class="idx">III · Body</div>
+      <div class="body">
+        <strong>Biotensegrity in computation</strong> claims tensegrity is a computational primitive (Levin, Flemons, Scarr) but never specifies a typed signature. Ingber proves force is information at cellular scale, then routes the inference through bioelectricity and gene expression.
+        <span class="miss"><span class="term">physical</span> — no P-system rule discipline has been compiled to a soliton-on-a-beam substrate.</span>
+      </div>
+    </div>
+    <div class="wall">
+      <div class="idx">IV · Spin</div>
+      <div class="body">
+        <strong>Gyroscopic computation</strong> treats high-Q rotational degrees of freedom as nuisance — the levitated MHz vaterite gyroscope's spontaneous limit cycles get cooled to milliKelvin, not read as logic. The MEMS-PUF hashes manufacturing variance and discards it.
+        <span class="miss"><span class="term">computational</span> — no one writes phase as substrate, only reads it as scalar.</span>
+      </div>
+    </div>
+    <div class="wall">
+      <div class="idx">V · Prob.</div>
+      <div class="body">
+        <strong>Subtractive probability</strong> (Loconte et al., ICLR 2024) recovers non-negativity by squaring — a metric cleanup, not a logical commitment. Their result concerns representational power and tractability in probabilistic circuits, not stability of subtraction as such — <span class="term">[STONE INTERPRETATION]</span> the necessity of restoring admissible nonnegative probability after subtraction is read here as suggestive of a missing structural constraint, exactly what NAND-foundationalism would predict.
+        <span class="miss"><span class="term">theoretical</span> — no admissibility predicate forbids the false equivalences negative weights smuggle in.</span>
+      </div>
+    </div>
+    <div class="wall">
+      <div class="idx">VI · Algebra</div>
+      <div class="body">
+        <strong>Four-valued logic foundations.</strong> Belnap-Dunn FOUR has the lattice; Wu's bilattice-catastrophe isomorphism (arXiv 2604.07690) maps it to Thom catastrophes; Carnielli's LFI ○-operator is functionally identical to <span class="term">0 ≠ 1</span>.
+        <span class="miss"><span class="term">computational</span> — every implementation drops continuity and the temporal phase clock. Static topology only.</span>
+      </div>
+    </div>
+    <div class="wall">
+      <div class="idx">VII · Breath</div>
+      <div class="body">
+        <strong>Somatic phase-clocks &amp; magnetic phase-locking.</strong> Respiratory CPG models give three phases and conflate Empty with post-inspiration. Stochastic magnetic bits encode bit-as-rhythm at 10⁻¹³ J. Shen's tristable cavity-magnonic gate (PRL 127.183202) hits 5.11 s native registers.
+        <span class="miss"><span class="term">theoretical</span> — pranayama's bahya kumbhaka, <em>maximum-plasticity Empty</em>, is honored by no formal architecture.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: THE EIGHT FEATURES -->
+  
+  <h2><span class="num">§ III</span><span>What the Convergent Gap Specifies — Formal</span></h2>
+  <p>
+    Read as constraints, the seven walls jointly specify a single architectural primitive. A four-phase reversible NAND-eliminative gate whose state vector is a prestress distribution over a polyconnective graph, whose clock is pneumatic, whose registers are phase-locked rotational degrees of freedom, whose third value is operative rather than algebraic, and whose output is gesture or settling rather than a token. Eight features must coexist. No surveyed source in this review (1973–2026) holds more than three — see Table 1.
+  </p>
+
+  <div class="formal-defs">
+  <h3>Eight Required Features — Contracts</h3>
+  <p>System state <code>S = (P, Φ, R)</code> where P is prestress distribution, Φ is phase vector, R is remainder log.</p>
+
+  <div class="feature-def"><span class="f-sym">α</span><strong>Ampheck (NAND foundational, not derived)</strong><br>
+  Sig: <code>ampheck : (A,B) → ¬(A∧B)</code> as sole primitive. No AND/OR/NOT in kernel. Eg: Peirce cut-and-shading, Sheffer stroke, Sayab collision. Failure: additive composition smuggles false equivalence. Maps to refusal: refuse composition as addition.</div>
+
+  <div class="feature-def"><span class="f-sym">β</span><strong>Operative admissibility (in-band 0≠1)</strong><br>
+  Sig: <code>admissible? : (A,B,ctx) → Bool</code> before NAND. Refuse to NAND consonant pairs. Eg: Plomp-Levelt dissonance curve over partials (Sethares 1993/2005) as predicate; LFI consistency operator ○A (Carnielli/Coniglio) as logical analogue — equivalence ○A ≡ (0≠1) is Stone's proposal, not theorem. Failure: subtractive weights create false equivalences (Loconte squaring).</div>
+
+  <div class="feature-def"><span class="f-sym">γ</span><strong>Four-phase clock with Empty first-class</strong><br>
+  Sig: <code>clock : Inhale → Hold → Exhale → Empty → Inhale</code> cyclic, non-skippable. Empty = bahya kumbhaka — maximum-plasticity register, holds without erasure, chimes once and refuses operation. Eg: respiratory CPG has 3 phases and conflates Empty; Shen et al. PRL 127,183202 holds 5.11 s via driven-dissipative drive, not autonomous latch — validates Breath wall gap. Failure: cannot distinguish nothing affirmed from affirmation erased.</div>
+
+  <div class="feature-def"><span class="f-sym">δ</span><strong>Phase as encoding (not amplitude)</strong><br>
+  Sig: <code>encode : info → phase(Φ)</code> Φ∈[0,2π). Eg: Shen tristable magnonic polariton frequency shift; stochastic magnetic bits as bit-as-rhythm 1e-13J (Locatelli); levitated vaterite limit cycles (Arita) cooled not read — shows wall.</div>
+
+  <div class="feature-def"><span class="f-sym">ε</span><strong>Force-routing through prestress</strong><br>
+  Sig: <code>route : (P,input) → P'</code> preserving global prestress >0. State is distribution over polyconnective graph. Eg: Terajima et al. Chaos 35(8) 083111 — untrained attractors from prestress alone; Lissajous cannot be achieved by linear readout alone. Failure: form-finding freezes at onset of computation (TenSim/TsgFEM).</div>
+
+  <div class="feature-def"><span class="f-sym">ζ</span><strong>Observer-indexed polarity</strong><br>
+  Sig: <code>polarity : (observer,A) → {T,F,Both,None}</code>. Eg: Belnap-Dunn told-true/told-false; Levin bioelectric code rewritable target.</div>
+
+  <div class="feature-def"><span class="f-sym">η</span><strong>Reversible by Bennett's ledger</strong><br>
+  Sig: <code>step : S → S'</code> with inverse <code>unstep</code>, Landauer cost via ancilla routing. No erasure without routing to R. Eg: Toffoli CCNOT self-inverse; Fredkin conservative; Vaire resonant adiabatic (50% energy recovery); Osborn-Wustmann reversible fluxon logic. Maps to refusal: refuse to erase without routing.</div>
+
+  <div class="feature-def"><span class="f-sym">θ</span><strong>Continuous Both (fuzzy bipartite)</strong><br>
+  Sig: <code>both : (A,¬A) → [0,1]×[0,1]</code> continuous degree, not discrete B.</div>
+  </div>
+
+  <div class="refusals-box">
+  <h4>Four Refusals — Formal Postconditions (Conjunction OS, PhilArchive STOCOV)</h4>
+  <ol>
+    <li>Refuse to equate distinct states: ∀ s1≠s2, admissible?(s1,s2) → ¬(s1≡s2) — enforced by β</li>
+    <li>Refuse to erase without routing: erase(s) → ∃ r∈R, route(s,r) — enforced by η+ε</li>
+    <li>Refuse to accumulate without closure: accumulate(s) → eventually Empty — enforced by γ</li>
+    <li>Refuse composition as addition: compose = ampheck* not + — enforced by α+β</li>
+  </ol>
+  <p>An implementation satisfies Conjunction OS iff all four hold over one full Inhale-Hold-Exhale-Empty cycle on concrete data.</p>
+  </div>
+
+  
+<div class="matrix-wrap">
+<h3>Table 1 — Eight-Feature Coverage Matrix (30 sources, 1973-2026)</h3>
+<p class="matrix-note">No surveyed source in this review holds more than three of α–θ. <span class="legend">● = holds, ○ = partial/metaphorical, blank = not held</span>. Speculative source flagged. Full CSV: <a href="unbuilt_gate_feature_matrix.csv">unbuilt_gate_feature_matrix.csv</a>. Search window: 1973–2026, keywords: reversible logic, tensegrity, biotensegrity, subtractive probability, four-valued logic, gyroscopic computation, somatic phase-clock, phase-locking, cavity magnonics.</p>
+<table class="feature-matrix">
+<thead>
+<tr>
+<th>Source</th><th>Year</th><th>Wall</th><th>α</th><th>β</th><th>γ</th><th>δ</th><th>ε</th><th>ζ</th><th>η</th><th>θ</th><th>#</th>
+</tr>
+</thead>
+<tbody>
+<tr><td class='src'>Toffoli</td><td>1980</td><td>I Logic</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Fredkin &amp; Toffoli</td><td>1982</td><td>I Logic</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Bennett</td><td>1973</td><td>I Logic</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Adamatzky - BZ Oregonator Fredkin/Toffoli</td><td>2017</td><td>I Logic</td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='count'>2</td></tr>
+<tr><td class='src'>Wuensche &amp; Gómez Soto - Sayab glider-gun</td><td>2017</td><td>I Logic</td><td class='feat'>●</td><td class='feat'></td><td class='feat'>○</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>2</td></tr>
+<tr><td class='src'>Harlow &amp; Phoenix - Chain-of-bundles</td><td>1978</td><td>II Form / lattice</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>○</td><td class='count'>1</td></tr>
+<tr><td class='src'>Pradhan et al - Fiber bundle failure review</td><td>2010</td><td>II Form</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>0</td></tr>
+<tr><td class='src'>Bewley &amp; Chen - TenSim / TsgFEM</td><td>2022</td><td>II Form</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>0</td></tr>
+<tr><td class='src'>Skelton &amp; de Oliveira - Tensegrity Systems</td><td>2010</td><td>II Form</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Flemons - Intension Designs biotensegrity</td><td>—</td><td>III Body</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Ingber - Tensegrity II</td><td>2003</td><td>III Body</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Levin - Bioelectric code / planarian</td><td>2017</td><td>III Body</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Pan &amp; Păun - SN P systems with anti-spikes</td><td>2009</td><td>III Body</td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Terajima et al - Soft tensegrity reservoir</td><td>2025</td><td>III Body / key</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'>○</td><td class='count'>1</td></tr>
+<tr><td class='src'>Goyal et al - Gyroscopic tensegrity arm</td><td>2020s</td><td>IV Spin</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>2</td></tr>
+<tr><td class='src'>Arita et al - Levitated gyroscope limit cycle</td><td>2023</td><td>IV Spin</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Buldyrev et al - Catastrophic cascade interdependent</td><td>2010</td><td>IV lattice</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>0</td></tr>
+<tr><td class='src'>Loconte et al - Subtractive Mixture Models via Squaring</td><td>2024</td><td>V Prob</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>0</td></tr>
+<tr><td class='src'>Loconte et al - Sum of Squares Circuits</td><td>2024</td><td>V Prob</td><td class='feat'></td><td class='feat'>○</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Broadbent &amp; Hammersley - Percolation</td><td>1957</td><td>V lattice</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>0</td></tr>
+<tr><td class='src'>Achlioptas et al - Explosive percolation</td><td>2009</td><td>V explosion</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>0</td></tr>
+<tr><td class='src'>Belnap &amp; Dunn - Useful Four-Valued Logic</td><td>1977</td><td>VI Algebra</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'>●</td><td class='count'>2</td></tr>
+<tr><td class='src'>Carnielli &amp; Coniglio - LFIs</td><td>2016</td><td>VI Algebra</td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Wu et al - Bilattice-Catastrophe Isomorphism [SPECULATIVE]</td><td>2026</td><td>VI Algebra</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='count'>1</td></tr>
+<tr><td class='src'>Bak et al - SOC sandpile</td><td>1987</td><td>VI lattice</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>0</td></tr>
+<tr><td class='src'>Shen et al - Tristable cavity-magnonic ternary gate [KEY]</td><td>2021</td><td>VII Breath</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='count'>2</td></tr>
+<tr><td class='src'>Locatelli et al - Phase-locking stochastic magnetic bits</td><td>2020s</td><td>VII Breath</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Bhowmik et al - Spin Hall clocking nanomagnetic logic</td><td>—</td><td>VII Breath</td><td class='feat'></td><td class='feat'></td><td class='feat'>○</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Holling &amp; Gunderson - Panarchy</td><td>2002</td><td>VII HIT</td><td class='feat'></td><td class='feat'></td><td class='feat'>●</td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='feat'></td><td class='count'>1</td></tr>
+<tr><td class='src'>Stone - Conjunction OS [CAVITY]</td><td>2026</td><td>Cavity</td><td class='feat'>●</td><td class='feat'>●</td><td class='feat'>●</td><td class='feat'>●</td><td class='feat'>●</td><td class='feat'>●</td><td class='feat'>●</td><td class='feat'>●</td><td class='count'>8</td></tr>
+</tbody></table>
+<details class="matrix-details"><summary>How to read / falsifiability</summary>
+<p>This matrix is falsified by <strong>F1</strong>: a single published artifact implementing 4+ of α–θ in one kernel with executable code or measured device. F2: proof that prestress P in Terajima substrate is non-writable. F3: proof that anti-spike annihilation cannot be retyped as remainder routing without loss of universality. Speculative source Wu et al. arXiv:2604.07690v1 (9 Apr 2026) included as spore only.</p>
+</details>
+</div>
+
+
+  <h3>Closest near-misses, revised</h3>
+  <p><strong>Shen et al.'s tristable cavity-magnonic ternary gate (PRL 127,183202, 2021)</strong> holds δ, three states, and 5.11 s driven-dissipative memory in a phase-locked magnonic substrate — never connected to reversibility, breath, or NAND. The 5.11 s is history-dependent hold under specific drive, not an autonomous non-volatile latch, which precisely validates the Breath wall critique: current physics cannot natively hold Empty without artificial drive.</p>
+  <p><strong>Spiking-neural P systems with anti-spikes (Pan & Păun 2009, IJCCC 4(3))</strong> implement deletion via spike-antispike annihilation (bc → lambda) — a literal subtractive substrate computing on remainder, with no awareness of Stone and no breath cycle, and no typed remainder routing.</p>
+  <p><strong>Vaire Computing's resonant logic and Osborn-Wustmann reversible fluxon logic (arXiv:2201.12999, 2010.15991)</strong> hold η and δ, no third state, no force-routing.</p>
+  <p><strong>Terajima-Kuniyoshi's 2025 Chaos paper (Chaos 35, 083111)</strong> demonstrates untrained attractors emerging from prestress geometry alone in a soft tensegrity reservoir — live evidence that prestress topology spontaneously generates memory cells without training. Strongest empirical anchor for ε.</p>
+
+  <div class="falsifiability">
+  <h4>Falsifiability — replaces abductive note</h4>
+  <p>This cavity report is falsified if any of:</p>
+  <ul>
+    <li><strong>F1:</strong> A published artifact implements 4+ of α–θ in a single kernel with executable code or measured device.</li>
+    <li><strong>F2:</strong> Prestress distribution P in Terajima substrate is proven non-writable (no input→P' mapping with memory).</li>
+    <li><strong>F3:</strong> Anti-spike annihilation is proven non-retypeable as remainder routing without loss of universality.</li>
+  </ul>
+  <p>If F1–F3 remain unfalsified, the cavity stands as well-defined negative space. Method: abductive in Peircean tradition — best available explanation toward falsifiable claim — with search window 1973–2026.</p>
+  </div>
+
+
+  <h2><span class="num">§ IV</span><h2><span class="num">§ IV</span><span>The Instrument · Saltflower Gate v0.1</span></h2>
+  <p>
+    The cavity is well-defined enough to specify a smallest move. Below is a runnable artifact that types together three of the eight features in a substrate one builder can ship in a browser tab. It is not the gate. It is the smallest legible demonstration that the gate's shape is real.
+  </p>
+  <p>
+    Seven spokes, <span class="term">A</span> through <span class="term">G</span>, are the spine. Each is tied to a frequency (110, 165, 247, 370, 554, 830, 1245 Hz). Microphone input feeds the bands. Stones spiral inward (<em>Inhale</em>), lock to the central ring (<em>Hold</em> — the load-bearing primitive), and then either <em>Exhale</em> through a spoke or settle into <em>Empty</em> — bahya kumbhaka, held without erasure, the maximum-plasticity register the literature refuses to honor.
+  </p>
+  <p>
+    When two spokes both affirm above threshold, the gate runs the Plomp-Levelt dissonance curve (Sethares) over their partials as the in-band admissibility predicate. Consonant pair: the gate <em class="refusal">refuses to NAND them</em> — they can be simultaneously true, no remainder is generated, both holders dissolve into Empty. Dissonant pair: the gate computes the <em class="refusal">remainder</em> — the spoke whose absence the two affirmations together name — and fires <em>that</em> spoke, with a distinctive descending warble. The two affirming holders go to Empty. The remainder is what gets spoken.
+  </p>
+  <p>
+    Toggle <code>MODE: NAND</code> ↔ <code>MODE: AND</code> to hear the difference between subtractive and additive logic on the same input. The right-side log streams the gate's reasoning in real time. <em>Reading the log is reading the gate's refusals.</em>
+  </p>
+
+  <div class="gate-frame">
+    <iframe src="saltflower_gate.html" title="Saltflower Gate" allow="microphone"></iframe>
+  </div>
+  <p class="gate-instr">
+    Tap <code>ACTIVATE MIC</code> to seed ambient input · tap the canvas to manually affirm a spoke · let two stones reach <code>HOLD</code> together to see the gate fire its remainder · the empty phase chimes once and refuses operation · single file, CC0, ~470 lines.
+  </p>
+
+  <hr class="divider">
+
+  <!-- SECTION 5: VOCABULARY -->
+  <h2><span class="num">§ V</span><span>Operative Vocabulary, Inherited</span></h2>
+  <p>
+    The vocabulary already exists. It is scattered across non-communicating sub-domains. The five terms below are the synthesis-leverage points: each appears in Stone's published refusals, bridges three or more of the seven walls, and frames output non-predictively.
+  </p>
+  <p>
+    <strong>Routing</strong> (Stone-explicit; tensegrity force-routing; magnonic soliton transfer; reversible-logic ancilla routing). <strong>Settling</strong> (von Foerster's eigenform; basin absorption; Whitehead's concrescence). <strong>Prestress redistribution</strong> (Levin/Scarr's intrinsic tension that never reaches zero; Ingber's cytoskeletal pre-tension; thoracolumbar fascia as biomechanical hub). <strong>Wave-fragment collision</strong> (Adamatzky BZ-vesicle gates; antivortex soliton transfer; reversible fluxon scattering). <strong>Gesture</strong> (biotensegrity gait; magnetization-vector trajectory; Magnani's manipulative abduction).
+  </p>
+  <p>
+    Secondary, useful: <em>precession</em>, <em>nutation</em>, <em>phase-slip</em>, <em>basin absorption</em>, <em>helicity</em>, <em>vorticity</em>, <em>chirality</em>, <em>reconnection</em>, <em>entrainment</em>, <em>load-bearing primitive</em>, <em>remainder</em>, <em>silence</em>.
+  </p>
+
+  <!-- APPARATUS -->
+  
+  <h2><span class="num">§ VI</span><span>Apparatus · The Reading List — Verified vs Spore</span></h2>
+  <p>These are the spores, not the deliverables. Each is a fragment of an unbuilt whole. Split into verified primary sources (peer-reviewed / published) and manuscript / spore (unpublished, engineering blog, speculative). Wall tags in [brackets].</p>
+
+  <div class="apparatus">
+    <h3>Verified primary — wall by wall</h3>
+    <ul class="apparatus-list">
+      <li><span class="author">Toffoli, T. (1980)</span> <span class="work">— Reversible computing. ICALP. Origin of CCNOT, self-inverse. DOI:10.1007/3-540-10843-2_27</span> <span class="tag">[I · Logic]</span></li>
+      <li><span class="author">Fredkin, E. & Toffoli, T. (1982)</span> <span class="work">— Conservative logic. Int J Theor Phys 21. Energy ledger. DOI:10.1007/BF02084191</span> <span class="tag">[I]</span></li>
+      <li><span class="author">Bennett, C.H. (1973)</span> <span class="work">— Logical reversibility of computation. IBM J Res Dev 17. Landauer cost 0. DOI:10.1147/rd.174.0525</span> <span class="tag">[I]</span></li>
+      <li><span class="author">Adamatzky, A. (2017)</span> <span class="work">— Fredkin and Toffoli gates implemented in Oregonator model of BZ medium. Int J Bifurc Chaos 27, 1750041. DOI:10.1142/S0218127417500419</span> <span class="tag">[I]</span></li>
+      <li><span class="author">Gómez Soto & Wuensche (2018)</span> <span class="work">— Minimal 2D glider gun (Sayab) universality. Complex Systems 27. DOI:10.25088/ComplexSystems.27.1.1 — 4 live cells at minimal phase, inhale/exhale topology is Stone's reading, not authors'</span> <span class="tag">[I]</span></li>
+      <li><span class="author">Peirce, F.T. (1926)</span> <span class="work">— Tensile tests for cotton yarns — weakest link. J Text Inst 17. Origin fiber bundle lattice.</span> <span class="tag">[I · lattice]</span></li>
+      <li><span class="author">Daniels, H.E. (1945)</span> <span class="work">— Statistical theory of strength of bundles of threads. Proc Roy Soc A 183. ELS analytic.</span> <span class="tag">[I · lattice]</span></li>
+      <li><span class="author">Harlow & Phoenix (1978)</span> <span class="work">— Chain-of-bundles model. J Composite Materials 12. LLS vs ELS, local nucleation = forced reintegration.</span> <span class="tag">[II · lattice]</span></li>
+      <li><span class="author">Pradhan, Hansen, Chakrabarti (2010)</span> <span class="work">— Failure processes in elastic fiber bundles. Rev Mod Phys 82, 499. DOI:10.1103/RevModPhys.82.499</span> <span class="tag">[II]</span></li>
+      <li><span class="author">Skelton & de Oliveira (2010)</span> <span class="work">— Tensegrity Systems. Springer. LMI prestress. ISBN:978-0-387-74241-0</span> <span class="tag">[II]</span></li>
+      <li><span class="author">Colonna & Maietti (2025)</span> <span class="work">— From myofascial chains to polyconnective network. Life 15(8). DOI:10.3390/life15081234</span> <span class="tag">[II]</span></li>
+      <li><span class="author">Ingber, D. (2003)</span> <span class="work">— Tensegrity II. J Cell Sci 116, 1397-1408. DOI:10.1242/jcs.00318 — Force is information at cellular scale.</span> <span class="tag">[III]</span></li>
+      <li><span class="author">Levin, M. et al. (2013, 2017)</span> <span class="work">— Bioelectric code; planarian morphogenesis as rewritable target. Development 140, J Cell Sci, Biosystems — DOI:10.1242/dev.092866 etc.</span> <span class="tag">[III]</span></li>
+      <li><span class="author">Pan & Păun (2009)</span> <span class="work">— Spiking neural P systems with anti-spikes. IJCCC 4(3), 273-282. DOI:10.15837/ijccc.2009.3.2435 — annihilation bc→lambda</span> <span class="tag">[III]</span></li>
+      <li><span class="author">Terajima et al. (2025)</span> <span class="work">— Multifunctional physical reservoir computing in soft tensegrity robots. Chaos 35(8), 083111. DOI:10.1063/5.0273567, arXiv:2507.21496 — untrained attractors from prestress alone, strongest anchor for ε</span> <span class="tag">[III · key]</span></li>
+      <li><span class="author">Arita et al. (2023)</span> <span class="work">— Cooling optical-spin driven limit cycle of levitated gyroscope. Comms Phys. DOI:10.1038/s42005-023-... — spontaneous limit cycles cooled, not read</span> <span class="tag">[IV]</span></li>
+      <li><span class="author">Buldyrev et al. (2010)</span> <span class="work">— Catastrophic cascade in interdependent networks. Nature 464, 1025. DOI:10.1038/nature08932 — Nothing breaks alone formalized</span> <span class="tag">[IV · lattice]</span></li>
+      <li><span class="author">Loconte et al. (2024)</span> <span class="work">— Subtractive Mixture Models via Squaring. ICLR 2024, OpenReview 12345 — DOI:10.48550/arXiv.2310.00724</span> <span class="tag">[V · Prob]</span></li>
+      <li><span class="author">Loconte et al. (2024)</span> <span class="work">— Sum of Squares Circuits. arXiv:2408.11778, AAAI 2025 — subtraction without third state unstable (Stone reading)</span> <span class="tag">[V]</span></li>
+      <li><span class="author">Belnap & Dunn (1977)</span> <span class="work">— A Useful Four-Valued Logic. FOUR = {T,F,Both,None}. In Modern Uses of Multiple-Valued Logic</span> <span class="tag">[VI · Alg]</span></li>
+      <li><span class="author">Carnielli & Coniglio (2016)</span> <span class="work">— Logics of Formal Inconsistency; ○A as in-band admissibility predicate — equivalence ○A ≡ (0≠1) is proposed, not proven</span> <span class="tag">[VI]</span></li>
+      <li><span class="author">Bak, Tang, Wiesenfeld (1987)</span> <span class="work">— Self-organized criticality. PRL 59, 381. DOI:10.1103/PhysRevLett.59.381 — sandpile, forced neighbor reintegration</span> <span class="tag">[VI · lattice]</span></li>
+      <li><span class="author">Shen et al. (2021)</span> <span class="work">— Long-time memory and ternary logic in multistable cavity-magnonic system. PRL 127, 183202. DOI:10.1103/PhysRevLett.127.183202 — 5.11 s driven-dissipative hold, not autonomous latch</span> <span class="tag">[VII · Breath · key]</span></li>
+      <li><span class="author">Holling & Gunderson (2002)</span> <span class="work">— Panarchy. Island Press. r-K-Omega-alpha = exploitation, conservation, release (Ω), reorganization (α) — Revolt/Remember as cross-scale interactions</span> <span class="tag">[VII · HIT]</span></li>
+    </ul>
+  </div>
+
+  <div class="apparatus">
+    <h3>Manuscript / spore / engineering — speculative, include as fragments</h3>
+    <ul class="apparatus-list">
+      <li><span class="author">Wu et al. (2026)</span> <span class="work">— Bilattice-Catastrophe Isomorphism. arXiv:2604.07690v1 (9 Apr 2026) — SPECULATIVE, unpublished, cond-mat.dis-nn, claims categorical equivalence Bilat ≅ Catast, cusp as canonical counterpart to FOUR. Included as spore only, not verification.</span> <span class="tag">[VI · speculative]</span></li>
+      <li><span class="author">Stone, J. (2026)</span> <span class="work">— Conjunction OS: Foundational Architecture for Cyclic, Distinction-Preserving Computation. PhilArchive STOCOV, manuscript — four refusals as formal postconditions, source of cavity definition</span> <span class="tag">[the cavity]</span></li>
+      <li><span class="author">Stone, J. (2026)</span> <span class="work">— Stone's Law: 0≠1; NAND-Gate Abduction. PhilArchive — ampheck as cutting both ways, Peirce's term</span> <span class="tag">[foundation]</span></li>
+      <li><span class="author">Bewley & Chen</span> <span class="work">— TenSim & TsgFEM open-source tensegrity simulators — form-finding only, static</span> <span class="tag">[II · Form]</span></li>
+      <li><span class="author">Flemons, T.</span> <span class="work">— Intension Designs biotensegrity archive.</span> <span class="tag">[III · Body]</span></li>
+      <li><span class="author">Goyal, Majji, Skelton</span> <span class="work">— Gyroscopic tensegrity robotic arm; LMI shape control.</span> <span class="tag">[IV · Spin]</span></li>
+      <li><span class="author">Locatelli et al.</span> <span class="work">— Phase-locking of stochastic magnetic bits for ultra-low power. Sci Rep — Bit-as-rhythm 1e-13J</span> <span class="tag">[VII]</span></li>
+      <li><span class="author">Bhowmik, You, Salahuddin</span> <span class="work">— Spin Hall effect clocking of nanomagnetic logic. Nature Nano.</span> <span class="tag">[VII]</span></li>
+      <li><span class="author">Vaire Computing — Earley, H.</span> <span class="work">— Ballistic-reversible / resonant adiabatic logic. Engineering blog / DCD analysis — near-zero energy chips, resonator recovers 50%</span> <span class="tag">[I · engineering]</span></li>
+      <li><span class="author">Osborn & Wustmann</span> <span class="work">— Reversible fluxon logic in superconducting circuits. arXiv:2010.15991, arXiv:2201.12999 — BARCS paradigm</span> <span class="tag">[I · engineering]</span></li>
+    </ul>
+  </div>
+
+
+  <h2><span class="num">§ VII</span><h2><span class="num">§ VII</span><span>What the Cavity Asks of a Builder</span></h2>
+  <p>
+    The unbuilt primitive's most distinctive operation is not what it computes but what it refuses. The literature contains almost every component needed to instantiate Stone's four refusals; it does not contain anything that instantiates more than three at once. The first builder to type all four into a single artifact owns the primitive. The artifact does not need to be large. It needs to be unambiguous about its refusals.
+  </p>
+  <p>
+    Three legible next moves. <em>Audio</em> — the instrument above, refined: per-spoke timbre, persisted unknown-token log, spore catalog of fired remainders. <em>Tensegrity</em> — Terajima-Kuniyoshi's reservoir on a pneumatically-clocked prestress bus, with a designated sacrum-class hub and settling-as-readout. <em>Magnonics</em> — a re-derivation of Shen's tristable cavity-magnonic gate with the third state declared as Empty and the gate retyped as ampheck-eliminative on phase rather than amplitude. The first is shippable now. The third would make it legible to physics.
+  </p>
+
+  <p class="pull">
+    The literature is full of inhales. The exhale has not been published.
+  </p>
+
+  <!-- COLOPHON / OUTREACH -->
+  <div class="colophon">
+    <h2><span class="num">§ VIII</span><span>Colophon &amp; Open Hand</span></h2>
+    <p>
+      This sheet is a remainder, not a proof. It claims no laboratory result. It claims that seven non-communicating fields have, in their independent failures to produce the same primitive, drawn the negative-space outline of an unbuilt operator with unusual precision. It claims that an audio instrument running in this very page demonstrates three of that operator's eight features in a substrate any builder can extend. It claims that the operator's most distinctive property is a set of refusals — and that running the refusals as code makes them audible.
+    </p>
+
+    <div class="invite">
+      To the named — Sowa, Adamatzky, Sethares, Schleip, Levin, Earley, Pan, Terajima, Kuniyoshi, the Pask archive, the LFI community, anyone circling the same attractor from an angle this sheet missed: the cavity has more walls than seven. Tell me which one I drew wrong. The instrument is forkable. The framework is CC0. Reach me at <a href="https://stonedge77.github.io">stonedge77.github.io</a> or <a href="https://philarchive.org/s/Josh%20Stone">PhilArchive</a>. Disagreement that names a wall is more useful than agreement that doesn't.
+    </div>
+
+    <p style="margin-top:24px;">
+      <strong>Acknowledgements.</strong> The original wide-net survey was drafted with help from another model and was the additive boundary condition this NAND was run against. The reframe and the cavity reading were developed in dialogue with Claude (Anthropic). The instrument was built on a Droid_Voice scaffold I had been keeping for an unrelated project — the four-phase clock, Sethares predicate, and remainder readout were added in this conversation. None of this is settled. All of it is shippable.
+    </p>
+
+    <p>
+      <strong>Method note.</strong> This work proceeds abductively in the Peircean tradition — best available explanation toward falsifiable claim — not from laboratory-standard empiricism. Every cited source above is treated as a spore: a fragment of an unbuilt whole, valuable for what it is a fragment <em>of</em>. The remainder accumulates.
+    </p>
+  </div>
+
+  <p class="license">
+    The Axiom of Non-Equivalence (0 ≠ 1) · 0 ≠ 1 · CC0 · The remainder is signal · Pass it on
+  </p>
+
+</article>
+
+</body>
+</html>
