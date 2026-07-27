@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Unbuilt Gate v3 · A Cavity Report — Formal</title>
 
-<meta name="description" content="The Unbuilt Gate v3 — cavity report formal: eight features α-θ with contracts, Table 1 feature matrix, falsifiability F1-F3, verified vs spore bibliography. No surveyed source holds more than three of eight. CC0." (ampheck, admissibility, four-phase clock with Empty, phase encoding, prestress routing, polarity, reversibility, continuous Both). No one has built all 8. CC0.">
+<meta name="description" content="The Unbuilt Gate v3.1 technical — cavity report formal: eight features α-θ with contracts, Table 1 feature matrix, falsifiability F1-F3, verified vs spore bibliography. No surveyed source holds more than three of eight. Vedic terminology retyped to technical: post-expiratory null phase, high-susceptibility null register. CC0." (ampheck, admissibility, four-phase clock with Empty, phase encoding, prestress routing, polarity, reversibility, continuous Both). No one has built all 8. CC0.">
 <meta name="author" content="Josh Stone">
 <link rel="canonical" href="https://stonedge77.github.io/Saltflower/unbuilt-gate.html">
 <meta property="og:type" content="article">
@@ -540,6 +540,14 @@
   .matrix-details { margin-top:10px; font-size:13px; color: var(--ink-mid); }
   .falsifiability { border-left: 3px solid var(--accent); padding-left:14px; margin:22px 0; background: rgba(138,42,30,0.05); padding:12px 14px; }
 
+
+  .glossary-box { border: 1px solid var(--accent); padding: 16px 18px; margin: 24px 0; background: rgba(138,42,30,0.04); }
+  .glossary-box h3 { font-size: 13px; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:10px; }
+  .glossary-table { width:100%; border-collapse:collapse; font-size:13px; margin:8px 0; }
+  .glossary-table th { text-align:left; border-bottom:1px solid var(--ink); padding:4px 6px; font-family:'JetBrains Mono', monospace; font-size:11px; }
+  .glossary-table td { padding:5px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  .glossary-note { font-size:12px; color: var(--ink-mid); margin-top:8px; font-style:italic; }
+
 </style>
 </head>
 <body>
@@ -691,7 +699,7 @@
       <div class="idx">VII · Breath</div>
       <div class="body">
         <strong>Somatic phase-clocks &amp; magnetic phase-locking.</strong> Respiratory CPG models give three phases and conflate Empty with post-inspiration. Stochastic magnetic bits encode bit-as-rhythm at 10⁻¹³ J. Shen's tristable cavity-magnonic gate (PRL 127.183202) hits 5.11 s native registers.
-        <span class="miss"><span class="term">theoretical</span> — pranayama's bahya kumbhaka, <em>maximum-plasticity Empty</em>, is honored by no formal architecture.</span>
+        <span class="miss"><span class="term">theoretical</span> — respiratory phase oscillator's post-expiratory null phase, <em>maximum-susceptibility null register</em>, is honored by no formal architecture.</span>
       </div>
     </div>
   </div>
@@ -714,7 +722,7 @@
   Sig: <code>admissible? : (A,B,ctx) → Bool</code> before NAND. Refuse to NAND consonant pairs. Eg: Plomp-Levelt dissonance curve over partials (Sethares 1993/2005) as predicate; LFI consistency operator ○A (Carnielli/Coniglio) as logical analogue — equivalence ○A ≡ (0≠1) is Stone's proposal, not theorem. Failure: subtractive weights create false equivalences (Loconte squaring).</div>
 
   <div class="feature-def"><span class="f-sym">γ</span><strong>Four-phase clock with Empty first-class</strong><br>
-  Sig: <code>clock : Inhale → Hold → Exhale → Empty → Inhale</code> cyclic, non-skippable. Empty = bahya kumbhaka — maximum-plasticity register, holds without erasure, chimes once and refuses operation. Eg: respiratory CPG has 3 phases and conflates Empty; Shen et al. PRL 127,183202 holds 5.11 s via driven-dissipative drive, not autonomous latch — validates Breath wall gap. Failure: cannot distinguish nothing affirmed from affirmation erased.</div>
+  Sig: <code>clock : Inhale → Hold → Exhale → Empty → Inhale</code> cyclic, non-skippable. Empty = post-expiratory null phase — maximum-susceptibility null register, holds without erasure, chimes once and refuses operation. Eg: respiratory CPG has 3 phases and conflates Empty; Shen et al. PRL 127,183202 holds 5.11 s via driven-dissipative drive, not autonomous latch — validates Breath wall gap. Failure: cannot distinguish nothing affirmed from affirmation erased.</div>
 
   <div class="feature-def"><span class="f-sym">δ</span><strong>Phase as encoding (not amplitude)</strong><br>
   Sig: <code>encode : info → phase(Φ)</code> Φ∈[0,2π). Eg: Shen tristable magnonic polariton frequency shift; stochastic magnetic bits as bit-as-rhythm 1e-13J (Locatelli); levitated vaterite limit cycles (Arita) cooled not read — shows wall.</div>
@@ -814,7 +822,7 @@
     The cavity is well-defined enough to specify a smallest move. Below is a runnable artifact that types together three of the eight features in a substrate one builder can ship in a browser tab. It is not the gate. It is the smallest legible demonstration that the gate's shape is real.
   </p>
   <p>
-    Seven spokes, <span class="term">A</span> through <span class="term">G</span>, are the spine. Each is tied to a frequency (110, 165, 247, 370, 554, 830, 1245 Hz). Microphone input feeds the bands. Stones spiral inward (<em>Inhale</em>), lock to the central ring (<em>Hold</em> — the load-bearing primitive), and then either <em>Exhale</em> through a spoke or settle into <em>Empty</em> — bahya kumbhaka, held without erasure, the maximum-plasticity register the literature refuses to honor.
+    Seven spokes, <span class="term">A</span> through <span class="term">G</span>, are the spine. Each is tied to a frequency (110, 165, 247, 370, 554, 830, 1245 Hz). Microphone input feeds the bands. Stones spiral inward (<em>Inhale</em>), lock to the central ring (<em>Hold</em> — the load-bearing primitive), and then either <em>Exhale</em> through a spoke or settle into <em>Empty</em> — post-expiratory null phase, held without erasure, the maximum-susceptibility null register the literature refuses to honor.
   </p>
   <p>
     When two spokes both affirm above threshold, the gate runs the Plomp-Levelt dissonance curve (Sethares) over their partials as the in-band admissibility predicate. Consonant pair: the gate <em class="refusal">refuses to NAND them</em> — they can be simultaneously true, no remainder is generated, both holders dissolve into Empty. Dissonant pair: the gate computes the <em class="refusal">remainder</em> — the spoke whose absence the two affirmations together name — and fires <em>that</em> spoke, with a distinctive descending warble. The two affirming holders go to Empty. The remainder is what gets spoken.
@@ -827,7 +835,7 @@
     <iframe src="saltflower_gate.html" title="Saltflower Gate" allow="microphone"></iframe>
   </div>
   <p class="gate-instr">
-    Tap <code>ACTIVATE MIC</code> to seed ambient input · tap the canvas to manually affirm a spoke · let two stones reach <code>HOLD</code> together to see the gate fire its remainder · the empty phase chimes once and refuses operation · single file, CC0, ~470 lines.
+    Tap <code>ACTIVATE MIC</code> to seed ambient input · tap the canvas to manually affirm a spoke · let two stones reach <code>HOLD</code> together to see the gate fire its remainder · the null phase emits a single marker and inhibits operation · single file, CC0, ~470 lines.
   </p>
 
   <hr class="divider">
@@ -846,6 +854,25 @@
 
   <!-- APPARATUS -->
   
+  
+  <div class="glossary-box">
+  <h3>Terminology note — v3.1 technical retyping (Vedic → technical)</h3>
+  <p>Earlier drafts used respiratory contemplative terminology for accessibility. v3.1 retypes to technical terms to prevent misclassification as mythology. Mapping:</p>
+  <table class="glossary-table">
+  <thead><tr><th>Prior (poetic)</th><th>v3.1 technical</th><th>Definition</th></tr></thead>
+  <tbody>
+  <tr><td>bahya kumbhaka</td><td>post-expiratory null phase / PE-Null</td><td>Quiescent interval after exhalation, zero airflow, high neural/network susceptibility, first-class register, not reset</td></tr>
+  <tr><td>antara kumbhaka</td><td>post-inspiratory hold / PI-Hold</td><td>Hold after inhalation, maintained pressure</td></tr>
+  <tr><td>pranayama</td><td>four-phase respiratory CPG / pneumatic oscillator</td><td>Central pattern generator: Inhale (I) → PI-Hold → Exhale (E) → PE-Null → I, non-skippable</td></tr>
+  <tr><td>Empty</td><td>Null / Null register / high-susceptibility null</td><td>Maximum-plasticity state, holds without erasure, inhibits operation on entry, emits single marker</td></tr>
+  <tr><td>prana</td><td>pneumatic phase / airflow drive</td><td>Clock signal, not vitalistic term</td></tr>
+  <tr><td>breath (as metaphor)</td><td>phase-clock, slow-fast relaxation oscillator</td><td>Low-frequency global clock coupling phase to prestress</td></tr>
+  </tbody>
+  </table>
+  <p class="glossary-note">We retain Empty as proper name for the register (capitalized) but define it strictly as post-expiratory null phase with maximal susceptibility. All operational semantics are in terms of phase, prestress, and admissibility predicates — no metaphysical content.</p>
+  </div>
+
+
   <h2><span class="num">§ VI</span><span>Apparatus · The Reading List — Verified vs Spore</span></h2>
   <p>These are the spores, not the deliverables. Each is a fragment of an unbuilt whole. Split into verified primary sources (peer-reviewed / published) and manuscript / spore (unpublished, engineering blog, speculative). Wall tags in [brackets].</p>
 
